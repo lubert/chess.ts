@@ -368,26 +368,28 @@ export class Chess {
     return null
   }
 
-  public history(options: { verbose: boolean } = { verbose: false }) {
-    const reversed_history: Array<Move | null> = []
-    const move_history: Array<string | PrettyMove> = []
-    const verbose = options.verbose;
+  public history(options: { verbose?: boolean } = {}) {
+    const moveHistory: Array<string | PrettyMove> = []
+    const { verbose = false } = options;
 
-    while (this._history.length > 0) {
-      reversed_history.push(this.undoMove())
+    if (!this._history.length) {
+      return []
     }
 
-    while (reversed_history.length > 0) {
-      let move = reversed_history.pop() as Move
+    let state
+    this._history.forEach((gameHistory) => {
+      const move = gameHistory.move
+      state = gameHistory.state
+
       if (verbose) {
-        move_history.push(makePretty(this._state, move))
+        moveHistory.push(makePretty(state, move))
       } else {
-        move_history.push(moveToSan(this._state, move))
+        moveHistory.push(moveToSan(state, move))
       }
-      this.makeMove(move)
-    }
+      state = makeMove(state, move)
+    })
 
-    return move_history
+    return moveHistory
   }
 
   public getComment(): string {
