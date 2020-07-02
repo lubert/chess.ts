@@ -10,7 +10,7 @@ const {
   WHITE,
   BLACK,
 } = require('../src/constants');
-const { algebraic } = require('../src/utils');
+const { algebraic, validateFen } = require('../src/utils');
 
 /* from the ECMA-262 spec (section 12.6.4):
  * "The mechanics of enumerating the properties ... is
@@ -1324,7 +1324,7 @@ describe("Validate FEN", function() {
   positions.forEach(function(position) {
 
     it(position.fen + ' (valid: ' + (position.error_number  == 0) + ')', function() {
-      var result = chess.validateFen(position.fen);
+      var result = validateFen(position.fen);
       expect(result.error_number == position.error_number).toBe(true);
     });
 
