@@ -1206,3 +1206,24 @@ export function ascii(board: Board, eol = '\n'): string {
     '    a  b  c  d  e  f  g  h',
   ].join(eol)
 }
+
+export function getBoard(board: Board): (Piece | null)[][] {
+  const output = []
+  let row = []
+
+  for (let i = SQUARES.a8; i <= SQUARES.h1; i++) {
+    const piece = board[i]
+    if (piece == null) {
+      row.push(null)
+    } else {
+      row.push({ type: piece.type, color: piece.color })
+    }
+    if ((i + 1) & 0x88) {
+      output.push(row)
+      row = []
+      i += 8
+    }
+  }
+
+  return output
+}

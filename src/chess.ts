@@ -18,6 +18,7 @@ import {
   loadPgn,
   getPgn,
   ascii,
+  getBoard,
 } from "./state"
 import {
   algebraic,
@@ -267,24 +268,7 @@ export class Chess {
    * are represented by null.
    */
   public board() {
-    const output = []
-    let row = []
-
-    for (let i = SQUARES.a8; i <= SQUARES.h1; i++) {
-      const piece = this._state.board[i]
-      if (piece == null) {
-        row.push(null)
-      } else {
-        row.push({ type: piece.type, color: piece.color })
-      }
-      if ((i + 1) & 0x88) {
-        output.push(row)
-        row = []
-        i += 8
-      }
-    }
-
-    return output
+    return getBoard(this._state.board)
   }
 
   /**
