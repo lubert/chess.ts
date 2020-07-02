@@ -7,7 +7,6 @@ import {
   moveToSan,
   putPiece,
   sanToMove,
-  undoMove,
   loadFen,
   makePretty,
   getPiece,
@@ -34,7 +33,7 @@ import {
 
 export class Chess {
   protected _state: State;
-  protected _history: HistoryState[];
+  protected _history: GameHistory[];
   protected _header: Header;
   protected _comments: Comments;
 
@@ -541,23 +540,18 @@ export class Chess {
   protected makeMove(move: Move): void {
     this._history.push({
       move: move,
-      kings: { b: this._state.kings.b, w: this._state.kings.w },
-      turn: this._state.turn,
-      castling: { b: this._state.castling.b, w: this._state.castling.w },
-      ep_square: this._state.ep_square,
-      half_moves: this._state.half_moves,
-      move_number: this._state.move_number
+      state: this._state,
     })
     this._state = makeMove(this._state, move)
   }
 
   protected undoMove(): Move | null {
-    const old = this._history.pop()
-    if (old == null) {
+    const prev = this._history.pop()
+    if (prev == null) {
       return null
     }
-    this._state = undoMove(this._state, old)
-    return old.move
+    this._state = prev.state
+    return prev.move
   }
 
   // convert a move from Standard Algebraic Notation (SAN) to 0x88 coordinates

@@ -28,25 +28,23 @@ interface Comment {
   comment: string;
 }
 
-interface BaseState {
+interface ColorState extends Record<Color, number>{
+  w: number;
+  b: number;
+}
+
+interface GameHistory {
+  move: Move;
+  state: State;
+}
+
+interface State {
   kings: ColorState;
   turn: Color;
   castling: ColorState;
   ep_square: number;
   half_moves: number;
   move_number: number;
-}
-
-interface ColorState extends Record<Color, number>{
-  w: number;
-  b: number;
-}
-
-interface HistoryState extends BaseState {
-  move: Move;
-}
-
-interface State extends BaseState {
   board: Board;
 }
 

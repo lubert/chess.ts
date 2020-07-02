@@ -219,7 +219,7 @@ export function getPgn(
   state: State,
   header: Header,
   comments: Comments,
-  history: HistoryState[],
+  history: GameHistory[],
   options: { newline_char?: string, max_width?: number } = {}
 ): string {
   /* using the specification from http://www.chessclub.com/help/PGN-spec
@@ -255,10 +255,10 @@ export function getPgn(
     return moveStr
   }
 
-  /* Undo moves to get the initial state */
-  history.slice().reverse().forEach(historyState => {
-    state = undoMove(state, historyState)
-  })
+  // Set initial state
+  if (history[0]) {
+    state = history[0].state
+  }
 
   const moves = []
   let moveStr = ''
@@ -270,8 +270,9 @@ export function getPgn(
 
   /* build the list of moves.  a move_string looks like: "3. e3 e6" */
   history.forEach((historyState, i) => {
-    moveStr = appendComment(moveStr)
     const move = historyState.move
+
+    moveStr = appendComment(moveStr)
 
     /* if the position started with black to move, start PGN with 1. ... */
     if (i === 0 && move.color === BLACK) {
@@ -288,7 +289,7 @@ export function getPgn(
     state = makeMove(state, move)
   })
 
-  /* are there any other leftover moves? */
+  // Append leftover moves
   if (moveStr.length) {
     moves.push(appendComment(moveStr))
   }
@@ -369,7 +370,7 @@ export function getPgn(
 export function loadPgn(
   pgn: string,
   options: { newline_char?: string, sloppy?: boolean } = {}
-): [State, Header, Comments, HistoryState[]] | null {
+): [State, Header, Comments, GameHistory[]] | null {
   const {
     newline_char = '\r?\n',
     // allow the user to specify the sloppy move parser to work around over
@@ -429,9 +430,6 @@ export function loadPgn(
 
   /* parse PGN header */
   const header = parse_pgn_header(header_string, { newline_char, sloppy })
-  // for (const key in headers) {
-  //   this.header([key, headers[key] as string])
-  // }
 
   /* load the starting position indicated by [Setup '1'] and
    * [FEN position] */
@@ -523,8 +521,8 @@ export function loadPgn(
     .split(',')
 
   const comments: Comments = {}
-  const history: HistoryState[] = []
-  const moves = []
+  const history: GameHistory[] = []
+
   for (let half_move = 0; half_move < tokens.length; half_move++) {
     const token = tokens[half_move]
     const comment = decodeComment(token)
@@ -544,15 +542,7 @@ export function loadPgn(
     if (move === null) {
       return null
     } else {
-      history.push({
-        move: move,
-        kings: { b: state.kings.b, w: state.kings.w },
-        turn: state.turn,
-        castling: { b: state.castling.b, w: state.castling.w },
-        ep_square: state.ep_square,
-        half_moves: state.half_moves,
-        move_number: state.move_number
-      })
+      history.push({ move, state })
       const newState = makeMove(state, move)
       if (!newState) {
         return null
@@ -1118,58 +1108,58 @@ export function makeMove(prevState: State, move: Move): State {
   return state
 }
 
-export function undoMove(prevState: State, old: HistoryState): State {
-  const state = clone(prevState)
-  const move = old.move
-  state.kings = old.kings
-  state.turn = old.turn
-  state.castling = old.castling
-  state.ep_square = old.ep_square
-  state.half_moves = old.half_moves
-  state.move_number = old.move_number
+// export function undoMove(prevState: State, undoState: State): State {
+//   const state = clone(prevState)
+//   const move = old.move
+//   state.kings = old.kings
+//   state.turn = old.turn
+//   state.castling = old.castling
+//   state.ep_square = old.ep_square
+//   state.half_moves = old.half_moves
+//   state.move_number = old.move_number
 
-  const us = state.turn
-  const them = swapColor(state.turn)
+//   const us = state.turn
+//   const them = swapColor(state.turn)
 
-  const board = state.board
-  board[move.from] = board[move.to]
-  const fromPiece = board[move.from]
-  if (fromPiece !== undefined && isPieceSymbol(move.piece)) {
-    fromPiece.type = move.piece // to undo any promotions
-  }
-  delete board[move.to]
+//   const board = state.board
+//   board[move.from] = board[move.to]
+//   const fromPiece = board[move.from]
+//   if (fromPiece !== undefined && isPieceSymbol(move.piece)) {
+//     fromPiece.type = move.piece // to undo any promotions
+//   }
+//   delete board[move.to]
 
-  if (move.flags & BITS.CAPTURE && move.captured && isPieceSymbol(move.captured)) {
-    board[move.to] = { type: move.captured, color: them }
-  } else if (move.flags & BITS.EP_CAPTURE) {
-    var index
-    if (us === BLACK) {
-      index = move.to - 16
-    } else {
-      index = move.to + 16
-    }
-    board[index] = { type: PAWN, color: them }
-  }
+//   if (move.flags & BITS.CAPTURE && move.captured && isPieceSymbol(move.captured)) {
+//     board[move.to] = { type: move.captured, color: them }
+//   } else if (move.flags & BITS.EP_CAPTURE) {
+//     var index
+//     if (us === BLACK) {
+//       index = move.to - 16
+//     } else {
+//       index = move.to + 16
+//     }
+//     board[index] = { type: PAWN, color: them }
+//   }
 
-  if (move.flags & (BITS.KSIDE_CASTLE | BITS.QSIDE_CASTLE)) {
-    let castling_to = null
-    let castling_from = null
-    if (move.flags & BITS.KSIDE_CASTLE) {
-      castling_to = move.to + 1
-      castling_from = move.to - 1
-    } else if (move.flags & BITS.QSIDE_CASTLE) {
-      castling_to = move.to - 2
-      castling_from = move.to + 1
-    }
+//   if (move.flags & (BITS.KSIDE_CASTLE | BITS.QSIDE_CASTLE)) {
+//     let castling_to = null
+//     let castling_from = null
+//     if (move.flags & BITS.KSIDE_CASTLE) {
+//       castling_to = move.to + 1
+//       castling_from = move.to - 1
+//     } else if (move.flags & BITS.QSIDE_CASTLE) {
+//       castling_to = move.to - 2
+//       castling_from = move.to + 1
+//     }
 
-    if (castling_to !== null && castling_from !== null) {
-      board[castling_to] = board[castling_from]
-      delete board[castling_from]
-    }
-  }
+//     if (castling_to !== null && castling_from !== null) {
+//       board[castling_to] = board[castling_from]
+//       delete board[castling_from]
+//     }
+//   }
 
-  return state
-}
+//   return state
+// }
 
 export function buildMove(state: State, from: number, to: number, flags: any, promotion?: string): Move {
   const move: Move = {
