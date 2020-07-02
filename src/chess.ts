@@ -19,6 +19,7 @@ import {
   getPgn,
   ascii,
   getBoard,
+  validateMove,
 } from "./state"
 import {
   algebraic,
@@ -329,58 +330,28 @@ export class Chess {
     return this._state.turn
   }
 
+  /**
+   * Make a move on the board.
+   *
+   * @param move Case-sensitive SAN string or object, e.g. `'Nxb7'` or
+   * `{ from: 'h7', to: 'h8', promotion: 'q' }`
+   * @param options.sloppy? Flag to enable parsing of a variety of non-standard
+   * move notations
+   */
   public move(
     move: string | PrettyMove,
-    options: { sloppy: boolean } = { sloppy: false }
+    options: { sloppy?: boolean }
   ): PrettyMove | null {
-    /* The move function can be called with in the following parameters:
-     *
-     * .move('Nxb7')      <- where 'move' is a case-sensitive SAN string
-     *
-     * .move({ from: 'h7', <- where the 'move' is a move object (additional
-     *         to :'h8',      fields are ignored)
-     *         promotion: 'q',
-     *      })
-     */
+    const validMove = validateMove(this._state, move, options)
 
-    // allow the user to specify the sloppy move parser to work around over
-    // disambiguation bugs in Fritz and Chessbase
-    const sloppy = options.sloppy
-
-    let move_obj = null
-
-    if (typeof move === 'string') {
-      move_obj = this.sanToMove(move, sloppy)
-    } else if (typeof move === 'object') {
-      const moves = generateMoves(this._state)
-
-      /* convert the pretty move object to an ugly move object */
-      for (let i = 0, len = moves.length; i < len; i++) {
-        if (
-          move.from === algebraic(moves[i].from) &&
-            move.to === algebraic(moves[i].to) &&
-            (!('promotion' in moves[i]) ||
-              move.promotion === moves[i].promotion)
-        ) {
-          move_obj = moves[i]
-          break
-        }
-      }
-    }
-
-    /* failed to find move */
-    if (!move_obj) {
+    if (!validMove) {
       return null
     }
 
-    /* need to make a copy of move because we can't generate SAN after the
-     * move is made
-     */
-    const pretty_move = makePretty(this._state, move_obj)
-
-    this.makeMove(move_obj)
-
-    return pretty_move
+    // Create pretty move before updating the state
+    const prettyMove = makePretty(this._state, validMove)
+    this.makeMove(validMove)
+    return prettyMove
   }
 
   public undo(): PrettyMove | null {

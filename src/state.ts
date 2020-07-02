@@ -1227,3 +1227,32 @@ export function getBoard(board: Board): (Piece | null)[][] {
 
   return output
 }
+
+export function validateMove(
+  state: State,
+  move: string | PrettyMove,
+  options: { sloppy?: boolean } = {}
+): Move | null {
+  // Allow the user to specify the sloppy move parser to work around over
+  // disambiguation bugs in Fritz and Chessbase
+  const { sloppy = false } = options
+
+  if (typeof move === 'string') {
+    return sanToMove(state, move, sloppy)
+  } else if (typeof move === 'object') {
+    const moves = generateMoves(state)
+    // Find a matching move
+    for (let moveObj of moves) {
+      if (
+        move.from === algebraic(moveObj.from) &&
+          move.to === algebraic(moveObj.to) &&
+          (!('promotion' in moveObj) ||
+            move.promotion === moveObj.promotion)
+      ) {
+        return moveObj
+      }
+    }
+  }
+
+  return null
+}
