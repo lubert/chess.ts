@@ -9,4 +9,5 @@
 |  Package | Description |
 |  --- | --- |
 |  [chess.js](./chess.js.md) |  |
+|  [chess.ts](./chess.ts.md) |  |
 
