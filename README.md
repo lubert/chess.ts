@@ -41,7 +41,7 @@ console.log(chess.pgn())
 ## User Interface
 
 By design, chess.ts is headless and does not include user interface.  Many
-developers have had success integrating chess.js with the
+developers have had success integrating chess.ts with the
 [chessboard.js](http://chessboardjs.com) library. See
 [chessboard.js - Random vs Random](http://chessboardjs.com/examples#5002) for
 an example.
