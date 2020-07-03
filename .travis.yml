@@ -1,2 +1,9 @@
-language: node_js
-node_js: node
+language: nodejs
+node_js:
+  - "node"
+before_script:
+  - npm install
+  - npm run build
+  - npm run lint
+script:
+  - npm run test
