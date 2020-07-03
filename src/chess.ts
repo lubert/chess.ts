@@ -62,6 +62,7 @@ export class Chess {
    * The Chess() constructor takes an optional parameter which specifies the board configuration
    * in [Forsyth-Edwards Notation](http://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation).
    *
+   * @example
    * ```js
    * // board defaults to the starting position when called with no parameters
    * const chess = new Chess()
