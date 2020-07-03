@@ -24,7 +24,18 @@ import {
   SQUARES,
   WHITE,
   DEFAULT_POSITION,
-} from "./constants"
+} from './constants'
+import {
+  Board,
+  Color,
+  Comments,
+  GameHistory,
+  HexMove,
+  Piece,
+  Move,
+  Square,
+  State,
+} from './types'
 import {
   algebraic,
   file,
@@ -38,7 +49,7 @@ import {
   swapColor,
   symbol,
   validateFen,
-} from "./utils"
+} from './utils'
 
 export function defaultState(): State {
   return {
@@ -53,7 +64,7 @@ export function defaultState(): State {
 }
 
 /* this function is used to uniquely identify ambiguous moves */
-export function getDisambiguator(state: State, move: Move, sloppy: boolean): string {
+export function getDisambiguator(state: State, move: HexMove, sloppy: boolean): string {
   const moves = generateMoves(state, { legal: !sloppy })
 
   const from = move.from
@@ -139,6 +150,7 @@ export function getFen(state: State): string {
   }
 
   let cflags = ''
+  const test = state.castling[WHITE]
   if (state.castling[WHITE] & BITS.KSIDE_CASTLE) {
     cflags += 'K'
   }
@@ -216,7 +228,7 @@ export function loadFen(fen: string): State | null {
 
 export function getPgn(
   state: State,
-  header: Header,
+  header: Record<string, string>,
   comments: Comments,
   history: GameHistory[],
   options: { newline_char?: string, max_width?: number } = {}
@@ -369,7 +381,7 @@ export function getPgn(
 export function loadPgn(
   pgn: string,
   options: { newline_char?: string, sloppy?: boolean } = {}
-): [State, Header, Comments, GameHistory[]] | null {
+): [State, Record<string, string>, Comments, GameHistory[]] | null {
   const {
     newline_char = '\r?\n',
     // allow the user to specify the sloppy move parser to work around over
@@ -391,7 +403,7 @@ export function loadPgn(
   const parse_pgn_header = (
     header: string,
     options: { newline_char: string, sloppy: boolean }
-  ): Header => {
+  ): Record<string, string> => {
     const newline_char = options.newline_char
     const header_obj: { [key: string]: string } = {}
     const headers = header.split(new RegExp(mask(newline_char)))
@@ -584,7 +596,7 @@ export function cloneState(state: State): State {
   }
 }
 
-export function cloneMove(move: Move): Move {
+export function cloneMove(move: HexMove): HexMove {
   return {
     to: move.to,
     from: move.from,
@@ -663,9 +675,9 @@ export function removePiece(prevState: State, square?: string): State | null {
 export function generateMoves(
   state: State,
   options: { legal?: boolean, square?: string } = {}
-): Move[] {
+): HexMove[] {
   const { legal = true } = options
-  const add_move = (board: Board, moves: Move[], from: number, to: number, flags: number) => {
+  const add_move = (board: Board, moves: HexMove[], from: number, to: number, flags: number) => {
     /* if pawn promotion */
     const piece = board[from]
     if (
@@ -682,7 +694,7 @@ export function generateMoves(
     }
   }
 
-  const moves: Move[] = []
+  const moves: HexMove[] = []
   const us = state.turn
   const them = swapColor(us)
   const second_rank: { [key: string]: number } = { b: RANK_7, w: RANK_2 }
@@ -831,7 +843,7 @@ export function generateMoves(
  * 4. ... Nge7 is overly disambiguated because the knight on c6 is pinned
  * 4. ... Ne7 is technically the valid SAN
  */
-export function moveToSan(state: State, move: Move, sloppy = false): string {
+export function moveToSan(state: State, move: HexMove, sloppy = false): string {
   let output = ''
 
   if (move.flags & BITS.KSIDE_CASTLE) {
@@ -871,7 +883,7 @@ export function moveToSan(state: State, move: Move, sloppy = false): string {
   return output
 }
 
-export function sanToMove(state: State, move: string, sloppy: boolean): Move | null {
+export function sanToMove(state: State, move: string, sloppy: boolean): HexMove | null {
   // strip off any move decorations: e.g Nf3+?!
   const clean_move = strippedSan(move)
 
@@ -918,8 +930,8 @@ export function sanToMove(state: State, move: string, sloppy: boolean): Move | n
   return null
 }
 
-export function makePretty(state: State, ugly_move: Move): PrettyMove {
-  const move: Move = cloneMove(ugly_move)
+export function makePretty(state: State, ugly_move: HexMove): Move {
+  const move: HexMove = cloneMove(ugly_move)
 
   let flags = ''
   for (const flag in BITS) {
@@ -1050,7 +1062,7 @@ export function insufficientMaterial(state: State): boolean {
   return false
 }
 
-export function makeMove(prevState: State, move: Move): State {
+export function makeMove(prevState: State, move: HexMove): State {
   const state = cloneState(prevState)
   const us = state.turn
   const them = swapColor(us)
@@ -1148,8 +1160,8 @@ export function makeMove(prevState: State, move: Move): State {
   return state
 }
 
-export function buildMove(state: State, from: number, to: number, flags: number, promotion?: string): Move {
-  const move: Move = {
+export function buildMove(state: State, from: number, to: number, flags: number, promotion?: string): HexMove {
+  const move: HexMove = {
     color: state.turn,
     from: from,
     to: to,
@@ -1217,9 +1229,9 @@ export function getBoard(board: Board): (Piece | null)[][] {
 
 export function validateMove(
   state: State,
-  move: string | PrettyMove,
+  move: string | Move,
   options: { sloppy?: boolean } = {}
-): Move | null {
+): HexMove | null {
   // Allow the user to specify the sloppy move parser to work around over
   // disambiguation bugs in Fritz and Chessbase
   const { sloppy = false } = options

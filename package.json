@@ -2,26 +2,31 @@
   "name": "chess.js",
   "version": "0.11.0",
   "license": "BSD-2-Clause",
-  "main": "chess.js",
-  "homepage": "https://github.com/jhlywa/chess.js",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "homepage": "https://github.com/lubert/chess.ts",
   "keywords": [
     "chess"
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/jhlywa/chess.js.git"
+    "url": "https://github.com/lubert/chess.ts.git"
   },
   "devDependencies": {
+    "@microsoft/api-documenter": "^7.8.21",
+    "@microsoft/api-extractor": "^7.9.1",
     "@types/jest": "^26.0.3",
     "@typescript-eslint/eslint-plugin": "^3.5.0",
     "@typescript-eslint/parser": "^3.5.0",
     "eslint": "^7.3.1",
-    "jest": "^25.5.4",
+    "jest": "^26.1.0",
     "ts-jest": "^26.1.1",
     "typescript": "^3.9.6"
   },
   "scripts": {
+    "api": "npm run build && api-extractor run --local --verbose",
     "build": "tsc",
+    "docs": "npm run api && api-documenter markdown --input ./temp --output ./docs",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "test": "jest"
   }

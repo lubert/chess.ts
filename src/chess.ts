@@ -20,22 +20,33 @@ import {
   ascii,
   getBoard,
   validateMove,
-} from "./state"
+} from './state'
+import {
+  Color,
+  Comments,
+  GameHistory,
+  HexMove,
+  Move,
+  FenComment,
+  Piece,
+  State,
+} from './types'
 import {
   file,
   isSquare,
   rank,
   swapColor,
-} from "./utils";
+} from './utils';
 import {
   DEFAULT_POSITION,
   SQUARES,
-} from "./constants";
+} from './constants';
 
+/** @public */
 export class Chess {
   protected _state: State;
   protected _history: GameHistory[];
-  protected _header: Header;
+  protected _header: Record<string, string>;
   protected _comments: Comments;
 
   constructor(fen: string = DEFAULT_POSITION) {
@@ -52,9 +63,9 @@ export class Chess {
   /**
    * Clears the board and loads the Forsyth–Edwards Notation (FEN) string.
    *
-   * @param fen
-   * @param keep_headers Flag to keep headers
-   * @return True if the position was successfully loaded, otherwise false.
+   * @param fen - FEN string
+   * @param keep_headers - Flag to keep headers
+   * @returns True if the position was successfully loaded, otherwise false.
    */
   public load(fen: string, keep_headers = false): boolean {
     const state = loadFen(fen)
@@ -72,7 +83,7 @@ export class Chess {
   /**
    * Clears the board
    *
-   * @param keep_headers Flag to keep headers
+   * @param keep_headers - Flag to keep headers
    */
   public clear(keep_headers = false): void {
     this._state = defaultState()
@@ -92,8 +103,8 @@ export class Chess {
   /**
    * Returns the piece on the square.
    *
-   * @param square e.g. 'e4'
-   * @return Copy of the piece or null
+   * @param square - e.g. 'e4'
+   * @returns Copy of the piece or null
    */
   public get(square?: string): Piece | null {
     return getPiece(this._state, square)
@@ -103,9 +114,9 @@ export class Chess {
    * Place a piece on a square. Fails when passed an invalid piece or square,
    * or when two or more kings of the same color are placed.
    *
-   * @param piece Object of the form { type: ..., color: ... }
-   * @param square e.g. 'e4'
-   * @return True if placed successfully, otherwise false
+   * @param piece - Object of the form `{ type: 'p', color: 'w' }`
+   * @param square - e.g. `'e4'`
+   * @returns True if placed successfully, otherwise false
    */
   public put(piece: { type?: string, color?: string }, square?: string): boolean {
     const newState = putPiece(this._state, piece, square)
@@ -120,8 +131,8 @@ export class Chess {
   /**
    * Removes and returns the piece on a square.
    *
-   * @param square e.g. 'e4'
-   * @return Piece or null
+   * @param square - e.g. 'e4'
+   * @returns Piece or null
    */
   public remove(square?: string): Piece | null {
     const piece = getPiece(this._state, square)
@@ -140,10 +151,10 @@ export class Chess {
   /**
    * Returns a list of legal moves from the current position.
    *
-   * @param square e.g. 'e4'
-   * @return Piece or null
+   * @param square - e.g. 'e4'
+   * @returns Piece or null
    */
-  public moves(options: { square?: string, verbose?: boolean} = {}): (string | PrettyMove)[] {
+  public moves(options: { square?: string, verbose?: boolean} = {}): (string | Move)[] {
     // The internal representation of a chess move is in 0x88 format, and
     // not meant to be human-readable.  The code below converts the 0x88
     // square coordinates to algebraic coordinates.  It also prunes an
@@ -209,7 +220,7 @@ export class Chess {
      * Zobrist key would be maintained in the make_move/undo_move functions,
      * avoiding the costly that we do below.
      */
-    const moves: Move[] = []
+    const moves: HexMove[] = []
     const positions: { [key: string]: number } = {}
     let repetition = false
 
@@ -236,7 +247,7 @@ export class Chess {
       if (!moves.length) {
         break
       }
-      this.makeMove(moves.pop() as Move)
+      this.makeMove(moves.pop() as HexMove)
     }
 
     return repetition
@@ -273,9 +284,8 @@ export class Chess {
 
   /**
    * Returns the game in PGN format
-   * @param options.newline_char
-   * @param options.max_width
-   * @return PGN
+   * @param options - Output formatting options
+   * @returns
    */
   public pgn(options: { newline_char?: string, max_width?: number } = {}): string {
     return getPgn(this._state, this._header, this._comments, this._history, options)
@@ -284,9 +294,8 @@ export class Chess {
   /**
    * Load the moves of a game stored in Portable Game Notation (PGN).
    *
-   * @param options.newline_char String representation of a valid RegExp fragment
-   * @param options.sloppy Flag to allow parsing non-standard notations
-   * @return PGN
+   * @param options - Load options
+   * @returns
    */
   public loadPgn(
     pgn: string,
@@ -309,10 +318,10 @@ export class Chess {
    * Adds header information to the PGN output. Calling without any arguments
    * returns the header information as an object.
    *
-   * @param args List of strings
-   * @return Key/value pairs
+   * @param args - List of key values
+   * @returns Key/value pairs
    */
-  public header(args: string[] = []): Header {
+  public header(args: string[] = []): Record<string, string> {
     for (let i = 0; i < args.length; i += 2) {
       if (typeof args[i] === 'string' && typeof args[i + 1] === 'string') {
         this._header[args[i]] = args[i + 1]
@@ -332,15 +341,15 @@ export class Chess {
   /**
    * Make a move on the board.
    *
-   * @param move Case-sensitive SAN string or object, e.g. `'Nxb7'` or
+   * @param move - Case-sensitive SAN string or object, e.g. `'Nxb7'` or
    * `{ from: 'h7', to: 'h8', promotion: 'q' }`
-   * @param options.sloppy? Flag to enable parsing of a variety of non-standard
+   * @param options - Options to enable parsing of a variety of non-standard
    * move notations
    */
   public move(
-    move: string | PrettyMove,
+    move: string | Move,
     options: { sloppy?: boolean }
-  ): PrettyMove | null {
+  ): Move | null {
     const validMove = validateMove(this._state, move, options)
 
     if (!validMove) {
@@ -353,7 +362,7 @@ export class Chess {
     return prettyMove
   }
 
-  public undo(): PrettyMove | null {
+  public undo(): Move | null {
     const move = this.undoMove()
     return move ? makePretty(this._state, move) : null
   }
@@ -367,8 +376,8 @@ export class Chess {
     return null
   }
 
-  public history(options: { verbose?: boolean } = {}): (string | PrettyMove)[] {
-    const moveHistory: Array<string | PrettyMove> = []
+  public history(options: { verbose?: boolean } = {}): (string | Move)[] {
+    const moveHistory: Array<string | Move> = []
     const { verbose = false } = options;
 
     if (!this._history.length) {
@@ -405,14 +414,14 @@ export class Chess {
     return comment;
   }
 
-  public getComments(): PgnComment[] {
+  public getComments(): FenComment[] {
     this.pruneComments();
     return Object.keys(this._comments).map((fen) => {
       return {fen: fen, comment: this._comments[fen]};
     });
   }
 
-  public deleteComments(): PgnComment[] {
+  public deleteComments(): FenComment[] {
     this.pruneComments();
     return Object.keys(this._comments)
       .map((fen) => {
@@ -422,6 +431,7 @@ export class Chess {
       });
   }
 
+  /** @internal */
   public perft(depth: number): number {
     const moves = generateMoves(this._state, { legal: false })
     let nodes = 0
@@ -462,7 +472,7 @@ export class Chess {
   }
 
   protected pruneComments(): void {
-    const reversed_history: Move[] = [];
+    const reversed_history: HexMove[] = [];
     const current_comments: Comments = {};
     const copy_comment = (fen: string) => {
       if (fen in this._comments) {
@@ -470,11 +480,11 @@ export class Chess {
       }
     };
     while (this._history.length > 0) {
-      reversed_history.push(this.undoMove() as Move);
+      reversed_history.push(this.undoMove() as HexMove);
     }
     copy_comment(this.fen());
     while (reversed_history.length > 0) {
-      this.makeMove(reversed_history.pop() as Move);
+      this.makeMove(reversed_history.pop() as HexMove);
       copy_comment(this.fen());
     }
     this._comments = current_comments;
@@ -493,7 +503,7 @@ export class Chess {
     return this.attacked(swapColor(color), this._state.kings[color])
   }
 
-  protected makeMove(move: Move): void {
+  protected makeMove(move: HexMove): void {
     this._history.push({
       move: move,
       state: this._state,
@@ -501,7 +511,7 @@ export class Chess {
     this._state = makeMove(this._state, move)
   }
 
-  protected undoMove(): Move | null {
+  protected undoMove(): HexMove | null {
     const prev = this._history.pop()
     if (prev == null) {
       return null
@@ -511,7 +521,7 @@ export class Chess {
   }
 
   // convert a move from Standard Algebraic Notation (SAN) to 0x88 coordinates
-  protected sanToMove(move: string, sloppy: boolean): Move | null {
+  protected sanToMove(move: string, sloppy: boolean): HexMove | null {
     return sanToMove(this._state, move, sloppy)
   }
 }
