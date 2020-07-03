@@ -16,11 +16,9 @@ ascii(eol?: string): string;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  eol | string | EOL character |
+|  eol | string |  |
 
 <b>Returns:</b>
-
-string
 
 string
 

@@ -533,9 +533,6 @@ export class Chess {
    * chess.pgn({ max_width: 5, newline_char: '<br />' })
    * // -> '[White "Plunky"]<br />[Black "Plinkie"]<br /><br />1. e4 e5<br />2. Nc3 Nc6'
    * ```
-   *
-   * @param options - Output formatting options
-   * @returns
    */
   public pgn(options: { newline_char?: string, max_width?: number } = {}): string {
     return getPgn(this._state, this._header, this._comments, this._history, options)
@@ -711,9 +708,6 @@ export class Chess {
    * //        +------------------------+
    * //          a  b  c  d  e  f  g  h'
    * ```
-   *
-   * @param eol - EOL character
-   * @returns string
    */
   public ascii(eol = '\n'): string {
     return ascii(this._state.board, eol)

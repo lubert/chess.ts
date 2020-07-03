@@ -25,7 +25,6 @@ pgn(options?: {
 
 string
 
-
 ## Example
 
 
