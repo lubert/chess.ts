@@ -4,6 +4,8 @@
 
 ## Chess.\_header property
 
+internal
+
 <b>Signature:</b>
 
 ```typescript

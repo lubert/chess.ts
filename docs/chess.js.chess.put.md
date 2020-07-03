@@ -4,7 +4,7 @@
 
 ## Chess.put() method
 
-Place a piece on the square where piece is an object with the form { type: ..., color: ... }<!-- -->. Returns true if the piece was successfully placed, otherwise, the board remains unchanged and false is returned. `put()` will fail when passed an invalid piece or square, or when two or more kings of the same color are placed.
+Place a piece on the square where piece is an object with the form `{ type: ..., color: ... }`<!-- -->. Returns true if the piece was successfully placed, otherwise, the board remains unchanged and false is returned. `put()` will fail when passed an invalid piece or square, or when two or more kings of the same color are placed.
 
 ```js
 chess.clear()

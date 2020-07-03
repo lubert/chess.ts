@@ -46,9 +46,16 @@ import {
 
 /** @public */
 export class Chess {
+  /** internal */
   protected _state: State;
+
+  /** internal */
   protected _history: GameHistory[];
+
+  /** internal */
   protected _header: Record<string, string>;
+
+  /** internal */
   protected _comments: Comments;
 
   /**
@@ -144,7 +151,7 @@ export class Chess {
 
   /**
    * Place a piece on the square where piece is an object with the form
-   * { type: ..., color: ... }. Returns true if the piece was successfully
+   * `{ type: ..., color: ... }`. Returns true if the piece was successfully
    * placed, otherwise, the board remains unchanged and false is returned.
    * `put()` will fail when passed an invalid piece or square, or when two or
    * more kings of the same color are placed.

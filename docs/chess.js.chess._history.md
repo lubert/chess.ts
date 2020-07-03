@@ -4,6 +4,8 @@
 
 ## Chess.\_history property
 
+internal
+
 <b>Signature:</b>
 
 ```typescript

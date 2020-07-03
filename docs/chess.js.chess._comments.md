@@ -4,6 +4,8 @@
 
 ## Chess.\_comments property
 
+internal
+
 <b>Signature:</b>
 
 ```typescript

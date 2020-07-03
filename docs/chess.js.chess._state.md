@@ -4,6 +4,8 @@
 
 ## Chess.\_state property
 
+internal
+
 <b>Signature:</b>
 
 ```typescript

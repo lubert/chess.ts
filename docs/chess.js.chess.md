@@ -32,10 +32,10 @@ const chess = new Chess(
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [\_comments](./chess.js.chess._comments.md) |  | Comments |  |
-|  [\_header](./chess.js.chess._header.md) |  | Record&lt;string, string&gt; |  |
-|  [\_history](./chess.js.chess._history.md) |  | GameHistory\[\] |  |
-|  [\_state](./chess.js.chess._state.md) |  | State |  |
+|  [\_comments](./chess.js.chess._comments.md) |  | Comments | internal |
+|  [\_header](./chess.js.chess._header.md) |  | Record&lt;string, string&gt; | internal |
+|  [\_history](./chess.js.chess._history.md) |  | GameHistory\[\] | internal |
+|  [\_state](./chess.js.chess._state.md) |  | State | internal |
 
 ## Methods
 
@@ -483,7 +483,7 @@ chess.pgn({ max_width: 5, newline_char: '<br />' })
 
 ```
  |
-|  [put(piece, square)](./chess.js.chess.put.md) |  | Place a piece on the square where piece is an object with the form { type: ..., color: ... }<!-- -->. Returns true if the piece was successfully placed, otherwise, the board remains unchanged and false is returned. <code>put()</code> will fail when passed an invalid piece or square, or when two or more kings of the same color are placed.
+|  [put(piece, square)](./chess.js.chess.put.md) |  | Place a piece on the square where piece is an object with the form <code>{ type: ..., color: ... }</code>. Returns true if the piece was successfully placed, otherwise, the board remains unchanged and false is returned. <code>put()</code> will fail when passed an invalid piece or square, or when two or more kings of the same color are placed.
 ```js
 chess.clear()
 
