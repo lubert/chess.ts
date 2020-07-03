@@ -41,22 +41,6 @@ export function isDigit(c: string): boolean {
 }
 
 /**
- * Deep clones an object
- */
-export function clone(obj: any): any {
-  const dupe = new (obj.constructor as any);
-
-  for (let property in obj) {
-    if (typeof obj[property] === 'object') {
-      dupe[property] = clone(obj[property])
-    } else {
-      dupe[property] = obj[property]
-    }
-  }
-  return dupe
-}
-
-/**
  * Returns the ASCII symbol for each piece.  White pieces are in uppercase,
  * black in lowercase.
  */

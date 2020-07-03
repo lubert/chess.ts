@@ -27,7 +27,6 @@ import {
 } from "./constants"
 import {
   algebraic,
-  clone,
   file,
   isColor,
   isDigit,
@@ -560,10 +559,49 @@ export function getPiece(state: State, square?: string): Piece | null {
   if (!isSquare(square)) return null
 
   const sq = SQUARES[square]
-  if (state.board[sq]) {
-    return clone(state.board[sq])
+  const piece = state.board[sq]
+  if (piece) {
+    return clonePiece(piece)
   }
   return null
+}
+
+export function cloneState(state: State): State {
+  return {
+    kings: {
+      w: state.kings.w,
+      b: state.kings.b,
+    },
+    turn: state.turn,
+    castling: {
+      w: state.castling.w,
+      b: state.castling.b,
+    },
+    ep_square: state.ep_square,
+    half_moves: state.half_moves,
+    move_number: state.move_number,
+    board: state.board.slice(),
+  }
+}
+
+export function cloneMove(move: Move): Move {
+  return {
+    to: move.to,
+    from: move.from,
+    color: move.color,
+    flags: move.flags,
+    piece: move.piece,
+    captured: move.captured,
+    promotion: move.promotion,
+    san: move.san,
+  }
+}
+
+export function clonePiece(piece: Piece): Piece {
+  return {
+    color: piece.color,
+    type: piece.type,
+  }
 }
 
 export function putPiece(
@@ -586,7 +624,7 @@ export function putPiece(
     return null
   }
 
-  const state = clone(prevState) as State
+  const state = cloneState(prevState)
   /* don't let the user place more than one king */
   const sq = SQUARES[square]
   if (type === KING &&
@@ -613,7 +651,7 @@ export function removePiece(prevState: State, square?: string): State | null {
   const piece = prevState.board[sq]
   if (!piece) return null
 
-  const state = clone(prevState) as State
+  const state = cloneState(prevState)
   const { type, color } = piece
   if (type === KING) {
     state.kings[color] = EMPTY
@@ -854,10 +892,8 @@ export function sanToMove(state: State, move: string, sloppy: boolean): Move | n
     // try the strict parser first, then the sloppy parser if requested
     // by the user
     const san = moveToSan(state, moves[i])
-    if (
-      clean_move === strippedSan(san) ||
-        (sloppy && clean_move === strippedSan(moveToSan(state, moves[i], true)))
-    ) {
+    if (clean_move === strippedSan(san) ||
+      (sloppy && clean_move === strippedSan(moveToSan(state, moves[i], true)))) {
       return moves[i]
     }
     if (
@@ -879,7 +915,7 @@ export function sanToMove(state: State, move: string, sloppy: boolean): Move | n
 }
 
 export function makePretty(state: State, ugly_move: Move): PrettyMove {
-  const move: Move = clone(ugly_move)
+  const move: Move = cloneMove(ugly_move)
 
   let flags = ''
   for (const flag in BITS) {
@@ -1011,7 +1047,7 @@ export function insufficientMaterial(state: State): boolean {
 }
 
 export function makeMove(prevState: State, move: Move): State {
-  const state = clone(prevState) as State
+  const state = cloneState(prevState)
   const us = state.turn
   const them = swapColor(us)
   // this.push(move)
@@ -1107,59 +1143,6 @@ export function makeMove(prevState: State, move: Move): State {
   state.turn = swapColor(state.turn)
   return state
 }
-
-// export function undoMove(prevState: State, undoState: State): State {
-//   const state = clone(prevState)
-//   const move = old.move
-//   state.kings = old.kings
-//   state.turn = old.turn
-//   state.castling = old.castling
-//   state.ep_square = old.ep_square
-//   state.half_moves = old.half_moves
-//   state.move_number = old.move_number
-
-//   const us = state.turn
-//   const them = swapColor(state.turn)
-
-//   const board = state.board
-//   board[move.from] = board[move.to]
-//   const fromPiece = board[move.from]
-//   if (fromPiece !== undefined && isPieceSymbol(move.piece)) {
-//     fromPiece.type = move.piece // to undo any promotions
-//   }
-//   delete board[move.to]
-
-//   if (move.flags & BITS.CAPTURE && move.captured && isPieceSymbol(move.captured)) {
-//     board[move.to] = { type: move.captured, color: them }
-//   } else if (move.flags & BITS.EP_CAPTURE) {
-//     var index
-//     if (us === BLACK) {
-//       index = move.to - 16
-//     } else {
-//       index = move.to + 16
-//     }
-//     board[index] = { type: PAWN, color: them }
-//   }
-
-//   if (move.flags & (BITS.KSIDE_CASTLE | BITS.QSIDE_CASTLE)) {
-//     let castling_to = null
-//     let castling_from = null
-//     if (move.flags & BITS.KSIDE_CASTLE) {
-//       castling_to = move.to + 1
-//       castling_from = move.to - 1
-//     } else if (move.flags & BITS.QSIDE_CASTLE) {
-//       castling_to = move.to - 2
-//       castling_from = move.to + 1
-//     }
-
-//     if (castling_to !== null && castling_from !== null) {
-//       board[castling_to] = board[castling_from]
-//       delete board[castling_from]
-//     }
-//   }
-
-//   return state
-// }
 
 export function buildMove(state: State, from: number, to: number, flags: any, promotion?: string): Move {
   const move: Move = {
