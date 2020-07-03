@@ -6,6 +6,18 @@
 
 Returns true or false if the current board position has occurred three or more times.
 
+<b>Signature:</b>
+
+```typescript
+inThreefoldRepetition(): boolean;
+```
+<b>Returns:</b>
+
+boolean
+
+## Example
+
+
 ```js
 const chess = new Chess('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1')
 // -> true
@@ -24,13 +36,4 @@ chess.inThreefoldRepetition()
 // -> true
 
 ```
-
-<b>Signature:</b>
-
-```typescript
-inThreefoldRepetition(): boolean;
-```
-<b>Returns:</b>
-
-boolean
 

@@ -6,6 +6,18 @@
 
 Returns an 2D array representation of the current position. Empty squares are represented by `null`<!-- -->.
 
+<b>Signature:</b>
+
+```typescript
+board(): (Piece | null)[][];
+```
+<b>Returns:</b>
+
+([Piece](./chess.ts.piece.md) \| null)\[\]\[\]
+
+## Example
+
+
 ```js
 const chess = new Chess()
 
@@ -33,13 +45,4 @@ chess.board()
          {type: 'r', color: 'w'}]]
 
 ```
-
-<b>Signature:</b>
-
-```typescript
-board(): (Piece | null)[][];
-```
-<b>Returns:</b>
-
-([Piece](./chess.ts.piece.md) \| null)\[\]\[\]
 

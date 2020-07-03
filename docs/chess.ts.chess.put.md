@@ -6,6 +6,31 @@
 
 Place a piece on the square where piece is an object with the form `{ type: ..., color: ... }`<!-- -->. Returns true if the piece was successfully placed, otherwise, the board remains unchanged and false is returned. `put()` will fail when passed an invalid piece or square, or when two or more kings of the same color are placed.
 
+<b>Signature:</b>
+
+```typescript
+put(piece: {
+        type?: string;
+        color?: string;
+    }, square?: string): boolean;
+```
+
+## Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  piece | { type?: string; color?: string; } | Object of the form <code>{ type: 'p', color: 'w' }</code> |
+|  square | string | e.g. <code>'e4'</code> |
+
+<b>Returns:</b>
+
+boolean
+
+True if placed successfully, otherwise false
+
+## Example
+
+
 ```js
 chess.clear()
 
@@ -29,26 +54,4 @@ chess.put({ type: 'k', color: 'w' }, 'h1') // fail - two kings
 // -> false
 
 ```
-
-<b>Signature:</b>
-
-```typescript
-put(piece: {
-        type?: string;
-        color?: string;
-    }, square?: string): boolean;
-```
-
-## Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  piece | { type?: string; color?: string; } | Object of the form <code>{ type: 'p', color: 'w' }</code> |
-|  square | string | e.g. <code>'e4'</code> |
-
-<b>Returns:</b>
-
-boolean
-
-True if placed successfully, otherwise false
 

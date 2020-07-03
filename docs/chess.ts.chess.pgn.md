@@ -6,19 +6,6 @@
 
 Returns the game in PGN format. Options is an optional parameter which may include max width and/or a newline character settings.
 
-```js
-const chess = new Chess()
-chess.header('White', 'Plunky', 'Black', 'Plinkie')
-chess.move('e4')
-chess.move('e5')
-chess.move('Nc3')
-chess.move('Nc6')
-
-chess.pgn({ max_width: 5, newline_char: '<br />' })
-// -> '[White "Plunky"]<br />[Black "Plinkie"]<br /><br />1. e4 e5<br />2. Nc3 Nc6'
-
-```
-
 <b>Signature:</b>
 
 ```typescript
@@ -38,4 +25,20 @@ pgn(options?: {
 
 string
 
+
+## Example
+
+
+```js
+const chess = new Chess()
+chess.header('White', 'Plunky', 'Black', 'Plinkie')
+chess.move('e4')
+chess.move('e5')
+chess.move('Nc3')
+chess.move('Nc6')
+
+chess.pgn({ max_width: 5, newline_char: '<br />' })
+// -> '[White "Plunky"]<br />[Black "Plinkie"]<br /><br />1. e4 e5<br />2. Nc3 Nc6'
+
+```
 

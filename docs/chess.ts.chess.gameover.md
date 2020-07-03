@@ -6,6 +6,18 @@
 
 Returns true if the game has ended via checkmate, stalemate, draw, threefold repetition, or insufficient material. Otherwise, returns false.
 
+<b>Signature:</b>
+
+```typescript
+gameOver(): boolean;
+```
+<b>Returns:</b>
+
+boolean
+
+## Example
+
+
 ```js
 const chess = new Chess()
 chess.gameOver()
@@ -22,13 +34,4 @@ chess.gameOver()
 // -> true
 
 ```
-
-<b>Signature:</b>
-
-```typescript
-gameOver(): boolean;
-```
-<b>Returns:</b>
-
-boolean
 

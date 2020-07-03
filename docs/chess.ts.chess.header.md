@@ -6,23 +6,6 @@
 
 Allows header information to be added to PGN output. Any number of key/value pairs can be passed to .header().
 
-```js
-chess.header('White', 'Robert James Fischer')
-chess.header('Black', 'Mikhail Tal')
-
-// or
-
-chess.header('White', 'Morphy', 'Black', 'Anderssen', 'Date', '1858-??-??')
-
-```
-Calling .header() without any arguments returns the header information as an object.
-
-```js
-chess.header()
-// -> { White: 'Morphy', Black: 'Anderssen', Date: '1858-??-??' }
-
-```
-
 <b>Signature:</b>
 
 ```typescript
@@ -40,4 +23,27 @@ header(args?: string[]): Record<string, string>;
 Record&lt;string, string&gt;
 
 Key/value pairs
+
+## Example 1
+
+
+```js
+chess.header('White', 'Robert James Fischer')
+chess.header('Black', 'Mikhail Tal')
+
+// or
+
+chess.header('White', 'Morphy', 'Black', 'Anderssen', 'Date', '1858-??-??')
+
+```
+Calling .header() without any arguments returns the header information as an object.
+
+## Example 2
+
+
+```js
+chess.header()
+// -> { White: 'Morphy', Black: 'Anderssen', Date: '1858-??-??' }
+
+```
 

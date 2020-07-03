@@ -6,6 +6,27 @@
 
 Returns a string containing an ASCII diagram of the current position.
 
+<b>Signature:</b>
+
+```typescript
+ascii(eol?: string): string;
+```
+
+## Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  eol | string | EOL character |
+
+<b>Returns:</b>
+
+string
+
+string
+
+## Example
+
+
 ```js
 const chess = new Chess()
 
@@ -28,22 +49,4 @@ chess.ascii()
 //          a  b  c  d  e  f  g  h'
 
 ```
-
-<b>Signature:</b>
-
-```typescript
-ascii(eol?: string): string;
-```
-
-## Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  eol | string | EOL character |
-
-<b>Returns:</b>
-
-string
-
-string
 

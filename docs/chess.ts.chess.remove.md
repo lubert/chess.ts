@@ -6,20 +6,6 @@
 
 Remove and return the piece on `square`<!-- -->.
 
-```js
-chess.clear()
-chess.put({ type: chess.PAWN, color: chess.BLACK }, 'a5') // put a black pawn on a5
-chess.put({ type: chess.KING, color: chess.WHITE }, 'h1') // put a white king on h1
-
-chess.remove('a5')
-// -> { type: 'p', color: 'b' },
-chess.remove('h1')
-// -> { type: 'k', color: 'w' },
-chess.remove('e1')
-// -> null
-
-```
-
 <b>Signature:</b>
 
 ```typescript
@@ -37,4 +23,21 @@ remove(square?: string): Piece | null;
 [Piece](./chess.ts.piece.md) \| null
 
 Piece or null
+
+## Example
+
+
+```js
+chess.clear()
+chess.put({ type: chess.PAWN, color: chess.BLACK }, 'a5') // put a black pawn on a5
+chess.put({ type: chess.KING, color: chess.WHITE }, 'h1') // put a white king on h1
+
+chess.remove('a5')
+// -> { type: 'p', color: 'b' },
+chess.remove('h1')
+// -> { type: 'k', color: 'w' },
+chess.remove('e1')
+// -> null
+
+```
 

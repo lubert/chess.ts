@@ -6,13 +6,6 @@
 
 Returns true or false if the game is drawn (50-move rule or insufficient material).
 
-```js
-const chess = new Chess('4k3/4P3/4K3/8/8/8/8/8 b - - 0 78')
-chess.inDraw()
-// -> true
-
-```
-
 <b>Signature:</b>
 
 ```typescript
@@ -21,4 +14,14 @@ inDraw(): boolean;
 <b>Returns:</b>
 
 boolean
+
+## Example
+
+
+```js
+const chess = new Chess('4k3/4P3/4K3/8/8/8/8/8 b - - 0 78')
+chess.inDraw()
+// -> true
+
+```
 

@@ -6,6 +6,18 @@
 
 Takeback the last half-move, returning a move object if successful, otherwise null.
 
+<b>Signature:</b>
+
+```typescript
+undo(): Move | null;
+```
+<b>Returns:</b>
+
+[Move](./chess.ts.move.md) \| null
+
+## Example
+
+
 ```js
 const chess = new Chess()
 
@@ -23,13 +35,4 @@ chess.undo()
 // -> null
 
 ```
-
-<b>Signature:</b>
-
-```typescript
-undo(): Move | null;
-```
-<b>Returns:</b>
-
-[Move](./chess.ts.move.md) \| null
 

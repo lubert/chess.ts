@@ -6,13 +6,6 @@
 
 Returns true if the game is drawn due to insufficient material (K vs. K, K vs. KB, or K vs. KN) otherwise false.
 
-```js
-const chess = new Chess('k7/8/n7/8/8/8/8/7K b - - 0 1')
-chess.insufficientMaterial()
-// -> true
-
-```
-
 <b>Signature:</b>
 
 ```typescript
@@ -21,4 +14,14 @@ insufficientMaterial(): boolean;
 <b>Returns:</b>
 
 boolean
+
+## Example
+
+
+```js
+const chess = new Chess('k7/8/n7/8/8/8/8/7K b - - 0 1')
+chess.insufficientMaterial()
+// -> true
+
+```
 

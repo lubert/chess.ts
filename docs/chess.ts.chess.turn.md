@@ -6,13 +6,6 @@
 
 Returns the current side to move.
 
-```js
-chess.load('rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1')
-chess.turn()
-// -> 'b'
-
-```
-
 <b>Signature:</b>
 
 ```typescript
@@ -21,4 +14,14 @@ turn(): Color;
 <b>Returns:</b>
 
 [Color](./chess.ts.color.md)
+
+## Example
+
+
+```js
+chess.load('rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1')
+chess.turn()
+// -> 'b'
+
+```
 

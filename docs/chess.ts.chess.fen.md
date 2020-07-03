@@ -6,6 +6,18 @@
 
 Returns the FEN string for the current position.
 
+<b>Signature:</b>
+
+```typescript
+fen(): string;
+```
+<b>Returns:</b>
+
+string
+
+## Example
+
+
 ```js
 const chess = new Chess()
 
@@ -18,13 +30,4 @@ chess.fen()
 // -> 'rnbqkbnr/pppp1ppp/8/4p3/4PP2/8/PPPP2PP/RNBQKBNR b KQkq f3 0 2'
 
 ```
-
-<b>Signature:</b>
-
-```typescript
-fen(): string;
-```
-<b>Returns:</b>
-
-string
 

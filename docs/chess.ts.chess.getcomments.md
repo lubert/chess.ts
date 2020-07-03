@@ -6,6 +6,18 @@
 
 Retrieve comments for all positions.
 
+<b>Signature:</b>
+
+```typescript
+getComments(): FenComment[];
+```
+<b>Returns:</b>
+
+[FenComment](./chess.ts.fencomment.md)<!-- -->\[\]
+
+## Example
+
+
 ```js
 const chess = new Chess()
 
@@ -24,13 +36,4 @@ chess.getComments()
 //    ]
 
 ```
-
-<b>Signature:</b>
-
-```typescript
-getComments(): FenComment[];
-```
-<b>Returns:</b>
-
-[FenComment](./chess.ts.fencomment.md)<!-- -->\[\]
 

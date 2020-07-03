@@ -6,6 +6,18 @@
 
 Delete and return the comment for the current position, if it exists.
 
+<b>Signature:</b>
+
+```typescript
+deleteComment(): string;
+```
+<b>Returns:</b>
+
+string
+
+## Example
+
+
 ```js
 const chess = new Chess()
 
@@ -21,13 +33,4 @@ chess.getComment()
 // -> undefined
 
 ```
-
-<b>Signature:</b>
-
-```typescript
-deleteComment(): string;
-```
-<b>Returns:</b>
-
-string
 

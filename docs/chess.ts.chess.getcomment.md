@@ -6,6 +6,18 @@
 
 Retrieve the comment for the current position, if it exists.
 
+<b>Signature:</b>
+
+```typescript
+getComment(): string;
+```
+<b>Returns:</b>
+
+string
+
+## Example
+
+
 ```js
 const chess = new Chess()
 
@@ -15,13 +27,4 @@ chess.getComment()
 // -> "giuoco piano"
 
 ```
-
-<b>Signature:</b>
-
-```typescript
-getComment(): string;
-```
-<b>Returns:</b>
-
-string
 

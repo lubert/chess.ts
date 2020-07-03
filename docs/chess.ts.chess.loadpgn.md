@@ -12,6 +12,29 @@ The `sloppy` flag is a boolean that permits chess.js to parse moves in non-stand
 
 The method will return `true` if the PGN was parsed successfully, otherwise `false`<!-- -->.
 
+<b>Signature:</b>
+
+```typescript
+loadPgn(pgn: string, options?: {
+        newline_char?: string;
+        sloppy?: boolean;
+    }): boolean;
+```
+
+## Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  pgn | string |  |
+|  options | { newline\_char?: string; sloppy?: boolean; } |  |
+
+<b>Returns:</b>
+
+boolean
+
+## Example
+
+
 ```js
 const chess = new Chess()
 const pgn = [
@@ -88,24 +111,4 @@ chess.fen()
 // -> 'r1bqk2r/pppp1ppp/2P5/8/1b6/1Q3pP1/PP1PPP1P/R1B1KB1R b KQkq - 1 8'
 
 ```
-
-<b>Signature:</b>
-
-```typescript
-loadPgn(pgn: string, options?: {
-        newline_char?: string;
-        sloppy?: boolean;
-    }): boolean;
-```
-
-## Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  pgn | string |  |
-|  options | { newline\_char?: string; sloppy?: boolean; } |  |
-
-<b>Returns:</b>
-
-boolean
 

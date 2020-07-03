@@ -107,6 +107,7 @@ export class Chess {
   /**
    * Clears the board.
    *
+   * @example
    * ```js
    * chess.clear()
    * chess.fen()
@@ -133,6 +134,7 @@ export class Chess {
   /**
    * Returns the piece on the square.
    *
+   * @example
    * ```js
    * chess.clear()
    * chess.put({ type: chess.PAWN, color: chess.BLACK }, 'a5') // put a black pawn on a5
@@ -157,6 +159,7 @@ export class Chess {
    * `put()` will fail when passed an invalid piece or square, or when two or
    * more kings of the same color are placed.
    *
+   * @example
    * ```js
    * chess.clear()
    *
@@ -197,6 +200,7 @@ export class Chess {
   /**
    * Remove and return the piece on `square`.
    *
+   * @example
    * ```js
    * chess.clear()
    * chess.put({ type: chess.PAWN, color: chess.BLACK }, 'a5') // put a black pawn on a5
@@ -232,6 +236,7 @@ export class Chess {
    * takes an optional parameter which controls the single-square move
    * generation and verbosity.
    *
+   * @example
    * ```js
    * const chess = new Chess()
    * chess.moves()
@@ -295,6 +300,7 @@ export class Chess {
   /**
    * Returns the FEN string for the current position.
    *
+   * @example
    * ```js
    * const chess = new Chess()
    *
@@ -314,6 +320,7 @@ export class Chess {
   /**
    * Returns true or false if the side to move is in check.
    *
+   * @example
    * ```js
    * const chess = new Chess(
    *     'rnb1kbnr/pppp1ppp/8/4p3/5PPq/8/PPPPP2P/RNBQKBNR w KQkq - 1 3'
@@ -329,6 +336,7 @@ export class Chess {
   /**
    * Returns true or false if the side to move has been checkmated.
    *
+   * @example
    * ```js
    * const chess = new Chess(
    *     'rnb1kbnr/pppp1ppp/8/4p3/5PPq/8/PPPPP2P/RNBQKBNR w KQkq - 1 3'
@@ -344,6 +352,7 @@ export class Chess {
   /**
    * Returns true or false if the side to move has been stalemated.
    *
+   * @example
    * ```js
    * const chess = new Chess('4k3/4P3/4K3/8/8/8/8/8 b - - 0 78')
    * chess.inStalemate()
@@ -358,6 +367,7 @@ export class Chess {
    * Returns true if the game is drawn due to insufficient material (K vs. K,
    * K vs. KB, or K vs. KN) otherwise false.
    *
+   * @example
    * ```js
    * const chess = new Chess('k7/8/n7/8/8/8/8/7K b - - 0 1')
    * chess.insufficientMaterial()
@@ -372,6 +382,7 @@ export class Chess {
    * Returns true or false if the current board position has occurred three or more
    * times.
    *
+   * @example
    * ```js
    * const chess = new Chess('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1')
    * // -> true
@@ -431,6 +442,7 @@ export class Chess {
 
   /**
    * Returns true or false if the game is drawn (50-move rule or insufficient material).
+   * @example
    * ```js
    * const chess = new Chess('4k3/4P3/4K3/8/8/8/8/8 b - - 0 78')
    * chess.inDraw()
@@ -449,6 +461,7 @@ export class Chess {
   /**
    * Returns true if the game has ended via checkmate, stalemate, draw,
    * threefold repetition, or insufficient material. Otherwise, returns false.
+   * @example
    * ```js
    * const chess = new Chess()
    * chess.gameOver()
@@ -472,6 +485,7 @@ export class Chess {
   /**
    * Returns an 2D array representation of the current position. Empty squares
    * are represented by `null`.
+   * @example
    * ```js
    * const chess = new Chess()
    *
@@ -507,6 +521,7 @@ export class Chess {
    * Returns the game in PGN format. Options is an optional parameter which may include
    * max width and/or a newline character settings.
    *
+   * @example
    * ```js
    * const chess = new Chess()
    * chess.header('White', 'Plunky', 'Black', 'Plinkie')
@@ -546,6 +561,7 @@ export class Chess {
    *
    * The method will return `true` if the PGN was parsed successfully, otherwise `false`.
    *
+   * @example
    * ```js
    * const chess = new Chess()
    * const pgn = [
@@ -642,6 +658,7 @@ export class Chess {
   /**
    * Allows header information to be added to PGN output. Any number of
    * key/value pairs can be passed to .header().
+   * @example
    * ```js
    * chess.header('White', 'Robert James Fischer')
    * chess.header('Black', 'Mikhail Tal')
@@ -652,6 +669,7 @@ export class Chess {
    * ```
    *
    * Calling .header() without any arguments returns the header information as an object.
+   * @example
    * ```js
    * chess.header()
    * // -> { White: 'Morphy', Black: 'Anderssen', Date: '1858-??-??' }
@@ -671,6 +689,7 @@ export class Chess {
 
   /**
    * Returns a string containing an ASCII diagram of the current position.
+   * @example
    * ```js
    * const chess = new Chess()
    *
@@ -703,6 +722,7 @@ export class Chess {
   /**
    * Returns the current side to move.
    *
+   * @example
    * ```js
    * chess.load('rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1')
    * chess.turn()
@@ -718,6 +738,7 @@ export class Chess {
    * legal, otherwise null. The .move function can be called two ways, by passing
    * a string in Standard Algebraic Notation (SAN):
    *
+   * @example
    * ```js
    * const chess = new Chess()
    *
@@ -735,6 +756,7 @@ export class Chess {
    * Or by passing .move() a move object (only the 'to', 'from', and when necessary
    * 'promotion', fields are needed):
    *
+   * @example
    * ```js
    * const chess = new Chess()
    *
@@ -745,6 +767,7 @@ export class Chess {
    * An optional sloppy flag can be used to parse a variety of non-standard move
    * notations:
    *
+   * @example
    * ```js
    * const chess = new Chess()
    *
@@ -794,6 +817,7 @@ export class Chess {
   /**
    * Takeback the last half-move, returning a move object if successful, otherwise null.
    *
+   * @example
    * ```js
    * const chess = new Chess()
    *
@@ -819,6 +843,7 @@ export class Chess {
   /**
    * Returns the color of the square ('light' or 'dark').
    *
+   * @example
    * ```js
    * const chess = Chess()
    * chess.squareColor('h1')
@@ -842,6 +867,7 @@ export class Chess {
    * Returns a list containing the moves of the current game. Options is an
    * optional parameter which may contain a 'verbose' flag. See .moves() for a
    * description of the verbose move fields.
+   * @example
    * ```js
    * const chess = new Chess()
    * chess.move('e4')
@@ -886,6 +912,7 @@ export class Chess {
   /**
    * Retrieve the comment for the current position, if it exists.
    *
+   * @example
    * ```js
    * const chess = new Chess()
    *
@@ -902,6 +929,7 @@ export class Chess {
   /**
    * Retrieve comments for all positions.
    *
+   * @example
    * ```js
    * const chess = new Chess()
    *
@@ -930,6 +958,7 @@ export class Chess {
   /**
    * Comment on the current position.
    *
+   * @example
    * ```js
    * const chess = new Chess()
    *
@@ -947,6 +976,7 @@ export class Chess {
   /**
    * Delete and return the comment for the current position, if it exists.
    *
+   * @example
    * ```js
    * const chess = new Chess()
    *
@@ -971,6 +1001,7 @@ export class Chess {
   /**
    * Delete and return comments for all positions.
    *
+   * @example
    * ```js
    * const chess = new Chess()
    *
@@ -1006,6 +1037,7 @@ export class Chess {
    * Returns a validation object specifying validity or the errors found
    * within the FEN string.
    *
+   * @example
    * ```js
    * chess.validateFen('2n1r3/p1k2pp1/B1p3b1/P7/5bP1/2N1B3/1P2KP2/2R5 b - - 4 25')
    * // -> { valid: true, error_number: 0, error: 'No errors.' }

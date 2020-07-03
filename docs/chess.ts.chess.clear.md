@@ -6,13 +6,6 @@
 
 Clears the board.
 
-```js
-chess.clear()
-chess.fen()
-// -> '8/8/8/8/8/8/8/8 w - - 0 1' <- empty board
-
-```
-
 <b>Signature:</b>
 
 ```typescript
@@ -28,4 +21,14 @@ clear(keep_headers?: boolean): void;
 <b>Returns:</b>
 
 void
+
+## Example
+
+
+```js
+chess.clear()
+chess.fen()
+// -> '8/8/8/8/8/8/8/8 w - - 0 1' <- empty board
+
+```
 

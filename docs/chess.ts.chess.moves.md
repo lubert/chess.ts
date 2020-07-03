@@ -6,6 +6,30 @@
 
 Returns a list of legal moves from the current position. The function takes an optional parameter which controls the single-square move generation and verbosity.
 
+<b>Signature:</b>
+
+```typescript
+moves(options?: {
+        square?: string;
+        verbose?: boolean;
+    }): (string | Move)[];
+```
+
+## Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  options | { square?: string; verbose?: boolean; } |  |
+
+<b>Returns:</b>
+
+(string \| [Move](./chess.ts.move.md)<!-- -->)\[\]
+
+Piece or null
+
+## Example
+
+
 ```js
 const chess = new Chess()
 chess.moves()
@@ -35,25 +59,4 @@ The \_flags\_ field in verbose mode may contain one or more of the following val
 - 'n' - a non-capture - 'b' - a pawn push of two squares - 'e' - an en passant capture - 'c' - a standard capture - 'p' - a promotion - 'k' - kingside castling - 'q' - queenside castling
 
 A flag of 'pc' would mean that a pawn captured a piece on the 8th rank and promoted.
-
-<b>Signature:</b>
-
-```typescript
-moves(options?: {
-        square?: string;
-        verbose?: boolean;
-    }): (string | Move)[];
-```
-
-## Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  options | { square?: string; verbose?: boolean; } |  |
-
-<b>Returns:</b>
-
-(string \| [Move](./chess.ts.move.md)<!-- -->)\[\]
-
-Piece or null
 
