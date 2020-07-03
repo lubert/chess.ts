@@ -1033,11 +1033,14 @@ export class Chess {
     return nodes
   }
 
-  /* called when the initial board setup is changed with put() or remove().
+  /**
+   * Called when the initial board setup is changed with put() or remove().
    * modifies the SetUp and FEN properties of the header object.  if the FEN is
    * equal to the default position, the SetUp and FEN are deleted
    * the setup is only updated if history.length is zero, ie moves haven't been
    * made.
+   *
+   * @internal
    */
   protected updateSetup(fen: string): void {
     if (this._history.length > 0) return
@@ -1051,6 +1054,7 @@ export class Chess {
     }
   }
 
+  /** @internal */
   protected pruneComments(): void {
     const reversed_history: HexMove[] = [];
     const current_comments: Comments = {};
@@ -1070,19 +1074,26 @@ export class Chess {
     this._comments = current_comments;
   }
 
-  // parses all of the decorators out of a SAN string
+  /**
+   * Parses all of the decorators out of a SAN string
+   *
+   * @internal
+   */
   protected strippedSan(move: string): string {
     return move.replace(/=/, '').replace(/[+#]?[?!]*$/, '')
   }
 
+  /** @internal */
   protected attacked(color: string, square: number): boolean {
     return isAttacked(this._state, color, square)
   }
 
+  /** @internal */
   protected kingAttacked(color: Color): boolean {
     return this.attacked(swapColor(color), this._state.kings[color])
   }
 
+  /** @internal */
   protected makeMove(move: HexMove): void {
     this._history.push({
       move: move,
@@ -1091,6 +1102,7 @@ export class Chess {
     this._state = makeMove(this._state, move)
   }
 
+  /** @internal */
   protected undoMove(): HexMove | null {
     const prev = this._history.pop()
     if (prev == null) {
@@ -1100,7 +1112,11 @@ export class Chess {
     return prev.move
   }
 
-  // convert a move from Standard Algebraic Notation (SAN) to 0x88 coordinates
+  /**
+   * Convert a move from Standard Algebraic Notation (SAN) to 0x88 coordinates
+   *
+   * @internal
+   */
   protected sanToMove(move: string, sloppy: boolean): HexMove | null {
     return sanToMove(this._state, move, sloppy)
   }

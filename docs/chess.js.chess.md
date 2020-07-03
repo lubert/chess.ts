@@ -65,7 +65,6 @@ chess.ascii()
 
 ```
  |
-|  [attacked(color, square)](./chess.js.chess.attacked.md) |  |  |
 |  [board()](./chess.js.chess.board.md) |  | Returns an 2D array representation of the current position. Empty squares are represented by <code>null</code>.
 ```js
 const chess = new Chess()
@@ -318,7 +317,6 @@ chess.inThreefoldRepetition()
 
 ```
  |
-|  [kingAttacked(color)](./chess.js.chess.kingattacked.md) |  |  |
 |  [load(fen, keep\_headers)](./chess.js.chess.load.md) |  | Clears the board and loads the Forsyth–Edwards Notation (FEN) string. |
 |  [loadPgn(pgn, options)](./chess.js.chess.loadpgn.md) |  | Load the moves of a game stored in \[Portable Game Notation\](http://en.wikipedia.org/wiki/Portable\_Game\_Notation). <code>pgn</code> should be a string. Options is an optional <code>object</code> which may contain a string <code>newline_char</code> and a boolean <code>sloppy</code>.<!-- -->The <code>newline_char</code> is a string representation of a valid RegExp fragment and is used to process the PGN. It defaults to <code>\r?\n</code>. Special characters should not be pre-escaped, but any literal special characters should be escaped as is normal for a RegExp. Keep in mind that backslashes in JavaScript strings must themselves be escaped (see <code>sloppy_pgn</code> example below). Avoid using a <code>newline_char</code> that may occur elsewhere in a PGN, such as <code>.</code> or <code>x</code>, as this will result in unexpected behavior.<!-- -->The <code>sloppy</code> flag is a boolean that permits chess.js to parse moves in non-standard notations. See <code>.move</code> documentation for more information about non-SAN notations.<!-- -->The method will return <code>true</code> if the PGN was parsed successfully, otherwise <code>false</code>.
 ```js
@@ -398,7 +396,6 @@ chess.fen()
 
 ```
  |
-|  [makeMove(move)](./chess.js.chess.makemove.md) |  |  |
 |  [move(move, options)](./chess.js.chess.move.md) |  | Attempts to make a move on the board, returning a move object if the move was legal, otherwise null. The .move function can be called two ways, by passing a string in Standard Algebraic Notation (SAN):
 ```js
 const chess = new Chess()
@@ -486,7 +483,6 @@ chess.pgn({ max_width: 5, newline_char: '<br />' })
 
 ```
  |
-|  [pruneComments()](./chess.js.chess.prunecomments.md) |  |  |
 |  [put(piece, square)](./chess.js.chess.put.md) |  | Place a piece on the square where piece is an object with the form { type: ..., color: ... }<!-- -->. Returns true if the piece was successfully placed, otherwise, the board remains unchanged and false is returned. <code>put()</code> will fail when passed an invalid piece or square, or when two or more kings of the same color are placed.
 ```js
 chess.clear()
@@ -528,7 +524,6 @@ chess.remove('e1')
 ```
  |
 |  [reset()](./chess.js.chess.reset.md) |  | Reset the board to the initial starting position. |
-|  [sanToMove(move, sloppy)](./chess.js.chess.santomove.md) |  |  |
 |  [setComment(comment)](./chess.js.chess.setcomment.md) |  | Comment on the current position.
 ```js
 const chess = new Chess()
@@ -553,7 +548,6 @@ chess.squareColor('bogus square')
 
 ```
  |
-|  [strippedSan(move)](./chess.js.chess.strippedsan.md) |  |  |
 |  [turn()](./chess.js.chess.turn.md) |  | Returns the current side to move.
 ```js
 chess.load('rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1')
@@ -581,8 +575,6 @@ chess.undo()
 
 ```
  |
-|  [undoMove()](./chess.js.chess.undomove.md) |  |  |
-|  [updateSetup(fen)](./chess.js.chess.updatesetup.md) |  |  |
 |  [validateFen(fen)](./chess.js.chess.validatefen.md) |  | Returns a validation object specifying validity or the errors found within the FEN string.
 ```js
 chess.validateFen('2n1r3/p1k2pp1/B1p3b1/P7/5bP1/2N1B3/1P2KP2/2R5 b - - 4 25')
