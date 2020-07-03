@@ -150,7 +150,6 @@ export function getFen(state: State): string {
   }
 
   let cflags = ''
-  const test = state.castling[WHITE]
   if (state.castling[WHITE] & BITS.KSIDE_CASTLE) {
     cflags += 'K'
   }

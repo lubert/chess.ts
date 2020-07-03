@@ -1,5 +1,5 @@
 {
-  "name": "chess.js",
+  "name": "chess.ts",
   "version": "0.11.0",
   "license": "BSD-2-Clause",
   "main": "dist/src/index.js",
@@ -26,7 +26,7 @@
   "scripts": {
     "api": "npm run build && api-extractor run --local --verbose",
     "build": "tsc",
-    "docs": "npm run api && api-documenter markdown --input ./temp --output ./docs",
+    "build:docs": "npm run api && api-documenter markdown --input ./temp --output ./docs",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "test": "jest"
   }

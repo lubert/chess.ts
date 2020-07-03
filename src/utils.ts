@@ -79,7 +79,7 @@ export function isFlagKey(key: string): key is FlagKey {
  * we're at it
  */
 export function validateFen(fen: string): Validation {
-  const errors: { [key: number]: string } = {
+  const errors: Record<number, string> = {
     0: 'No errors.',
     1: 'FEN string must contain six space-delimited fields.',
     2: '6th field (move number) must be a positive integer.',
