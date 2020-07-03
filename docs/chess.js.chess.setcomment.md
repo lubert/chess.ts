@@ -4,6 +4,19 @@
 
 ## Chess.setComment() method
 
+Comment on the current position.
+
+```js
+const chess = new Chess()
+
+chess.move("e4")
+chess.setComment("king's pawn opening")
+
+chess.pgn()
+// -> "1. e4 {king's pawn opening}"
+
+```
+
 <b>Signature:</b>
 
 ```typescript

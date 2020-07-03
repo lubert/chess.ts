@@ -4,6 +4,18 @@
 
 ## Chess.getComment() method
 
+Retrieve the comment for the current position, if it exists.
+
+```js
+const chess = new Chess()
+
+chess.loadPgn("1. e4 e5 2. Nf3 Nc6 3. Bc4 Bc5 {giuoco piano} *")
+
+chess.getComment()
+// -> "giuoco piano"
+
+```
+
 <b>Signature:</b>
 
 ```typescript

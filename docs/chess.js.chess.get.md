@@ -6,6 +6,17 @@
 
 Returns the piece on the square.
 
+```js
+chess.clear()
+chess.put({ type: chess.PAWN, color: chess.BLACK }, 'a5') // put a black pawn on a5
+
+chess.get('a5')
+// -> { type: 'p', color: 'b' },
+chess.get('a6')
+// -> null
+
+```
+
 <b>Signature:</b>
 
 ```typescript

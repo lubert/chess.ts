@@ -4,7 +4,14 @@
 
 ## Chess.clear() method
 
-Clears the board
+Clears the board.
+
+```js
+chess.clear()
+chess.fen()
+// -> '8/8/8/8/8/8/8/8 w - - 0 1' <- empty board
+
+```
 
 <b>Signature:</b>
 

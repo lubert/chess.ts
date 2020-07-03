@@ -4,6 +4,31 @@
 
 ## Chess.ascii() method
 
+Returns a string containing an ASCII diagram of the current position.
+
+```js
+const chess = new Chess()
+
+// Make some moves
+chess.move('e4')
+chess.move('e5')
+chess.move('f4')
+
+chess.ascii()
+// -> '   +------------------------+
+//      8 | r  n  b  q  k  b  n  r |
+//      7 | p  p  p  p  .  p  p  p |
+//      6 | .  .  .  .  .  .  .  . |
+//      5 | .  .  .  .  p  .  .  . |
+//      4 | .  .  .  .  P  P  .  . |
+//      3 | .  .  .  .  .  .  .  . |
+//      2 | P  P  P  P  .  .  P  P |
+//      1 | R  N  B  Q  K  B  N  R |
+//        +------------------------+
+//          a  b  c  d  e  f  g  h'
+
+```
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,9 +39,11 @@ ascii(eol?: string): string;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  eol | string |  |
+|  eol | string | EOL character |
 
 <b>Returns:</b>
+
+string
 
 string
 

@@ -6,6 +6,15 @@
 
 Returns true or false if the side to move has been checkmated.
 
+```js
+const chess = new Chess(
+    'rnb1kbnr/pppp1ppp/8/4p3/5PPq/8/PPPPP2P/RNBQKBNR w KQkq - 1 3'
+)
+chess.inCheckmate()
+// -> true
+
+```
+
 <b>Signature:</b>
 
 ```typescript

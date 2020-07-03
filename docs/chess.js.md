@@ -19,4 +19,5 @@
 |  [Move](./chess.js.move.md) |  |
 |  [Piece](./chess.js.piece.md) |  |
 |  [PieceSymbol](./chess.js.piecesymbol.md) |  |
+|  [Validation](./chess.js.validation.md) |  |
 

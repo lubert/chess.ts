@@ -6,6 +6,15 @@
 
 Returns true or false if the side to move is in check.
 
+```js
+const chess = new Chess(
+    'rnb1kbnr/pppp1ppp/8/4p3/5PPq/8/PPPPP2P/RNBQKBNR w KQkq - 1 3'
+)
+chess.inCheck()
+// -> true
+
+```
+
 <b>Signature:</b>
 
 ```typescript

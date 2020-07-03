@@ -4,7 +4,24 @@
 
 ## Chess.gameOver() method
 
-Returns true if the game has ended via checkmate, stalemate, draw, threefold repetition, or insufficient material.
+Returns true if the game has ended via checkmate, stalemate, draw, threefold repetition, or insufficient material. Otherwise, returns false.
+
+```js
+const chess = new Chess()
+chess.gameOver()
+// -> false
+
+// stalemate
+chess.load('4k3/4P3/4K3/8/8/8/8/8 b - - 0 78')
+chess.gameOver()
+// -> true
+
+// checkmate
+chess.load('rnb1kbnr/pppp1ppp/8/4p3/5PPq/8/PPPPP2P/RNBQKBNR w KQkq - 1 3')
+chess.gameOver()
+// -> true
+
+```
 
 <b>Signature:</b>
 

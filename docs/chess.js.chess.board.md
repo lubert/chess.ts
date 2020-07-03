@@ -4,7 +4,35 @@
 
 ## Chess.board() method
 
-Returns an 2D array representation of the current position. Empty squares are represented by null.
+Returns an 2D array representation of the current position. Empty squares are represented by `null`<!-- -->.
+
+```js
+const chess = new Chess()
+
+chess.board()
+// -> [[{type: 'r', color: 'b'},
+        {type: 'n', color: 'b'},
+        {type: 'b', color: 'b'},
+        {type: 'q', color: 'b'},
+        {type: 'k', color: 'b'},
+        {type: 'b', color: 'b'},
+        {type: 'n', color: 'b'},
+        {type: 'r', color: 'b'}],
+        [...],
+        [...],
+        [...],
+        [...],
+        [...],
+        [{type: 'r', color: 'w'},
+         {type: 'n', color: 'w'},
+         {type: 'b', color: 'w'},
+         {type: 'q', color: 'w'},
+         {type: 'k', color: 'w'},
+         {type: 'b', color: 'w'},
+         {type: 'n', color: 'w'},
+         {type: 'r', color: 'w'}]]
+
+```
 
 <b>Signature:</b>
 

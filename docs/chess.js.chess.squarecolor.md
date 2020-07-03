@@ -4,10 +4,23 @@
 
 ## Chess.squareColor() method
 
+Returns the color of the square ('light' or 'dark').
+
+```js
+const chess = Chess()
+chess.squareColor('h1')
+// -> 'light'
+chess.squareColor('a7')
+// -> 'dark'
+chess.squareColor('bogus square')
+// -> null
+
+```
+
 <b>Signature:</b>
 
 ```typescript
-squareColor(square: string): string | null;
+squareColor(square: string): ('light' | 'dark') | null;
 ```
 
 ## Parameters
@@ -18,5 +31,5 @@ squareColor(square: string): string | null;
 
 <b>Returns:</b>
 
-string \| null
+('light' \| 'dark') \| null
 

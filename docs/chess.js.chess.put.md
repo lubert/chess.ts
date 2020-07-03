@@ -4,7 +4,31 @@
 
 ## Chess.put() method
 
-Place a piece on a square. Fails when passed an invalid piece or square, or when two or more kings of the same color are placed.
+Place a piece on the square where piece is an object with the form { type: ..., color: ... }<!-- -->. Returns true if the piece was successfully placed, otherwise, the board remains unchanged and false is returned. `put()` will fail when passed an invalid piece or square, or when two or more kings of the same color are placed.
+
+```js
+chess.clear()
+
+chess.put({ type: chess.PAWN, color: chess.BLACK }, 'a5') // put a black pawn on a5
+// -> true
+chess.put({ type: 'k', color: 'w' }, 'h1') // shorthand
+// -> true
+
+chess.fen()
+// -> '8/8/8/p7/8/8/8/7K w - - 0 0'
+
+chess.put({ type: 'z', color: 'w' }, 'a1') // invalid piece
+// -> false
+
+chess.clear()
+
+chess.put({ type: 'k', color: 'w' }, 'a1')
+// -> true
+
+chess.put({ type: 'k', color: 'w' }, 'h1') // fail - two kings
+// -> false
+
+```
 
 <b>Signature:</b>
 
