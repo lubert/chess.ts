@@ -18,27 +18,27 @@ type Piece = {
   type: PieceSymbol;
 }
 
-interface Header extends Record<string, string | undefined>{
+interface Header extends Record<string, string | undefined> {
   SetUp?: string;
   FEN?: string;
 }
 
-interface Comment {
+type PgnComment = {
   fen: string;
   comment: string;
 }
 
-interface ColorState extends Record<Color, number>{
+interface ColorState extends Record<Color, number> {
   w: number;
   b: number;
 }
 
-interface GameHistory {
+type GameHistory = {
   move: Move;
   state: State;
 }
 
-interface State {
+type State = {
   kings: ColorState;
   turn: Color;
   castling: ColorState;
@@ -48,7 +48,7 @@ interface State {
   board: Board;
 }
 
-interface Move {
+type Move = {
   to: number;
   from: number;
   color: Color;
@@ -59,7 +59,7 @@ interface Move {
   san?: string;
 }
 
-interface PrettyMove {
+type PrettyMove = {
   to: string;
   from: string;
   color: Color;
@@ -70,7 +70,7 @@ interface PrettyMove {
   promotion?: PieceSymbol;
 }
 
-interface Validation {
+type Validation = {
   valid: boolean;
   error_number: number;
   error: string;

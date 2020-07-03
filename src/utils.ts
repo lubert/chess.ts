@@ -129,7 +129,7 @@ export function validateFen(fen: string): Validation {
     let sum_fields = 0
     let previous_was_number = false
 
-    for (var k = 0; k < rows[i].length; k++) {
+    for (let k = 0; k < rows[i].length; k++) {
       if (!isNaN(rows[i][k] as any)) {
         if (previous_was_number) {
           return { valid: false, error_number: 8, error: errors[8] }

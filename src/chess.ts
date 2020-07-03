@@ -22,7 +22,6 @@ import {
   validateMove,
 } from "./state"
 import {
-  algebraic,
   file,
   isSquare,
   rank,
@@ -86,7 +85,7 @@ export class Chess {
   /**
    * Reset the board to the initial starting position.
    */
-  public reset() {
+  public reset(): void {
     this.load(DEFAULT_POSITION)
   }
 
@@ -144,12 +143,12 @@ export class Chess {
    * @param square e.g. 'e4'
    * @return Piece or null
    */
-  public moves(options: { square?: string, verbose?: boolean} = {}) {
+  public moves(options: { square?: string, verbose?: boolean} = {}): (string | PrettyMove)[] {
     // The internal representation of a chess move is in 0x88 format, and
     // not meant to be human-readable.  The code below converts the 0x88
     // square coordinates to algebraic coordinates.  It also prunes an
     // unnecessary move keys resulting from a verbose call.
-    let { square, verbose = false } = options
+    const { square, verbose = false } = options
     const ugly_moves = generateMoves(this._state, { square })
     const moves = []
 
@@ -174,21 +173,21 @@ export class Chess {
   /**
    * Returns true or false if the side to move is in check.
    */
-  public inCheck() {
+  public inCheck(): boolean {
     return inCheck(this._state)
   }
 
   /**
    * Returns true or false if the side to move has been checkmated.
    */
-  public inCheckmate() {
+  public inCheckmate(): boolean {
     return inCheckmate(this._state)
   }
 
   /**
    * Returns true or false if the side to move has been stalemated.
    */
-  public inStalemate() {
+  public inStalemate(): boolean {
     return inStalemate(this._state)
   }
 
@@ -204,7 +203,7 @@ export class Chess {
    * Returns true or false if the current board position has occurred three or
    * more times.
    */
-  public inThreefoldRepetition() {
+  public inThreefoldRepetition(): boolean {
     /* TODO: while this function is fine for casual use, a better
      * implementation would use a Zobrist key (instead of FEN). the
      * Zobrist key would be maintained in the make_move/undo_move functions,
@@ -247,7 +246,7 @@ export class Chess {
    * Returns true or false if the game is drawn, checking the 50-move rule and
    * insufficient material.
    */
-  public inDraw() {
+  public inDraw(): boolean {
     return (
       this._state.half_moves >= 100 ||
         this.inStalemate() ||
@@ -260,7 +259,7 @@ export class Chess {
    * Returns true if the game has ended via checkmate, stalemate, draw,
    * threefold repetition, or insufficient material.
    */
-  public gameOver() {
+  public gameOver(): boolean {
     return this.inCheckmate() || this.inDraw()
   }
 
@@ -268,7 +267,7 @@ export class Chess {
    * Returns an 2D array representation of the current position. Empty squares
    * are represented by null.
    */
-  public board() {
+  public board(): (Piece | null)[][] {
     return getBoard(this._state.board)
   }
 
@@ -326,7 +325,7 @@ export class Chess {
     return ascii(this._state.board, eol)
   }
 
-  public turn() {
+  public turn(): Color {
     return this._state.turn
   }
 
@@ -368,7 +367,7 @@ export class Chess {
     return null
   }
 
-  public history(options: { verbose?: boolean } = {}) {
+  public history(options: { verbose?: boolean } = {}): (string | PrettyMove)[] {
     const moveHistory: Array<string | PrettyMove> = []
     const { verbose = false } = options;
 
@@ -406,18 +405,18 @@ export class Chess {
     return comment;
   }
 
-  public getComments() {
+  public getComments(): PgnComment[] {
     this.pruneComments();
     return Object.keys(this._comments).map((fen) => {
       return {fen: fen, comment: this._comments[fen]};
     });
   }
 
-  public deleteComments() {
+  public deleteComments(): PgnComment[] {
     this.pruneComments();
     return Object.keys(this._comments)
       .map((fen) => {
-        var comment = this._comments[fen];
+        const comment = this._comments[fen];
         delete this._comments[fen];
         return {fen: fen, comment: comment};
       });
@@ -428,11 +427,11 @@ export class Chess {
     let nodes = 0
     const color = this._state.turn
 
-    for (var i = 0, len = moves.length; i < len; i++) {
+    for (let i = 0, len = moves.length; i < len; i++) {
       this.makeMove(moves[i])
       if (!this.kingAttacked(color)) {
         if (depth - 1 > 0) {
-          var child_nodes = this.perft(depth - 1)
+          const child_nodes = this.perft(depth - 1)
           nodes += child_nodes
         } else {
           nodes++
@@ -490,7 +489,7 @@ export class Chess {
     return isAttacked(this._state, color, square)
   }
 
-  protected kingAttacked(color: Color) {
+  protected kingAttacked(color: Color): boolean {
     return this.attacked(swapColor(color), this._state.kings[color])
   }
 

@@ -315,7 +315,7 @@ export function getPgn(
 
   /* NB: this does not preserve comment whitespace. */
   const wrapComment = (width: number, move: string): number => {
-    for (var token of move.split(' ')) {
+    for (const token of move.split(' ')) {
       if (!token) {
         continue;
       }
@@ -381,7 +381,7 @@ export function loadPgn(
     return str.replace(/\\/g, '\\')
   }
 
-  const hasKeys = (object: Object): boolean => {
+  const hasKeys = (object: Record<string, unknown>): boolean => {
     for (const key in object) {
       return true
     }
@@ -400,7 +400,7 @@ export function loadPgn(
 
     for (let i = 0; i < headers.length; i++) {
       key = headers[i].replace(/^\[([A-Z][A-Za-z]*)\s.*\]$/, '$1')
-      value = headers[i].replace(/^\[[A-Za-z]+\s"(.*)"\ *\]$/, '$1')
+      value = headers[i].replace(/^\[[A-Za-z]+\s"(.*)" *\]$/, '$1')
       if (key.trim().length > 0) {
         header_obj[key.trim()] = value
       }
@@ -460,7 +460,7 @@ export function loadPgn(
          * so we handle these ourselves */
         return c.charCodeAt(0) < 128
           ? c.charCodeAt(0).toString(16)
-          : encodeURIComponent(c).replace(/\%/g, '').toLowerCase()
+          : encodeURIComponent(c).replace(/%/g, '').toLowerCase()
       })
       .join('')
   }
@@ -487,7 +487,7 @@ export function loadPgn(
     .replace(header_string, '')
     .replace(
       /* encode comments so they don't get deleted below */
-      new RegExp(`(\{[^}]*\})+?|;([^${mask(newline_char)}]*)`, 'g'),
+      new RegExp(`({[^}]*})+?|;([^${mask(newline_char)}]*)`, 'g'),
       (match, bracket, semicolon) => {
         return bracket !== undefined
           ? encodeComment(bracket)
@@ -497,7 +497,7 @@ export function loadPgn(
     .replace(new RegExp(mask(newline_char), 'g'), ' ')
 
   /* delete recursive annotation variations */
-  const rav_regex = /(\([^\(\)]+\))+?/g
+  const rav_regex = /(\([^()]+\))+?/g
   while (rav_regex.test(ms)) {
     ms = ms.replace(rav_regex, '')
   }
@@ -660,8 +660,11 @@ export function removePiece(prevState: State, square?: string): State | null {
   return state
 }
 
-export function generateMoves(state: State, options: { legal?: boolean, square?: string } = {}) {
-  let { legal = true, square } = options
+export function generateMoves(
+  state: State,
+  options: { legal?: boolean, square?: string } = {}
+): Move[] {
+  const { legal = true } = options
   const add_move = (board: Board, moves: Move[], from: number, to: number, flags: number) => {
     /* if pawn promotion */
     const piece = board[from]
@@ -670,8 +673,8 @@ export function generateMoves(state: State, options: { legal?: boolean, square?:
         piece.type === PAWN &&
         (rank(to) === RANK_8 || rank(to) === RANK_1)
     ) {
-      var pieces = [QUEEN, ROOK, BISHOP, KNIGHT]
-      for (var i = 0, len = pieces.length; i < len; i++) {
+      const pieces = [QUEEN, ROOK, BISHOP, KNIGHT]
+      for (let i = 0, len = pieces.length; i < len; i++) {
         moves.push(buildMove(state, from, to, flags, pieces[i]))
       }
     } else {
@@ -679,16 +682,17 @@ export function generateMoves(state: State, options: { legal?: boolean, square?:
     }
   }
 
-  let moves: Move[] = []
-  let us = state.turn
-  let them = swapColor(us)
-  let second_rank: { [key: string]: number } = { b: RANK_7, w: RANK_2 }
+  const moves: Move[] = []
+  const us = state.turn
+  const them = swapColor(us)
+  const second_rank: { [key: string]: number } = { b: RANK_7, w: RANK_2 }
 
   let first_sq = SQUARES.a8
   let last_sq = SQUARES.h1
   let single_square = false
 
   /* are we generating moves for a single square? */
+  let { square } = options
   if (square) {
     square = square.toLowerCase()
     if (isSquare(square)) {
@@ -714,12 +718,12 @@ export function generateMoves(state: State, options: { legal?: boolean, square?:
 
     if (piece.type === PAWN) {
       /* single square, non-capturing */
-      let square1 = i + PAWN_OFFSETS[us][0]
+      const square1 = i + PAWN_OFFSETS[us][0]
       if (!state.board[square1]) {
         add_move(state.board, moves, i, square1, BITS.NORMAL)
 
         /* double square */
-        let square2 = i + PAWN_OFFSETS[us][1]
+        const square2 = i + PAWN_OFFSETS[us][1]
         if (second_rank[us] === rank(i) && !state.board[square2]) {
           add_move(state.board, moves, i, square2, BITS.BIG_PAWN)
         }
@@ -727,7 +731,7 @@ export function generateMoves(state: State, options: { legal?: boolean, square?:
 
       /* pawn captures */
       for (let j = 2; j < 4; j++) {
-        let square = i + PAWN_OFFSETS[us][j]
+        const square = i + PAWN_OFFSETS[us][j]
         if (square & 0x88) continue
 
         if (state.board[square] && state.board[square]?.color === them) {
@@ -869,7 +873,7 @@ export function moveToSan(state: State, move: Move, sloppy = false): string {
 
 export function sanToMove(state: State, move: string, sloppy: boolean): Move | null {
   // strip off any move decorations: e.g Nf3+?!
-  let clean_move = strippedSan(move)
+  const clean_move = strippedSan(move)
 
   let matches, piece, from, to, promotion;
 
@@ -964,10 +968,10 @@ export function isAttacked(state: State, color: string, square: number): boolean
       /* if the piece is a knight or a king */
       if (piece.type === 'n' || piece.type === 'k') return true
 
-      var offset = RAYS[index]
-      var j = i + offset
+      const offset = RAYS[index]
+      let j = i + offset
 
-      var blocked = false
+      let blocked = false
       while (j !== square) {
         if (state.board[j]) {
           blocked = true
@@ -995,7 +999,7 @@ export function inCheckmate(state: State): boolean {
   return inCheck(state) && generateMoves(state).length === 0
 }
 
-export function inStalemate(state: State) {
+export function inStalemate(state: State): boolean {
   return !inCheck(state) && generateMoves(state).length === 0
 }
 
@@ -1005,7 +1009,7 @@ export function insufficientMaterial(state: State): boolean {
   let num_pieces = 0
   let sq_color = 0
 
-  for (var i = SQUARES.a8; i <= SQUARES.h1; i++) {
+  for (let i = SQUARES.a8; i <= SQUARES.h1; i++) {
     sq_color = (sq_color + 1) % 2
     if (i & 0x88) {
       i += 7
@@ -1106,7 +1110,7 @@ export function makeMove(prevState: State, move: Move): State {
 
   /* turn off castling if we capture a rook */
   if (state.castling[them]) {
-    for (var i = 0, len = ROOKS[them].length; i < len; i++) {
+    for (let i = 0, len = ROOKS[them].length; i < len; i++) {
       if (
         move.to === ROOKS[them][i].square &&
           state.castling[them] & ROOKS[them][i].flag
@@ -1144,7 +1148,7 @@ export function makeMove(prevState: State, move: Move): State {
   return state
 }
 
-export function buildMove(state: State, from: number, to: number, flags: any, promotion?: string): Move {
+export function buildMove(state: State, from: number, to: number, flags: number, promotion?: string): Move {
   const move: Move = {
     color: state.turn,
     from: from,
@@ -1225,7 +1229,7 @@ export function validateMove(
   } else if (typeof move === 'object') {
     const moves = generateMoves(state)
     // Find a matching move
-    for (let moveObj of moves) {
+    for (const moveObj of moves) {
       if (
         move.from === algebraic(moveObj.from) &&
           move.to === algebraic(moveObj.to) &&
