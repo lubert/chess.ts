@@ -20,7 +20,7 @@ npm install @lubert/chess.ts
 yarn add @lubert/chess.ts
 ```
 
-## [Documentation](./docs/index.md)
+## [Documentation](./docs/chess.ts.md)
 
 ## Example Code
 
