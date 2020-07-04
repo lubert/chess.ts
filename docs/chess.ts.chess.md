@@ -30,9 +30,11 @@ export declare class Chess
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
+|  [addHeader(key, val)](./chess.ts.chess.addheader.md) |  | Adds a PGN header entry |
 |  [ascii(eol)](./chess.ts.chess.ascii.md) |  | Returns a string containing an ASCII diagram of the current position. |
 |  [board()](./chess.ts.chess.board.md) |  | Returns an 2D array representation of the current position. Empty squares are represented by <code>null</code>. |
 |  [clear(keep\_headers)](./chess.ts.chess.clear.md) |  | Clears the board. |
+|  [clearHeader()](./chess.ts.chess.clearheader.md) |  | Removes all PGN header information. |
 |  [deleteComment()](./chess.ts.chess.deletecomment.md) |  | Delete and return the comment for the current position, if it exists. |
 |  [deleteComments()](./chess.ts.chess.deletecomments.md) |  | Delete and return comments for all positions. |
 |  [fen()](./chess.ts.chess.fen.md) |  | Returns the FEN string for the current position. |
@@ -40,7 +42,7 @@ export declare class Chess
 |  [get(square)](./chess.ts.chess.get.md) |  | Returns the piece on the square. |
 |  [getComment()](./chess.ts.chess.getcomment.md) |  | Retrieve the comment for the current position, if it exists. |
 |  [getComments()](./chess.ts.chess.getcomments.md) |  | Retrieve comments for all positions. |
-|  [header(args)](./chess.ts.chess.header.md) |  | Allows header information to be added to PGN output. Any number of key/value pairs can be passed to .header(). |
+|  [header()](./chess.ts.chess.header.md) |  | Returns PGN header information as an object. |
 |  [history(options)](./chess.ts.chess.history.md) |  | Returns a list containing the moves of the current game. |
 |  [history(options)](./chess.ts.chess.history_1.md) |  | Returns a list containing the moves of the current game. |
 |  [inCheck()](./chess.ts.chess.incheck.md) |  | Returns true or false if the side to move is in check. |
@@ -57,8 +59,10 @@ export declare class Chess
 |  [pgn(options)](./chess.ts.chess.pgn.md) |  | Returns the game in PGN format. Options is an optional parameter which may include max width and/or a newline character settings. |
 |  [put(piece, square)](./chess.ts.chess.put.md) |  | Place a piece on the square where piece is an object with the form <code>{ type: ..., color: ... }</code>. Returns true if the piece was successfully placed, otherwise, the board remains unchanged and false is returned. <code>put()</code> will fail when passed an invalid piece or square, or when two or more kings of the same color are placed. |
 |  [remove(square)](./chess.ts.chess.remove.md) |  | Remove and return the piece on <code>square</code>. |
+|  [removeHeader(key)](./chess.ts.chess.removeheader.md) |  | Removes a PGN header entry |
 |  [reset()](./chess.ts.chess.reset.md) |  | Reset the board to the initial starting position. |
 |  [setComment(comment)](./chess.ts.chess.setcomment.md) |  | Comment on the current position. |
+|  [setHeader(header)](./chess.ts.chess.setheader.md) |  | Sets PGN header information. |
 |  [squareColor(square)](./chess.ts.chess.squarecolor.md) |  | Returns the color of the square ('light' or 'dark'). |
 |  [turn()](./chess.ts.chess.turn.md) |  | Returns the current side to move. |
 |  [undo()](./chess.ts.chess.undo.md) |  | Takeback the last half-move, returning a move object if successful, otherwise null. |

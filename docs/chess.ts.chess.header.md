@@ -4,41 +4,18 @@
 
 ## Chess.header() method
 
-Allows header information to be added to PGN output. Any number of key/value pairs can be passed to .header().
+Returns PGN header information as an object.
 
 <b>Signature:</b>
 
 ```typescript
-header(args?: string[]): Record<string, string>;
+header(): Record<string, string>;
 ```
-
-## Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  args | string\[\] | List of key values |
-
 <b>Returns:</b>
 
 Record&lt;string, string&gt;
 
-Key/value pairs
-
-## Example 1
-
-
-```js
-chess.header('White', 'Robert James Fischer')
-chess.header('Black', 'Mikhail Tal')
-
-// or
-
-chess.header('White', 'Morphy', 'Black', 'Anderssen', 'Date', '1858-??-??')
-
-```
-Calling .header() without any arguments returns the header information as an object.
-
-## Example 2
+## Example
 
 
 ```js
