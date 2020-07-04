@@ -1128,22 +1128,23 @@ export class Chess {
 
   /** @internal */
   protected pruneComments(): void {
-    const reversed_history: HexMove[] = []
-    const current_comments: Comments = {}
-    const copy_comment = (fen: string) => {
+    const comments: Comments = {}
+
+    const copyComments = (fen: string) => {
       if (fen in this._comments) {
-        current_comments[fen] = this._comments[fen]
+        comments[fen] = this._comments[fen]
       }
     }
-    while (this._history.length > 0) {
-      reversed_history.push(this.undoMove() as HexMove)
-    }
-    copy_comment(this.fen())
-    while (reversed_history.length > 0) {
-      this.makeMove(reversed_history.pop() as HexMove)
-      copy_comment(this.fen())
-    }
-    this._comments = current_comments
+
+    this._history.forEach(({ state: historyState, move}) => {
+      state = historyState
+      copyComments(getFen(state))
+    })
+
+    let state = this._state
+    copyComments(getFen(state))
+
+    this._comments = comments
   }
 
   /**
