@@ -277,24 +277,18 @@ export class Chess {
    * @param square - e.g. 'e4'
    * @returns Piece or null
    */
-  public moves(options: { square?: string, verbose?: boolean} = {}): (string | Move)[] {
+  public moves(options: { square?: string, verbose?: boolean} = {}): string[] | Move[] {
     // The internal representation of a chess move is in 0x88 format, and
     // not meant to be human-readable.  The code below converts the 0x88
     // square coordinates to algebraic coordinates.  It also prunes an
     // unnecessary move keys resulting from a verbose call.
     const { square, verbose = false } = options
-    const ugly_moves = generateMoves(this._state, { square })
-    const moves = []
+    const uglyMoves = generateMoves(this._state, { square })
 
-    for (let i = 0, len = ugly_moves.length; i < len; i++) {
-      if (verbose) {
-        moves.push(makePretty(this._state, ugly_moves[i]))
-      } else {
-        moves.push(moveToSan(this._state, ugly_moves[i], false))
-      }
+    if (verbose) {
+      return uglyMoves.map((uglyMove) => makePretty(this._state, uglyMove))
     }
-
-    return moves
+    return uglyMoves.map((uglyMove) => moveToSan(this._state, uglyMove, false))
   }
 
   /**
@@ -794,7 +788,7 @@ export class Chess {
    */
   public move(
     move: string | Move,
-    options: { sloppy?: boolean }
+    options: { sloppy?: boolean } = {}
   ): Move | null {
     const validMove = validateMove(this._state, move, options)
 
@@ -848,7 +842,7 @@ export class Chess {
    * // -> null
    * ```
    */
-  public squareColor(square: string): ('light' | 'dark') | null {
+  public squareColor(square: string): 'light' | 'dark' | null {
     if (isSquare(square)) {
       const sq_0x88 = SQUARES[square]
       return (rank(sq_0x88) + file(sq_0x88)) % 2 === 0 ? 'light' : 'dark'
@@ -879,8 +873,8 @@ export class Chess {
    * //     { color: 'b', from: 'e5', to: 'f4', flags: 'c', piece: 'p', captured: 'p', san: 'exf4' }]
    * ```
    */
-  public history(options: { verbose?: boolean } = {}): (string | Move)[] {
-    const moveHistory: Array<string | Move> = []
+  public history(options: { verbose?: boolean } = {}): string[] | Move[] {
+    const moveHistory = []
     const { verbose = false } = options;
 
     if (!this._history.length) {
@@ -888,19 +882,18 @@ export class Chess {
     }
 
     let state
-    this._history.forEach((gameHistory) => {
+    if (verbose) {
+      return this._history.map((gameHistory) => {
+        const move = gameHistory.move
+        state = gameHistory.state
+        return makePretty(state, move)
+      })
+    }
+    return this._history.map((gameHistory) => {
       const move = gameHistory.move
       state = gameHistory.state
-
-      if (verbose) {
-        moveHistory.push(makePretty(state, move))
-      } else {
-        moveHistory.push(moveToSan(state, move))
-      }
-      state = makeMove(state, move)
+      return moveToSan(state, move)
     })
-
-    return moveHistory
   }
 
   /**
