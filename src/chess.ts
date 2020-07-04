@@ -38,25 +38,25 @@ import {
   rank,
   swapColor,
   validateFen,
-} from './utils';
+} from './utils'
 import {
   DEFAULT_POSITION,
   SQUARES,
-} from './constants';
+} from './constants'
 
 /** @public */
 export class Chess {
   /** internal */
-  protected _state: State;
+  protected _state: State
 
   /** internal */
-  protected _history: GameHistory[];
+  protected _history: GameHistory[]
 
   /** internal */
-  protected _header: Record<string, string>;
+  protected _header: Record<string, string>
 
   /** internal */
-  protected _comments: Comments;
+  protected _comments: Comments
 
   /**
    * The Chess() constructor takes an optional parameter which specifies the board configuration
@@ -250,7 +250,7 @@ export class Chess {
    * // -> []
    * ```
    */
-  public moves(options?: { square?: string, verbose?: false }): string[];
+  public moves(options?: { square?: string, verbose?: false }): string[]
 
   /**
    * Returns a list of legal moves from the current position. The function
@@ -271,7 +271,7 @@ export class Chess {
    * ```
    * {@link Move}
    */
-  public moves(options: { square?: string, verbose: true }): Move[];
+  public moves(options: { square?: string, verbose: true }): Move[]
 
   public moves(options: { square?: string, verbose?: boolean} = {}): string[] | Move[] {
     // The internal representation of a chess move is in 0x88 format, and
@@ -643,35 +643,69 @@ export class Chess {
   }
 
   /**
-   * Allows header information to be added to PGN output. Any number of
-   * key/value pairs can be passed to .header().
-   * @example
-   * ```js
-   * chess.header('White', 'Robert James Fischer')
-   * chess.header('Black', 'Mikhail Tal')
+   * Returns PGN header information as an object.
    *
-   * // or
-   *
-   * chess.header('White', 'Morphy', 'Black', 'Anderssen', 'Date', '1858-??-??')
-   * ```
-   *
-   * Calling .header() without any arguments returns the header information as an object.
    * @example
    * ```js
    * chess.header()
    * // -> { White: 'Morphy', Black: 'Anderssen', Date: '1858-??-??' }
    * ```
-   *
-   * @param args - List of key values
-   * @returns Key/value pairs
    */
-  public header(args: string[] = []): Record<string, string> {
-    for (let i = 0; i < args.length; i += 2) {
-      if (typeof args[i] === 'string' && typeof args[i + 1] === 'string') {
-        this._header[args[i]] = args[i + 1]
-      }
-    }
+  public header(): Record<string, string> {
     return this._header
+  }
+
+  /**
+   * Sets PGN header information.
+   *
+   * @example
+   * ```js
+   * chess.setHeader({
+   *   'White': 'Robert James Fischer',
+   *   'Black': 'Mikhail Tal'
+   * })
+   * ```
+   */
+  public setHeader(header: Record<string, string>): void {
+    this._header = header
+  }
+
+  /**
+   * Adds a PGN header entry
+   *
+   * @example
+   * ```js
+   * chess.addHeader('White', 'Robert James Fischer')
+   * chess.addHeader('Black', 'Mikhail Tal')
+   * ```
+   */
+  public addHeader(key: string, val: string): void {
+    this._header[key] = val
+  }
+
+  /**
+   * Removes a PGN header entry
+   *
+   * @example
+   * ```js
+   * chess.removeHeader('White')
+   * ```
+   */
+  public removeHeader(key: string): void {
+    delete this._header[key]
+  }
+
+  /**
+   * Removes all PGN header information.
+   *
+   * @example
+   * ```js
+   * chess.setHeader('White', 'Robert James Fischer')
+   * chess.setHeader('Black', 'Mikhail Tal')
+   * ```
+   */
+  public clearHeader(): void {
+    this._header = {}
   }
 
   /**
@@ -862,7 +896,7 @@ export class Chess {
    * // -> ['e4', 'e5', 'f4', 'exf4']
    * ```
    */
-  public history(options?: { verbose?: false }): string[];
+  public history(options?: { verbose?: false }): string[]
 
   /**
    * Returns a list containing the moves of the current game.
@@ -882,11 +916,11 @@ export class Chess {
    * //     { color: 'b', from: 'e5', to: 'f4', flags: 'c', piece: 'p', captured: 'p', san: 'exf4' }]
    * ```
    */
-  public history(options: { verbose: true }): Move[];
+  public history(options: { verbose: true }): Move[]
 
   public history(options: { verbose?: boolean } = {}): string[] | Move[] {
     const moveHistory = []
-    const { verbose = false } = options;
+    const { verbose = false } = options
 
     if (!this._history.length) {
       return []
@@ -921,7 +955,7 @@ export class Chess {
    * ```
    */
   public getComment(): string {
-    return this._comments[this.fen()];
+    return this._comments[this.fen()]
   }
 
   /**
@@ -947,10 +981,10 @@ export class Chess {
    * ```
    */
   public getComments(): FenComment[] {
-    this.pruneComments();
+    this.pruneComments()
     return Object.keys(this._comments).map((fen) => {
-      return {fen: fen, comment: this._comments[fen]};
-    });
+      return {fen: fen, comment: this._comments[fen]}
+    })
   }
 
   /**
@@ -968,7 +1002,7 @@ export class Chess {
    * ```
    */
   public setComment(comment: string): void {
-    this._comments[this.fen()] = comment.replace('{', '[').replace('}', ']');
+    this._comments[this.fen()] = comment.replace('{', '[').replace('}', ']')
   }
 
   /**
@@ -991,9 +1025,9 @@ export class Chess {
    * ```
    */
   public deleteComment(): string {
-    const comment = this._comments[this.fen()];
-    delete this._comments[this.fen()];
-    return comment;
+    const comment = this._comments[this.fen()]
+    delete this._comments[this.fen()]
+    return comment
   }
 
   /**
@@ -1022,13 +1056,13 @@ export class Chess {
    * ```
    */
   public deleteComments(): FenComment[] {
-    this.pruneComments();
+    this.pruneComments()
     return Object.keys(this._comments)
       .map((fen) => {
-        const comment = this._comments[fen];
-        delete this._comments[fen];
-        return {fen: fen, comment: comment};
-      });
+        const comment = this._comments[fen]
+        delete this._comments[fen]
+        return {fen: fen, comment: comment}
+      })
   }
 
   /**
@@ -1094,22 +1128,22 @@ export class Chess {
 
   /** @internal */
   protected pruneComments(): void {
-    const reversed_history: HexMove[] = [];
-    const current_comments: Comments = {};
+    const reversed_history: HexMove[] = []
+    const current_comments: Comments = {}
     const copy_comment = (fen: string) => {
       if (fen in this._comments) {
-        current_comments[fen] = this._comments[fen];
+        current_comments[fen] = this._comments[fen]
       }
-    };
+    }
     while (this._history.length > 0) {
-      reversed_history.push(this.undoMove() as HexMove);
+      reversed_history.push(this.undoMove() as HexMove)
     }
-    copy_comment(this.fen());
+    copy_comment(this.fen())
     while (reversed_history.length > 0) {
-      this.makeMove(reversed_history.pop() as HexMove);
-      copy_comment(this.fen());
+      this.makeMove(reversed_history.pop() as HexMove)
+      copy_comment(this.fen())
     }
-    this._comments = current_comments;
+    this._comments = current_comments
   }
 
   /**
