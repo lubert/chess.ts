@@ -8,5 +8,5 @@
 
 |  Package | Description |
 |  --- | --- |
-|  [chess.ts](./chess.ts.md) |  |
+|  [@lubert/chess.ts](./chess.ts.md) |  |
 
