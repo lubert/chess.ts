@@ -9,14 +9,14 @@ Clears the board.
 <b>Signature:</b>
 
 ```typescript
-clear(keep_headers?: boolean): void;
+clear(keepHeaders?: boolean): void;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  keep\_headers | boolean | Flag to keep headers |
+|  keepHeaders | boolean | Flag to keep headers |
 
 <b>Returns:</b>
 
