@@ -11,21 +11,19 @@ Returns a list of legal moves from the current position. The function takes an o
 ```typescript
 moves(options?: {
         square?: string;
-        verbose?: boolean;
-    }): string[] | Move[];
+        verbose?: false;
+    }): string[];
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | { square?: string; verbose?: boolean; } |  |
+|  options | { square?: string; verbose?: false; } |  |
 
 <b>Returns:</b>
 
-string\[\] \| [Move](./chess.ts.move.md)<!-- -->\[\]
-
-Piece or null
+string\[\]
 
 ## Example
 
@@ -42,21 +40,5 @@ chess.moves({ square: 'e2' })
 chess.moves({ square: 'e9' }) // invalid square
 // -> []
 
-chess.moves({ verbose: true })
-// -> [{ color: 'w', from: 'a2', to: 'a3',
-//       flags: 'n', piece: 'p', san 'a3'
-//       # a captured: key is included when the move is a capture
-//       # a promotion: key is included when the move is a promotion
-//     },
-//     ...
-//     ]
-
 ```
-The \_piece\_, \_captured\_, and \_promotion\_ fields contain the lowercase representation of the applicable piece.
-
-The \_flags\_ field in verbose mode may contain one or more of the following values:
-
-- 'n' - a non-capture - 'b' - a pawn push of two squares - 'e' - an en passant capture - 'c' - a standard capture - 'p' - a promotion - 'k' - kingside castling - 'q' - queenside castling
-
-A flag of 'pc' would mean that a pawn captured a piece on the 8th rank and promoted.
 

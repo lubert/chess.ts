@@ -4,6 +4,7 @@
 
 ## Move type
 
+Represents a chess move
 
 <b>Signature:</b>
 
@@ -19,3 +20,10 @@ export declare type Move = {
     promotion?: PieceSymbol;
 };
 ```
+
+## Remarks
+
+The `piece`<!-- -->, `captured`<!-- -->, and `promotion` fields contain the lowercase representation of the applicable piece.
+
+The `flags` field in verbose mode may contain one or more of the following values: - `n` - a non-capture - `b` - a pawn push of two squares - `e` - an en passant capture - `c` - a standard capture - `p` - a promotion - `k` - kingside castling - `q` - queenside castling A flag of `pc` would mean that a pawn captured a piece on the 8th rank and promoted.
+

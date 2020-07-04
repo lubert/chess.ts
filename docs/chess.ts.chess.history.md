@@ -9,8 +9,17 @@ Returns a list containing the moves of the current game.
 <b>Signature:</b>
 
 ```typescript
-history(): string[];
+history(options?: {
+        verbose?: false;
+    }): string[];
 ```
+
+## Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  options | { verbose?: false; } |  |
+
 <b>Returns:</b>
 
 string\[\]

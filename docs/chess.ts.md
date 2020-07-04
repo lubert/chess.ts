@@ -16,7 +16,7 @@
 |  --- | --- |
 |  [Color](./chess.ts.color.md) |  |
 |  [FenComment](./chess.ts.fencomment.md) |  |
-|  [Move](./chess.ts.move.md) |  |
+|  [Move](./chess.ts.move.md) | Represents a chess move |
 |  [Piece](./chess.ts.piece.md) |  |
 |  [PieceSymbol](./chess.ts.piecesymbol.md) |  |
 |  [Validation](./chess.ts.validation.md) |  |
