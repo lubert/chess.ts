@@ -6,7 +6,6 @@ import {
   makeMove,
   moveToSan,
   putPiece,
-  sanToMove,
   loadFen,
   makePretty,
   getPiece,
@@ -408,7 +407,7 @@ export class Chess {
       return false
     }
 
-    for (let { state } of this._history) {
+    for (const { state } of this._history) {
       if (checkState(state)) {
         return true
       }
@@ -905,7 +904,6 @@ export class Chess {
   public history(options: { verbose: true }): Move[]
 
   public history(options: { verbose?: boolean } = {}): string[] | Move[] {
-    const moveHistory = []
     const { verbose = false } = options
 
     if (!this._history.length) {
@@ -1123,7 +1121,7 @@ export class Chess {
       }
     }
 
-    this._history.forEach(({ state: historyState, move}) => {
+    this._history.forEach(({ state: historyState }) => {
       state = historyState
       copyComments(getFen(state))
     })
