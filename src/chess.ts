@@ -88,17 +88,17 @@ export class Chess {
    * Clears the board and loads the Forsyth–Edwards Notation (FEN) string.
    *
    * @param fen - FEN string
-   * @param keep_headers - Flag to keep headers
+   * @param keepHeaders - Flag to keep headers
    * @returns True if the position was successfully loaded, otherwise false.
    */
-  public load(fen: string, keep_headers = false): boolean {
+  public load(fen: string, keepHeaders = false): boolean {
     const state = loadFen(fen)
     if (!state) {
       return false
     }
     this._state = state
     this._history = []
-    if (!keep_headers) this._header = {}
+    if (!keepHeaders) this._header = {}
     this._comments = {}
     this.updateSetup()
     return true
@@ -114,12 +114,12 @@ export class Chess {
    * // -> '8/8/8/8/8/8/8/8 w - - 0 1' <- empty board
    * ```
    *
-   * @param keep_headers - Flag to keep headers
+   * @param keepHeaders - Flag to keep headers
    */
-  public clear(keep_headers = false): void {
+  public clear(keepHeaders = false): void {
     this._state = defaultState()
     this._history = []
-    if (!keep_headers) this._header = {}
+    if (!keepHeaders) this._header = {}
     this._comments = {}
     this.updateSetup()
   }
