@@ -1,9 +1,9 @@
 {
   "name": "@lubert/chess.ts",
-  "version": "0.11.0",
+  "version": "0.11.1",
   "license": "BSD-2-Clause",
-  "main": "dist/src/index.js",
-  "types": "dist/src/index.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "homepage": "https://github.com/lubert/chess.ts",
   "keywords": [
     "chess"
