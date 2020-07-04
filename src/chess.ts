@@ -248,7 +248,18 @@ export class Chess {
    *
    * chess.moves({ square: 'e9' }) // invalid square
    * // -> []
+   * ```
+   */
+  public moves(options?: { square?: string, verbose?: false }): string[];
+
+  /**
+   * Returns a list of legal moves from the current position. The function
+   * takes an optional parameter which controls the single-square move
+   * generation and verbosity.
    *
+   * @example
+   * ```js
+   * const chess = new Chess()
    * chess.moves({ verbose: true })
    * // -> [{ color: 'w', from: 'a2', to: 'a3',
    * //       flags: 'n', piece: 'p', san 'a3'
@@ -258,25 +269,10 @@ export class Chess {
    * //     ...
    * //     ]
    * ```
-   *
-   * The _piece_, _captured_, and _promotion_ fields contain the lowercase
-   * representation of the applicable piece.
-   *
-   * The _flags_ field in verbose mode may contain one or more of the following values:
-   *
-   * -   'n' - a non-capture
-   * -   'b' - a pawn push of two squares
-   * -   'e' - an en passant capture
-   * -   'c' - a standard capture
-   * -   'p' - a promotion
-   * -   'k' - kingside castling
-   * -   'q' - queenside castling
-   *
-   * A flag of 'pc' would mean that a pawn captured a piece on the 8th rank and promoted.
-   *
-   * @param square - e.g. 'e4'
-   * @returns Piece or null
+   * {@link Move}
    */
+  public moves(options: { square?: string, verbose: true }): Move[];
+
   public moves(options: { square?: string, verbose?: boolean} = {}): string[] | Move[] {
     // The internal representation of a chess move is in 0x88 format, and
     // not meant to be human-readable.  The code below converts the 0x88
@@ -866,7 +862,7 @@ export class Chess {
    * // -> ['e4', 'e5', 'f4', 'exf4']
    * ```
    */
-  public history(): string[];
+  public history(options?: { verbose?: false }): string[];
 
   /**
    * Returns a list containing the moves of the current game.
@@ -885,7 +881,6 @@ export class Chess {
    * //     { color: 'w', from: 'f2', to: 'f4', flags: 'b', piece: 'p', san: 'f4' },
    * //     { color: 'b', from: 'e5', to: 'f4', flags: 'c', piece: 'p', captured: 'p', san: 'exf4' }]
    * ```
-   * {@link Chess.history}
    */
   public history(options: { verbose: true }): Move[];
 
