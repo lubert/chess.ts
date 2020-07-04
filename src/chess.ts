@@ -392,42 +392,28 @@ export class Chess {
    * ```
    */
   public inThreefoldRepetition(): boolean {
-    /* TODO: while this function is fine for casual use, a better
-     * implementation would use a Zobrist key (instead of FEN). the
-     * Zobrist key would be maintained in the makeMove/undoMove functions,
-     * avoiding the costly that we do below.
-     */
-    const moves: HexMove[] = []
-    const positions: { [key: string]: number } = {}
-    let repetition = false
+    const positions: { [fen: string]: number } = {}
 
-    while (true) {
-      const move = this.undoMove()
-      if (!move) break
-      moves.push(move)
-    }
-
-    while (true) {
-      /* remove the last two fields in the FEN string, they're not needed
-       * when checking for draw by rep */
-      const fen = this.fen()
+    const checkState = (state: State): boolean => {
+      const fen = getFen(state)
         .split(' ')
         .slice(0, 4)
         .join(' ')
 
-      /* has the position occurred three or move times */
+      // Has the position occurred three or move times?
       positions[fen] = fen in positions ? positions[fen] + 1 : 1
       if (positions[fen] >= 3) {
-        repetition = true
+        return true
       }
-
-      if (!moves.length) {
-        break
-      }
-      this.makeMove(moves.pop() as HexMove)
+      return false
     }
 
-    return repetition
+    for (let { state } of this._history) {
+      if (checkState(state)) {
+        return true
+      }
+    }
+    return checkState(this._state)
   }
 
   /**
