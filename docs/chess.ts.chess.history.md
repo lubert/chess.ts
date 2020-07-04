@@ -4,25 +4,16 @@
 
 ## Chess.history() method
 
-Returns a list containing the moves of the current game. Options is an optional parameter which may contain a 'verbose' flag. See .moves() for a description of the verbose move fields.
+Returns a list containing the moves of the current game.
 
 <b>Signature:</b>
 
 ```typescript
-history(options?: {
-        verbose?: boolean;
-    }): string[] | Move[];
+history(): string[];
 ```
-
-## Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  options | { verbose?: boolean; } |  |
-
 <b>Returns:</b>
 
-string\[\] \| [Move](./chess.ts.move.md)<!-- -->\[\]
+string\[\]
 
 ## Example
 
@@ -36,12 +27,6 @@ chess.move('exf4')
 
 chess.history()
 // -> ['e4', 'e5', 'f4', 'exf4']
-
-chess.history({ verbose: true })
-// -> [{ color: 'w', from: 'e2', to: 'e4', flags: 'b', piece: 'p', san: 'e4' },
-//     { color: 'b', from: 'e7', to: 'e5', flags: 'b', piece: 'p', san: 'e5' },
-//     { color: 'w', from: 'f2', to: 'f4', flags: 'b', piece: 'p', san: 'f4' },
-//     { color: 'b', from: 'e5', to: 'f4', flags: 'c', piece: 'p', captured: 'p', san: 'exf4' }]
 
 ```
 

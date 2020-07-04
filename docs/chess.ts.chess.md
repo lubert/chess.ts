@@ -41,7 +41,8 @@ export declare class Chess
 |  [getComment()](./chess.ts.chess.getcomment.md) |  | Retrieve the comment for the current position, if it exists. |
 |  [getComments()](./chess.ts.chess.getcomments.md) |  | Retrieve comments for all positions. |
 |  [header(args)](./chess.ts.chess.header.md) |  | Allows header information to be added to PGN output. Any number of key/value pairs can be passed to .header(). |
-|  [history(options)](./chess.ts.chess.history.md) |  | Returns a list containing the moves of the current game. Options is an optional parameter which may contain a 'verbose' flag. See .moves() for a description of the verbose move fields. |
+|  [history()](./chess.ts.chess.history.md) |  | Returns a list containing the moves of the current game. |
+|  [history(options)](./chess.ts.chess.history_1.md) |  | Returns a list containing the moves of the current game. |
 |  [inCheck()](./chess.ts.chess.incheck.md) |  | Returns true or false if the side to move is in check. |
 |  [inCheckmate()](./chess.ts.chess.incheckmate.md) |  | Returns true or false if the side to move has been checkmated. |
 |  [inDraw()](./chess.ts.chess.indraw.md) |  | Returns true or false if the game is drawn (50-move rule or insufficient material). |

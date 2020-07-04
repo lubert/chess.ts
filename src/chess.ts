@@ -852,9 +852,8 @@ export class Chess {
   }
 
   /**
-   * Returns a list containing the moves of the current game. Options is an
-   * optional parameter which may contain a 'verbose' flag. See .moves() for a
-   * description of the verbose move fields.
+   * Returns a list containing the moves of the current game.
+   *
    * @example
    * ```js
    * const chess = new Chess()
@@ -865,6 +864,20 @@ export class Chess {
    *
    * chess.history()
    * // -> ['e4', 'e5', 'f4', 'exf4']
+   * ```
+   */
+  public history(): string[];
+
+  /**
+   * Returns a list containing the moves of the current game.
+   *
+   * @example
+   * ```js
+   * const chess = new Chess()
+   * chess.move('e4')
+   * chess.move('e5')
+   * chess.move('f4')
+   * chess.move('exf4')
    *
    * chess.history({ verbose: true })
    * // -> [{ color: 'w', from: 'e2', to: 'e4', flags: 'b', piece: 'p', san: 'e4' },
@@ -872,7 +885,10 @@ export class Chess {
    * //     { color: 'w', from: 'f2', to: 'f4', flags: 'b', piece: 'p', san: 'f4' },
    * //     { color: 'b', from: 'e5', to: 'f4', flags: 'c', piece: 'p', captured: 'p', san: 'exf4' }]
    * ```
+   * {@link Chess.history}
    */
+  public history(options: { verbose: true }): Move[];
+
   public history(options: { verbose?: boolean } = {}): string[] | Move[] {
     const moveHistory = []
     const { verbose = false } = options;
