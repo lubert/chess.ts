@@ -100,7 +100,7 @@ export class Chess {
     this._history = []
     if (!keep_headers) this._header = {}
     this._comments = {}
-    this.updateSetup(getFen(this._state))
+    this.updateSetup()
     return true
   }
 
@@ -121,7 +121,7 @@ export class Chess {
     this._history = []
     if (!keep_headers) this._header = {}
     this._comments = {}
-    this.updateSetup(getFen(this._state))
+    this.updateSetup()
   }
 
   /**
@@ -191,7 +191,7 @@ export class Chess {
     const newState = putPiece(this._state, piece, square)
     if (newState) {
       this._state = newState
-      this.updateSetup(getFen(this._state))
+      this.updateSetup()
       return true
     }
     return false
@@ -1114,7 +1114,8 @@ export class Chess {
    *
    * @internal
    */
-  protected updateSetup(fen: string): void {
+  protected updateSetup(): void {
+    const fen = getFen(this._state)
     if (this._history.length > 0) return
 
     if (fen !== DEFAULT_POSITION) {
@@ -1183,14 +1184,5 @@ export class Chess {
     }
     this._state = prev.state
     return prev.move
-  }
-
-  /**
-   * Convert a move from Standard Algebraic Notation (SAN) to 0x88 coordinates
-   *
-   * @internal
-   */
-  protected sanToMove(move: string, sloppy: boolean): HexMove | null {
-    return sanToMove(this._state, move, sloppy)
   }
 }
