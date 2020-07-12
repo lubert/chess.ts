@@ -37,10 +37,10 @@ export type FenComment = {
 export type Move = {
   to: string;
   from: string;
-  color: Color;
-  flags: string;
-  piece: PieceSymbol;
-  san: string;
+  color?: Color;
+  flags?: string;
+  piece?: PieceSymbol;
+  san?: string;
   captured?: PieceSymbol;
   promotion?: PieceSymbol;
 }
