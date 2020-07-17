@@ -295,7 +295,7 @@ export function getPgn(
       moveStr = state.move_number + '.'
     }
 
-    moveStr = moveStr + ' ' + moveToSan(state, move, false)
+    moveStr = moveStr + ' ' + moveToSan(state, move)
     state = makeMove(state, move)
   })
 
@@ -842,7 +842,12 @@ export function generateMoves(
  * 4. ... Nge7 is overly disambiguated because the knight on c6 is pinned
  * 4. ... Ne7 is technically the valid SAN
  */
-export function moveToSan(state: State, move: HexMove, sloppy = false): string {
+export function moveToSan(
+  state: State,
+  move: HexMove,
+  options: { sloppy?: boolean, checkPromotion?: boolean } = {}
+): string {
+  const { sloppy = false, checkPromotion = true } = options
   let output = ''
 
   if (move.flags & BITS.KSIDE_CASTLE) {
@@ -865,7 +870,7 @@ export function moveToSan(state: State, move: HexMove, sloppy = false): string {
 
     output += algebraic(move.to)
 
-    if (move.flags & BITS.PROMOTION) {
+    if (checkPromotion && move.flags & BITS.PROMOTION) {
       output += '=' + move.promotion?.toUpperCase()
     }
   }
@@ -912,9 +917,9 @@ export function sanToMove(
   for (let i = 0, len = moves.length; i < len; i++) {
     // try the strict parser first, then the sloppy parser if requested
     // by the user
-    const san = moveToSan(state, moves[i])
+    const san = moveToSan(state, moves[i], { checkPromotion })
     if (cleanMove === strippedSan(san) ||
-      (sloppy && cleanMove === strippedSan(moveToSan(state, moves[i], true)))) {
+      (sloppy && cleanMove === strippedSan(moveToSan(state, moves[i], options)))) {
       return moves[i]
     }
     if (
@@ -951,7 +956,7 @@ export function makePretty(state: State, ugly_move: HexMove): Move {
     color: move.color,
     flags,
     piece: move.piece,
-    san: moveToSan(state, move, false),
+    san: moveToSan(state, move),
     captured: move.captured,
     promotion: move.promotion,
   }
