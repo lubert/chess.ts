@@ -41,6 +41,7 @@ import {
 import {
   DEFAULT_POSITION,
   SQUARES,
+  BITS,
 } from './constants'
 
 /** @public */
@@ -815,6 +816,19 @@ export class Chess {
     const prettyMove = makePretty(this._state, validMove)
     this.makeMove(validMove)
     return prettyMove
+  }
+
+  public isPromotion(
+    move: string | Move,
+    options: { sloppy?: boolean } = {}
+  ): boolean {
+    const validMove = validateMove(this._state, move, { ...options, checkPromotion: false });
+
+    if (!validMove) {
+      return false
+    }
+
+    return !!(validMove.flags & BITS.PROMOTION);
   }
 
   /**
