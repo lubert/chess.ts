@@ -1,7 +1,7 @@
 # chess.ts
 
 [![Build Status](https://travis-ci.org/lubert/chess.ts.svg?branch=master)](https://travis-ci.org/lubert/chess.ts)
-![npm](https://img.shields.io/npm/v/@lubert/chess.ts)
+[![npm](https://img.shields.io/npm/v/@lubert/chess.ts)](https://www.npmjs.com/package/@lubert/chess.ts)
 
 chess.ts is a Typescript chess library that is used for chess move
 generation/validation, piece placement/movement, and check/checkmate/stalemate
