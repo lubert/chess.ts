@@ -818,6 +818,26 @@ export class Chess {
     return prettyMove
   }
 
+  /**
+   * Checks if a move results in a promotion.
+   *
+   * @example
+   * ```js
+   * const chess = new Chess()
+   *
+   * chess.isPromotion('e4')
+   * // -> false
+   *
+   * chess.load('8/2P2k2/8/8/8/5K2/8/8 w - - 0 1')
+   * chess.isPromotion('c8')
+   * // -> true
+   * ```
+   *
+   * @param move - Case-sensitive SAN string or object, e.g. `'Nxb7'` or
+   * `{ from: 'h7', to: 'h8' }`
+   * @param options - Options to enable parsing of a variety of non-standard
+   * move notations
+   */
   public isPromotion(
     move: string | Move,
     options: { sloppy?: boolean } = {}
