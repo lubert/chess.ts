@@ -284,7 +284,7 @@ export class Chess {
     if (verbose) {
       return uglyMoves.map((uglyMove) => makePretty(this._state, uglyMove))
     }
-    return uglyMoves.map((uglyMove) => moveToSan(this._state, uglyMove, false))
+    return uglyMoves.map((uglyMove) => moveToSan(this._state, uglyMove))
   }
 
   /**
