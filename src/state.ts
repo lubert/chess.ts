@@ -548,7 +548,7 @@ export function loadPgn(
       continue
     }
 
-    const move = sanToMove(state, tokens[half_move], sloppy)
+    const move = sanToMove(state, tokens[half_move], { sloppy })
     if (move === null) {
       return null
     } else {
@@ -882,16 +882,22 @@ export function moveToSan(state: State, move: HexMove, sloppy = false): string {
   return output
 }
 
-export function sanToMove(state: State, move: string, sloppy: boolean): HexMove | null {
+export function sanToMove(
+  state: State,
+  move: string,
+  options: { sloppy?: boolean, checkPromotion?: boolean }
+): HexMove | null {
+  const { sloppy = false, checkPromotion = false } = options;
+
   // strip off any move decorations: e.g Nf3+?!
-  const clean_move = strippedSan(move)
+  const cleanMove = strippedSan(move)
 
   let matches, piece, from, to, promotion;
 
   // if we're using the sloppy parser run a regex to grab piece, to, and from
   // this should parse invalid SAN like: Pe2-e4, Rc1c4, Qf3xf7
   if (sloppy) {
-    matches = clean_move.match(
+    matches = cleanMove.match(
       /([pnbrqkPNBRQK])?([a-h][1-8])x?-?([a-h][1-8])([qrbnQRBN])?/
     )
     if (matches) {
@@ -907,8 +913,8 @@ export function sanToMove(state: State, move: string, sloppy: boolean): HexMove 
     // try the strict parser first, then the sloppy parser if requested
     // by the user
     const san = moveToSan(state, moves[i])
-    if (clean_move === strippedSan(san) ||
-      (sloppy && clean_move === strippedSan(moveToSan(state, moves[i], true)))) {
+    if (cleanMove === strippedSan(san) ||
+      (sloppy && cleanMove === strippedSan(moveToSan(state, moves[i], true)))) {
       return moves[i]
     }
     if (
@@ -1236,7 +1242,7 @@ export function validateMove(
   const { sloppy = false } = options
 
   if (typeof move === 'string') {
-    return sanToMove(state, move, sloppy)
+    return sanToMove(state, move, options)
   } else if (typeof move === 'object') {
     const moves = generateMoves(state)
     // Find a matching move
