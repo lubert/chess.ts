@@ -218,6 +218,73 @@ describe("Threefold Repetition", function() {
 
 });
 
+describe("Promotion", function () {
+  const positions = [
+    // legal move non-promotion
+    {
+      fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+      san: 'e4',
+      move: { from: 'e2', to: 'e4' },
+      promotion: false
+    },
+    // illegal move
+    {
+      fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+      san: 'e8',
+      move: { from: 'e2', to: 'e8' },
+      promotion: false
+    },
+    // no piece on from
+    {
+      fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+      san: 'e4',
+      move: { from: 'e3', to: 'e4' },
+      promotion: false
+    },
+    // illegal promotion due to discovery
+    {
+      fen: '1K6/2P2k2/8/8/5b2/8/8/8 w - - 0 1',
+      san: 'c8',
+      move: { from: 'c7', to: 'c8' },
+      promotion: false
+    },
+    // illegal move non-capturing diagonal
+    {
+      fen: '8/2P2k2/8/8/8/5K2/8/8 w - - 0 1',
+      san: 'b8',
+      move: { from: 'c7', to: 'b8' },
+      promotion: false
+    },
+    // legal promotion
+    {
+      fen: '8/2P2k2/8/8/8/5K2/8/8 w - - 0 1',
+      san: 'c8',
+      move: { from: 'c7', to: 'c8' },
+      promotion: true
+    },
+    // legal capturing promotion
+    {
+      fen: '1b6/2P2k2/8/8/5K2/8/8/8 w - - 0 1',
+      san: 'cxb8',
+      move: { from: 'c7', to: 'b8' }, promotion: true}
+  ];
+
+  positions.forEach(function(position) {
+    const { fen, san, move, promotion } = position;
+    it(`${fen} (${move.from} ${move.to} ${promotion})`, function () {
+      var chess = new Chess();
+      chess.load(fen);
+      // san
+      expect(chess.isPromotion(san)).toBe(promotion);
+      // sloppy
+      expect(chess.isPromotion(`${move.from}${move.to}`, { sloppy: true })).toBe(promotion);
+      // move obj
+      expect(chess.isPromotion(move)).toBe(promotion);
+    });
+  });
+
+});
+
 
 describe("Algebraic Notation", function() {
 
