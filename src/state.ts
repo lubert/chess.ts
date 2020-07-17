@@ -885,9 +885,9 @@ export function moveToSan(state: State, move: HexMove, sloppy = false): string {
 export function sanToMove(
   state: State,
   move: string,
-  options: { sloppy?: boolean, checkPromotion?: boolean }
+  options: { sloppy?: boolean, checkPromotion?: boolean } = {}
 ): HexMove | null {
-  const { sloppy = false, checkPromotion = false } = options;
+  const { sloppy = false, checkPromotion = true } = options;
 
   // strip off any move decorations: e.g Nf3+?!
   const cleanMove = strippedSan(move)
@@ -926,7 +926,7 @@ export function sanToMove(
         (!piece || piece.toLowerCase() == moves[i].piece) &&
         SQUARES[from] == moves[i].from &&
         SQUARES[to] == moves[i].to &&
-        (!promotion || promotion.toLowerCase() == moves[i].promotion)
+        (!checkPromotion || !promotion || promotion.toLowerCase() == moves[i].promotion)
     ) {
       return moves[i]
     }
@@ -1235,11 +1235,11 @@ export function getBoard(board: Board): (Piece | null)[][] {
 export function validateMove(
   state: State,
   move: string | Move,
-  options: { sloppy?: boolean } = {}
+  options: { sloppy?: boolean, checkPromotion?: boolean } = {}
 ): HexMove | null {
   // Allow the user to specify the sloppy move parser to work around over
   // disambiguation bugs in Fritz and Chessbase
-  const { sloppy = false } = options
+  const { checkPromotion = false } = options
 
   if (typeof move === 'string') {
     return sanToMove(state, move, options)
@@ -1250,7 +1250,7 @@ export function validateMove(
       if (
         move.from === algebraic(moveObj.from) &&
           move.to === algebraic(moveObj.to) &&
-          (!('promotion' in moveObj) ||
+          (!checkPromotion || !('promotion' in moveObj) ||
             move.promotion === moveObj.promotion)
       ) {
         return moveObj
