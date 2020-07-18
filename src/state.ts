@@ -1244,7 +1244,7 @@ export function validateMove(
 ): HexMove | null {
   // Allow the user to specify the sloppy move parser to work around over
   // disambiguation bugs in Fritz and Chessbase
-  const { checkPromotion = false } = options
+  const { checkPromotion = true } = options
 
   if (typeof move === 'string') {
     return sanToMove(state, move, options)
