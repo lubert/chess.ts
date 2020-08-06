@@ -78,6 +78,8 @@ export type GameHistory = {
   state: State;
 }
 
+export type HashKey = [number, number]
+
 export type HexMove = {
   to: number;
   from: number;
