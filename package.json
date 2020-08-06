@@ -16,10 +16,12 @@
     "@microsoft/api-documenter": "^7.8.21",
     "@microsoft/api-extractor": "^7.9.1",
     "@types/jest": "^26.0.3",
+    "@types/seedrandom": "^2.4.28",
     "@typescript-eslint/eslint-plugin": "^3.5.0",
     "@typescript-eslint/parser": "^3.5.0",
     "eslint": "^7.3.1",
     "jest": "^26.1.0",
+    "seedrandom": "^3.0.5",
     "ts-jest": "^26.1.1",
     "typescript": "^3.9.6"
   },
@@ -29,5 +31,6 @@
     "build:docs": "npm run api && api-documenter markdown --input ./temp --output ./docs",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "test": "jest"
-  }
+  },
+  "dependencies": {}
 }
