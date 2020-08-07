@@ -1,7 +1,5 @@
 import {
-  defaultState,
   generateMoves,
-  getFen,
   isAttacked,
   makeMove,
   moveToSan,
@@ -74,7 +72,7 @@ export class Chess {
    * ```
    */
   constructor(fen: string = DEFAULT_POSITION) {
-    this._state = defaultState()
+    this._state = new State()
     this._history = []
     this._header = {}
     this._comments = {}
@@ -117,7 +115,7 @@ export class Chess {
    * @param keepHeaders - Flag to keep headers
    */
   public clear(keepHeaders = false): void {
-    this._state = defaultState()
+    this._state = new State()
     this._history = []
     if (!keepHeaders) this._header = {}
     this._comments = {}
@@ -304,7 +302,7 @@ export class Chess {
    * ```
    */
   public fen(): string {
-    return getFen(this._state)
+    return this._state.fen
   }
 
   /**
@@ -392,17 +390,14 @@ export class Chess {
    * ```
    */
   public inThreefoldRepetition(): boolean {
-    const positions: { [fen: string]: number } = {}
+    const positions: Record<string, number> = {}
 
     const checkState = (state: State): boolean => {
-      const fen = getFen(state)
-        .split(' ')
-        .slice(0, 4)
-        .join(' ')
+      const key = state.fen.split(' ').slice(0, 4).join(' ')
 
       // Has the position occurred three or move times?
-      positions[fen] = fen in positions ? positions[fen] + 1 : 1
-      if (positions[fen] >= 3) {
+      positions[key] = key in positions ? positions[key] + 1 : 1
+      if (positions[key] >= 3) {
         return true
       }
       return false
@@ -1133,7 +1128,7 @@ export class Chess {
    * @internal
    */
   protected updateSetup(): void {
-    const fen = getFen(this._state)
+    const fen = this._state.fen
     if (this._history.length > 0) return
 
     if (fen !== DEFAULT_POSITION) {
@@ -1157,11 +1152,11 @@ export class Chess {
 
     this._history.forEach(({ state: historyState }) => {
       state = historyState
-      copyComments(getFen(state))
+      copyComments(state.fen)
     })
 
     let state = this._state
-    copyComments(getFen(state))
+    copyComments(state.fen)
 
     this._comments = comments
   }

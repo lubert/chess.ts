@@ -1,3 +1,6 @@
+import { EMPTY, WHITE } from "./constants"
+import { getFen } from "./state"
+
 /** @public */
 export type Color = 'w' | 'b'
 
@@ -61,6 +64,57 @@ export type Validation = {
   error: string;
 }
 
+/** @public */
+export class State {
+  board: Board;
+  kings: ColorState;
+  turn: Color;
+  castling: ColorState;
+  ep_square: number;
+  half_moves: number;
+  move_number: number;
+
+  constructor(
+    board?: Board,
+    kings?: ColorState,
+    turn?: Color,
+    castling?: ColorState,
+    ep_square?: number,
+    half_moves?: number,
+    move_number?: number,
+  ) {
+    this.board = board || new Array(128)
+    this.kings = kings || { w: EMPTY, b: EMPTY }
+    this.turn = turn || WHITE
+    this.castling = castling || { w: 0, b: 0 }
+    this.ep_square = ep_square || EMPTY
+    this.half_moves = half_moves || 0
+    this.move_number = move_number || 1
+  }
+
+  public clone(): State {
+    return new State(
+      this.board.slice(),
+      {
+        w: this.kings.w,
+        b: this.kings.b,
+      },
+      this.turn,
+      {
+        w: this.castling.w,
+        b: this.castling.b,
+      },
+      this.ep_square,
+      this.half_moves,
+      this.move_number,
+    )
+  }
+
+  public get fen(): string {
+    return getFen(this)
+  }
+}
+
 /** Private types */
 export type Board = Array<Piece | undefined>
 
@@ -87,16 +141,6 @@ export type HexMove = {
   captured?: PieceSymbol;
   promotion?: PieceSymbol;
   san?: string;
-}
-
-export type State = {
-  kings: ColorState;
-  turn: Color;
-  castling: ColorState;
-  ep_square: number;
-  half_moves: number;
-  move_number: number;
-  board: Board;
 }
 
 export type Square = 'a8' | 'b8' | 'c8' | 'd8' | 'e8' | 'f8' | 'g8' | 'h8' |
