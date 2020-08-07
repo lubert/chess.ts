@@ -4,7 +4,7 @@ import { BITS, EMPTY, WHITE, BLACK } from './constants'
 import { file } from './utils'
 
 // Seed so that the table is reproducible
-const rng = seedrandom('sonofsigma')
+const rng = seedrandom('lubert')
 // Use two 32 bit ints instead of 64 bit BigInt, since it's not widely supported
 const getHashValue = (): HashKey => [rng.int32(), rng.int32()]
 const getTable = (length: number = 64): HashKey[] => Array.from(

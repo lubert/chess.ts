@@ -1,6 +1,5 @@
 import {
   generateMoves,
-  getFen,
   isAttacked,
   makeMove,
   moveToSan,
@@ -29,6 +28,7 @@ import {
   Piece,
   State,
   Validation,
+  HashKey,
 } from './types'
 import {
   file,
@@ -303,7 +303,27 @@ export class Chess {
    * ```
    */
   public fen(): string {
-    return getFen(this._state)
+    return this._state.fen
+  }
+
+  /**
+   * Returns the Zobrist key for the current position.
+   *
+   * @example
+   * ```js
+   * const chess = new Chess()
+   *
+   * // make some moves
+   * chess.move('e4')
+   * chess.move('e5')
+   * chess.move('f4')
+   *
+   * chess.fen()
+   * // -> 'rnbqkbnr/pppp1ppp/8/4p3/4PP2/8/PPPP2PP/RNBQKBNR b KQkq f3 0 2'
+   * ```
+   */
+  public hash(): HashKey {
+    return this._state.hash
   }
 
   /**
@@ -1129,7 +1149,7 @@ export class Chess {
    * @internal
    */
   protected updateSetup(): void {
-    const fen = getFen(this._state)
+    const fen = this._state.fen
     if (this._history.length > 0) return
 
     if (fen !== DEFAULT_POSITION) {
@@ -1153,11 +1173,11 @@ export class Chess {
 
     this._history.forEach(({ state: historyState }) => {
       state = historyState
-      copyComments(getFen(state))
+      copyComments(state.fen)
     })
 
     let state = this._state
-    copyComments(getFen(state))
+    copyComments(state.fen)
 
     this._comments = comments
   }

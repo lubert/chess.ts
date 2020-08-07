@@ -1,5 +1,6 @@
 import { EMPTY, WHITE } from "./constants"
 import { hashState } from "./zobrist"
+import { getFen } from "./state"
 
 /** @public */
 export type Color = 'w' | 'b'
@@ -74,6 +75,7 @@ export class State {
   half_moves: number;
   move_number: number;
   _hash?: HashKey;
+  _fen?: string;
 
   constructor(
     board?: Board,
@@ -82,7 +84,7 @@ export class State {
     castling?: ColorState,
     ep_square?: number,
     half_moves?: number,
-    move_number?:number
+    move_number?: number,
   ) {
     this.board = board || new Array(128)
     this.kings = kings || { w: EMPTY, b: EMPTY }
@@ -107,8 +109,15 @@ export class State {
       },
       this.ep_square,
       this.half_moves,
-      this.move_number
+      this.move_number,
     )
+  }
+
+  public get fen(): string {
+    if (!this._fen) {
+      this._fen = getFen(this)
+    }
+    return this._fen
   }
 
   public get hash(): HashKey {

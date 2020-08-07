@@ -245,7 +245,7 @@ export function getPgn(
   }
 
   const appendComment = (moveStr: string): string => {
-    const comment = comments[getFen(state)]
+    const comment = comments[state.fen]
     if (typeof comment !== 'undefined') {
       const delimiter = moveStr.length > 0 ? ' ' : '';
       moveStr = `${moveStr}${delimiter}{${comment}}`
@@ -525,7 +525,7 @@ export function loadPgn(
     const token = tokens[half_move]
     const comment = decodeComment(token)
     if (comment !== undefined) {
-      comments[getFen(state)] = comment
+      comments[state.fen] = comment
       continue
     }
 
