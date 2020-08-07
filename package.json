@@ -16,7 +16,6 @@
     "@microsoft/api-documenter": "^7.8.21",
     "@microsoft/api-extractor": "^7.9.1",
     "@types/jest": "^26.0.3",
-    "@types/seedrandom": "^2.4.28",
     "@typescript-eslint/eslint-plugin": "^3.5.0",
     "@typescript-eslint/parser": "^3.5.0",
     "eslint": "^7.3.1",
