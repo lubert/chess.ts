@@ -307,26 +307,6 @@ export class Chess {
   }
 
   /**
-   * Returns the Zobrist key for the current position.
-   *
-   * @example
-   * ```js
-   * const chess = new Chess()
-   *
-   * // make some moves
-   * chess.move('e4')
-   * chess.move('e5')
-   * chess.move('f4')
-   *
-   * chess.fen()
-   * // -> 'rnbqkbnr/pppp1ppp/8/4p3/4PP2/8/PPPP2PP/RNBQKBNR b KQkq f3 0 2'
-   * ```
-   */
-  public hash(): HashKey {
-    return this._state.hash
-  }
-
-  /**
    * Returns true or false if the side to move is in check.
    *
    * @example
@@ -415,6 +395,7 @@ export class Chess {
 
     const checkState = (state: State): boolean => {
       const key = state.hash.join('')
+      // const key = state.fen.split(' ').slice(0, 4).join(' ')
 
       // Has the position occurred three or move times?
       positions[key] = key in positions ? positions[key] + 1 : 1
@@ -1137,6 +1118,15 @@ export class Chess {
     }
 
     return nodes
+  }
+
+  /**
+   * Returns the Zobrist key for the current position.
+   *
+   * @internal
+   */
+  public hash(): HashKey {
+    return this._state.hash
   }
 
   /**
