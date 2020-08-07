@@ -73,7 +73,6 @@ export class State {
   ep_square: number;
   half_moves: number;
   move_number: number;
-  _fen?: string;
 
   constructor(
     board?: Board,
@@ -112,10 +111,7 @@ export class State {
   }
 
   public get fen(): string {
-    if (!this._fen) {
-      this._fen = getFen(this)
-    }
-    return this._fen
+    return getFen(this)
   }
 }
 
