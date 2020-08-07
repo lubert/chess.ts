@@ -403,17 +403,14 @@ export class Chess {
    * ```
    */
   public inThreefoldRepetition(): boolean {
-    const positions: { [fen: string]: number } = {}
+    const positions: Record<string, number> = {}
 
     const checkState = (state: State): boolean => {
-      const fen = getFen(state)
-        .split(' ')
-        .slice(0, 4)
-        .join(' ')
+      const key = (state.hash || hashState(state)).join('')
 
       // Has the position occurred three or move times?
-      positions[fen] = fen in positions ? positions[fen] + 1 : 1
-      if (positions[fen] >= 3) {
+      positions[key] = key in positions ? positions[key] + 1 : 1
+      if (positions[key] >= 3) {
         return true
       }
       return false
