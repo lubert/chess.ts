@@ -394,8 +394,7 @@ export class Chess {
     const positions: Record<string, number> = {}
 
     const checkState = (state: State): boolean => {
-      const key = state.hash.join('')
-      // const key = state.fen.split(' ').slice(0, 4).join(' ')
+      const key = state.fen.split(' ').slice(0, 4).join(' ')
 
       // Has the position occurred three or move times?
       positions[key] = key in positions ? positions[key] + 1 : 1
