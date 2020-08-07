@@ -73,7 +73,6 @@ export class State {
   ep_square: number;
   half_moves: number;
   move_number: number;
-  _hash?: HashKey;
   _fen?: string;
 
   constructor(
