@@ -35,6 +35,7 @@ import {
   Move,
   Square,
   State,
+  ColorState,
 } from './types'
 import {
   algebraic,
@@ -50,17 +51,20 @@ import {
   symbol,
   validateFen,
 } from './utils'
+import { hashState } from './zobrist';
 
 export function defaultState(): State {
-  return {
+  const state: State = {
     board: new Array(128),
     kings: { w: EMPTY, b: EMPTY },
     turn: WHITE,
     castling: { w: 0, b: 0 },
     ep_square: EMPTY,
     half_moves: 0,
-    move_number: 1
-  }
+    move_number: 1,
+  };
+  state.hash = hashState(state)
+  return state
 }
 
 /* this function is used to uniquely identify ambiguous moves */

@@ -99,6 +99,7 @@ export type State = {
   half_moves: number;
   move_number: number;
   board: Board;
+  hash?: HashKey;
 }
 
 export type Square = 'a8' | 'b8' | 'c8' | 'd8' | 'e8' | 'f8' | 'g8' | 'h8' |
