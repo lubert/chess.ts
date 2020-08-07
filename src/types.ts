@@ -1,5 +1,4 @@
 import { EMPTY, WHITE } from "./constants"
-import { hashState } from "./zobrist"
 import { getFen } from "./state"
 
 /** @public */
