@@ -28,7 +28,6 @@ import {
   Piece,
   State,
   Validation,
-  HashKey,
 } from './types'
 import {
   file,
@@ -1117,15 +1116,6 @@ export class Chess {
     }
 
     return nodes
-  }
-
-  /**
-   * Returns the Zobrist key for the current position.
-   *
-   * @internal
-   */
-  public hash(): HashKey {
-    return this._state.hash
   }
 
   /**

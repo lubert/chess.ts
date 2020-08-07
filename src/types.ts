@@ -119,13 +119,6 @@ export class State {
     }
     return this._fen
   }
-
-  public get hash(): HashKey {
-    if (!this._hash) {
-      this._hash = hashState(this)
-    }
-    return this._hash
-  }
 }
 
 /** Private types */
@@ -144,8 +137,6 @@ export type GameHistory = {
   move: HexMove;
   state: State;
 }
-
-export type HashKey = [number, number]
 
 export type HexMove = {
   to: number;
