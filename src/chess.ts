@@ -43,6 +43,7 @@ import {
   SQUARES,
   BITS,
 } from './constants'
+import { hashState } from './zobrist'
 
 /** @public */
 export class Chess {
@@ -85,6 +86,16 @@ export class Chess {
   }
 
   /**
+   * Sets internal state and calculates the Zobrist key
+   *
+   * @internal
+   */
+  protected setState(state: State) {
+    state.hash = hashState(state)
+    this._state = state
+  }
+
+  /**
    * Clears the board and loads the Forsyth–Edwards Notation (FEN) string.
    *
    * @param fen - FEN string
@@ -96,7 +107,7 @@ export class Chess {
     if (!state) {
       return false
     }
-    this._state = state
+    this.setState(state)
     this._history = []
     if (!keepHeaders) this._header = {}
     this._comments = {}
@@ -117,7 +128,7 @@ export class Chess {
    * @param keepHeaders - Flag to keep headers
    */
   public clear(keepHeaders = false): void {
-    this._state = defaultState()
+    this.setState(defaultState())
     this._history = []
     if (!keepHeaders) this._header = {}
     this._comments = {}
@@ -190,7 +201,7 @@ export class Chess {
   public put(piece: { type?: string, color?: string }, square?: string): boolean {
     const newState = putPiece(this._state, piece, square)
     if (newState) {
-      this._state = newState
+      this.setState(newState)
       this.updateSetup()
       return true
     }
@@ -227,7 +238,7 @@ export class Chess {
     if (!newState) {
       return null
     }
-    this._state = newState
+    this.setState(newState)
     return piece
   }
 
@@ -621,7 +632,7 @@ export class Chess {
     }
 
     const [ state, header, comments, history ] = res
-    this._state = state
+    this.setState(state)
     this._header = header
     this._comments = comments
     this._history = history
@@ -1191,7 +1202,7 @@ export class Chess {
       move: move,
       state: this._state,
     })
-    this._state = makeMove(this._state, move)
+    this.setState(makeMove(this._state, move))
   }
 
   /** @internal */
