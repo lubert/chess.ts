@@ -1,5 +1,4 @@
 import {
-  defaultState,
   generateMoves,
   getFen,
   isAttacked,
@@ -43,7 +42,6 @@ import {
   SQUARES,
   BITS,
 } from './constants'
-import { hashState } from './zobrist'
 
 /** @public */
 export class Chess {
@@ -75,7 +73,7 @@ export class Chess {
    * ```
    */
   constructor(fen: string = DEFAULT_POSITION) {
-    this._state = defaultState()
+    this._state = new State()
     this._history = []
     this._header = {}
     this._comments = {}
@@ -83,16 +81,6 @@ export class Chess {
     if (!this.load(fen)) {
       throw new Error('Error loading fen')
     }
-  }
-
-  /**
-   * Sets internal state and calculates the Zobrist key
-   *
-   * @internal
-   */
-  protected setState(state: State) {
-    state.hash = hashState(state)
-    this._state = state
   }
 
   /**
@@ -107,7 +95,7 @@ export class Chess {
     if (!state) {
       return false
     }
-    this.setState(state)
+    this._state = state
     this._history = []
     if (!keepHeaders) this._header = {}
     this._comments = {}
@@ -128,7 +116,7 @@ export class Chess {
    * @param keepHeaders - Flag to keep headers
    */
   public clear(keepHeaders = false): void {
-    this.setState(defaultState())
+    this._state = new State()
     this._history = []
     if (!keepHeaders) this._header = {}
     this._comments = {}
@@ -201,7 +189,7 @@ export class Chess {
   public put(piece: { type?: string, color?: string }, square?: string): boolean {
     const newState = putPiece(this._state, piece, square)
     if (newState) {
-      this.setState(newState)
+      this._state = newState
       this.updateSetup()
       return true
     }
@@ -238,7 +226,7 @@ export class Chess {
     if (!newState) {
       return null
     }
-    this.setState(newState)
+    this._state = newState
     return piece
   }
 
@@ -406,7 +394,7 @@ export class Chess {
     const positions: Record<string, number> = {}
 
     const checkState = (state: State): boolean => {
-      const key = (state.hash || hashState(state)).join('')
+      const key = state.hash.join('')
 
       // Has the position occurred three or move times?
       positions[key] = key in positions ? positions[key] + 1 : 1
@@ -629,7 +617,7 @@ export class Chess {
     }
 
     const [ state, header, comments, history ] = res
-    this.setState(state)
+    this._state = state
     this._header = header
     this._comments = comments
     this._history = history
@@ -1199,7 +1187,7 @@ export class Chess {
       move: move,
       state: this._state,
     })
-    this.setState(makeMove(this._state, move))
+    this._state = makeMove(this._state, move)
   }
 
   /** @internal */
