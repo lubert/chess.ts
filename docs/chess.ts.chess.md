@@ -24,7 +24,7 @@ export declare class Chess
 |  [\_comments](./chess.ts.chess._comments.md) |  | Comments | internal |
 |  [\_header](./chess.ts.chess._header.md) |  | Record&lt;string, string&gt; | internal |
 |  [\_history](./chess.ts.chess._history.md) |  | GameHistory\[\] | internal |
-|  [\_state](./chess.ts.chess._state.md) |  | State | internal |
+|  [\_state](./chess.ts.chess._state.md) |  | [State](./chess.ts.state.md) | internal |
 
 ## Methods
 
