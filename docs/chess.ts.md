@@ -9,6 +9,7 @@
 |  Class | Description |
 |  --- | --- |
 |  [Chess](./chess.ts.chess.md) |  |
+|  [State](./chess.ts.state.md) |  |
 
 ## Type Aliases
 
