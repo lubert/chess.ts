@@ -883,7 +883,7 @@ export function sanToMove(
     }
   }
 
-  const moves = generateMoves(state)
+  const moves = generateMoves(state, { square: from })
   for (let i = 0, len = moves.length; i < len; i++) {
     // try the strict parser first, then the sloppy parser if requested
     // by the user
@@ -1219,7 +1219,7 @@ export function validateMove(
   if (typeof move === 'string') {
     return sanToMove(state, move, options)
   } else if (typeof move === 'object') {
-    const moves = generateMoves(state)
+    const moves = generateMoves(state, { square: move.from })
     // Find a matching move
     for (const moveObj of moves) {
       if (
