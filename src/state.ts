@@ -380,13 +380,6 @@ export function loadPgn(
     return str.replace(/\\/g, '\\')
   }
 
-  const hasKeys = (object: Record<string, unknown>): boolean => {
-    for (const key in object) {
-      return true
-    }
-    return false
-  }
-
   const parse_pgn_header = (
     header: string,
     options: { newline_char: string, sloppy: boolean }
@@ -530,7 +523,7 @@ export function loadPgn(
     }
 
     if (half_move === tokens.length - 1 && POSSIBLE_RESULTS.indexOf(token) !== -1) {
-      if (hasKeys(header) && typeof header.Result === 'undefined') {
+      if (Object.keys(header).length && typeof header.Result === 'undefined') {
         header['Result'] = token
       }
       continue
