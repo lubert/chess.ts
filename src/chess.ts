@@ -1100,7 +1100,7 @@ export class Chess {
   public clone(): Chess {
     const clone = new Chess()
     clone._state = this._state
-    clone._history = this._history
+    clone._history = [...this._history]
     clone._header = {...this._header}
     clone._comments = {...this._comments}
     return clone
