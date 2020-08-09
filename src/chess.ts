@@ -1097,6 +1097,16 @@ export class Chess {
   }
 
   /** @internal */
+  public clone(): Chess {
+    const clone = new Chess()
+    clone._state = this._state
+    clone._history = this._history
+    clone._header = {...this._header}
+    clone._comments = {...this._comments}
+    return clone
+  }
+
+  /** @internal */
   public perft(depth: number): number {
     const moves = generateMoves(this._state, { legal: false })
     let nodes = 0
