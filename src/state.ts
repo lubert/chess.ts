@@ -1157,18 +1157,15 @@ export function buildMove(state: State, from: number, to: number, flags: number,
 
 export function ascii(board: Board, eol = '\n'): string {
   const pieces = RANKS.map(rank => {
-    const rankPieces = board
-      .slice(rank * 16, rank * 16 + 8)
-      .map(piece => {
-        if (piece) {
-          return ` ${symbol(piece)} `
-        } else {
-          return ' . '
-        }
-      })
-      .join('')
+    const rankPieces = board.slice(rank * 16, rank * 16 + 8)
+    // Use a loop because `map` skips empty indexes
+    const row: string[] = []
+    for (const piece of rankPieces) {
+      row.push(piece ? ` ${symbol(piece)} ` : ' . ')
+    }
+    const rankStr = row.join('')
 
-    return '87654321'[rank] + ' |' + rankPieces + '|'
+    return '87654321'[rank] + ' |' + rankStr + '|'
   })
 
   return [
