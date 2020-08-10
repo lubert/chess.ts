@@ -837,13 +837,13 @@ export class Chess {
     move: string | Move,
     options: { sloppy?: boolean } = {}
   ): boolean {
-    const validMove = validateMove(this._state, move, { ...options, checkPromotion: false });
+    const validMove = validateMove(this._state, move, { ...options, checkPromotion: false })
 
     if (!validMove) {
       return false
     }
 
-    return !!(validMove.flags & BITS.PROMOTION);
+    return !!(validMove.flags & BITS.PROMOTION)
   }
 
   /**

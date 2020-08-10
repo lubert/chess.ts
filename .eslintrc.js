@@ -10,5 +10,6 @@ module.exports = {
   ],
   rules: {
     'no-constant-condition': ["error", { "checkLoops": false }],
+    'semi': ["error", "never"],
   },
 };

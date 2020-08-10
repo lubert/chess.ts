@@ -247,7 +247,7 @@ export function getPgn(
   const appendComment = (moveStr: string): string => {
     const comment = comments[state.fen]
     if (typeof comment !== 'undefined') {
-      const delimiter = moveStr.length > 0 ? ' ' : '';
+      const delimiter = moveStr.length > 0 ? ' ' : ''
       moveStr = `${moveStr}${delimiter}{${comment}}`
     }
     return moveStr
@@ -306,43 +306,43 @@ export function getPgn(
 
   const strip = function() {
     if (result.length > 0 && result[result.length - 1] === ' ') {
-      result.pop();
-      return true;
+      result.pop()
+      return true
     }
-    return false;
-  };
+    return false
+  }
 
   /* NB: this does not preserve comment whitespace. */
   const wrapComment = (width: number, move: string): number => {
     for (const token of move.split(' ')) {
       if (!token) {
-        continue;
+        continue
       }
       if (width + token.length > max_width) {
         while (strip()) {
-          width--;
+          width--
         }
-        result.push(newline);
-        width = 0;
+        result.push(newline)
+        width = 0
       }
-      result.push(token);
-      width += token.length;
-      result.push(' ');
-      width++;
+      result.push(token)
+      width += token.length
+      result.push(' ')
+      width++
     }
     if (strip()) {
-      width--;
+      width--
     }
-    return width;
-  };
+    return width
+  }
 
   /* wrap the PGN output at max_width */
   let currentWidth = 0
   for (let i = 0; i < moves.length; i++) {
     if (currentWidth + moves[i].length > max_width) {
       if (moves[i].includes('{')) {
-        currentWidth = wrapComment(currentWidth, moves[i]);
-        continue;
+        currentWidth = wrapComment(currentWidth, moves[i])
+        continue
       }
     }
     /* if the current move will push past max_width */
@@ -855,12 +855,12 @@ export function sanToMove(
   move: string,
   options: { sloppy?: boolean, checkPromotion?: boolean } = {}
 ): HexMove | null {
-  const { sloppy = false, checkPromotion = true } = options;
+  const { sloppy = false, checkPromotion = true } = options
 
   // strip off any move decorations: e.g Nf3+?!
   const cleanMove = strippedSan(move)
 
-  let matches, piece, from, to, promotion;
+  let matches, piece, from, to, promotion
 
   // if we're using the sloppy parser run a regex to grab piece, to, and from
   // this should parse invalid SAN like: Pe2-e4, Rc1c4, Qf3xf7
