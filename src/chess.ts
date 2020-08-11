@@ -799,7 +799,7 @@ export class Chess {
    */
   public move(
     move: string | Move,
-    options: { sloppy?: boolean } = {}
+    options: { sloppy?: boolean, dry_run?: boolean } = {}
   ): Move | null {
     const validMove = validateMove(this._state, move, options)
 
@@ -809,7 +809,9 @@ export class Chess {
 
     // Create pretty move before updating the state
     const prettyMove = makePretty(this._state, validMove)
-    this.makeMove(validMove)
+    if (!options.dry_run) {
+      this.makeMove(validMove)
+    }
     return prettyMove
   }
 
