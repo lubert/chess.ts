@@ -815,6 +815,45 @@ export class Chess {
     return prettyMove
   }
 
+
+  /**
+   * Validates a sequence of moves, returning an array of move objects if the
+   * moves are all legal, otherwise null.
+   *
+   * @example
+   * ```js
+   * const chess = new Chess()
+   *
+   * chess.validateMoves(['e4', 'Nf6'])
+   * // -> [{ color: 'w', from: 'e2', to: 'e4', flags: 'b', piece: 'p', san: 'e4' },
+   *        { color: 'b', from: 'g8', to: 'f6', flags: 'n', piece: 'n', san: 'Nf6' }]
+   *
+   * chess.validateMoves(['e4, 'nf6']) // SAN is case sensitive!!
+   * // -> null
+   * ```
+   *
+   * @param moves - Array of case-sensitive SAN strings or objects, e.g. `'Nxb7'` or
+   * `{ from: 'h7', to: 'h8', promotion: 'q' }`
+   * @param options - Options to enable parsing of a variety of non-standard
+   * move notations
+   */
+  public validateMoves(
+    moves: string[] | Move[],
+    options: { sloppy?: boolean } = {}
+  ): Move[] | null {
+    const validMoves: Move[] = []
+    let state = this._state
+    for (const move of moves) {
+      const validMove = validateMove(state, move, options)
+      if (!validMove) {
+        return null
+      }
+      validMoves.push(makePretty(state, validMove))
+      state = makeMove(state, validMove)
+    }
+    return validMoves
+  }
+
   /**
    * Checks if a move results in a promotion.
    *
