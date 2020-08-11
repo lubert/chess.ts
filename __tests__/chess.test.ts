@@ -2960,7 +2960,58 @@ describe('Regression Tests', function () {
   })
 })
 
-describe('ascii generation', function () {
+describe('Move Dry-Run', function () {
+  it('does not update the state', function () {
+    const chess = new Chess()
+    const fen = chess.fen()
+    chess.move('e4', { dry_run: true })
+    expect(chess.fen()).toEqual(fen)
+  })
+})
+
+describe('Validate Moves', function () {
+  it('valid moves', function () {
+    const chess = new Chess()
+    const moves = ['e4', 'e5', 'Nf3', 'Nc6']
+    const expected = [
+      {
+        color: 'w',
+        flags: 'b',
+        from: 'e2',
+        piece: 'p',
+        san: 'e4',
+        to: 'e4',
+      },
+      {
+        color: 'b',
+        flags: 'b',
+        from: 'e7',
+        piece: 'p',
+        san: 'e5',
+        to: 'e5',
+      },
+      {
+        color: 'w',
+        flags: 'n',
+        from: 'g1',
+        piece: 'n',
+        san: 'Nf3',
+        to: 'f3',
+      },
+      {
+        color: 'b',
+        flags: 'n',
+        from: 'b8',
+        piece: 'n',
+        san: 'Nc6',
+        to: 'c6',
+      },
+    ]
+    expect(chess.validateMoves(moves)).toEqual(expected)
+  })
+})
+
+describe('ASCII Generation', function () {
   it('works', function () {
     const chess = new Chess()
     expect(chess.ascii()).toBe(
