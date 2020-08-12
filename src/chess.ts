@@ -82,6 +82,11 @@ export class Chess {
     }
   }
 
+  /** @internal */
+  public get state(): State {
+    return this._state
+  }
+
   /**
    * Clears the board and loads the Forsyth–Edwards Notation (FEN) string.
    *
@@ -814,7 +819,6 @@ export class Chess {
     }
     return prettyMove
   }
-
 
   /**
    * Validates a sequence of moves, returning an array of move objects if the
