@@ -5,14 +5,21 @@ import {
   Square,
 } from './types'
 
-
+/** @public */
 export const WHITE: Color = 'w'
+/** @public */
 export const BLACK: Color = 'b'
+/** @public */
 export const PAWN: PieceSymbol = 'p'
+/** @public */
 export const KNIGHT: PieceSymbol = 'n'
+/** @public */
 export const BISHOP: PieceSymbol = 'b'
+/** @public */
 export const ROOK: PieceSymbol = 'r'
+/** @public */
 export const QUEEN: PieceSymbol = 'q'
+/** @public */
 export const KING: PieceSymbol = 'k'
 
 export const EMPTY = -1
@@ -78,6 +85,7 @@ export const RAYS: number[] = [
 
 export const SHIFTS: Record<PieceSymbol, number> = { p: 0, n: 1, b: 2, r: 3, q: 4, k: 5 }
 
+/** @public */
 export const FLAGS: Record<FlagKey, string> = {
   NORMAL: 'n',
   CAPTURE: 'c',
@@ -88,6 +96,7 @@ export const FLAGS: Record<FlagKey, string> = {
   QSIDE_CASTLE: 'q'
 }
 
+/** @public */
 export const BITS: Record<FlagKey, number> = {
   NORMAL: 1,
   CAPTURE: 2,
@@ -110,6 +119,7 @@ export const RANK_8 = 0
 export const RANKS = [RANK_8, RANK_7, RANK_6, RANK_5, RANK_4, RANK_3, RANK_2, RANK_1]
 
 // prettier-ignore
+/** @public */
 export const SQUARES: Record<Square, number> = {
   a8:   0, b8:   1, c8:   2, d8:   3, e8:   4, f8:   5, g8:   6, h8:   7,
   a7:  16, b7:  17, c7:  18, d7:  19, e7:  20, f7:  21, g7:  22, h7:  23,

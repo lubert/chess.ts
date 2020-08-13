@@ -11,6 +11,22 @@
 |  [Chess](./chess.ts.chess.md) |  |
 |  [State](./chess.ts.state.md) |  |
 
+## Variables
+
+|  Variable | Description |
+|  --- | --- |
+|  [BISHOP](./chess.ts.bishop.md) |  |
+|  [BITS](./chess.ts.bits.md) |  |
+|  [BLACK](./chess.ts.black.md) |  |
+|  [FLAGS](./chess.ts.flags.md) |  |
+|  [KING](./chess.ts.king.md) |  |
+|  [KNIGHT](./chess.ts.knight.md) |  |
+|  [PAWN](./chess.ts.pawn.md) |  |
+|  [QUEEN](./chess.ts.queen.md) |  |
+|  [ROOK](./chess.ts.rook.md) |  |
+|  [SQUARES](./chess.ts.squares.md) |  |
+|  [WHITE](./chess.ts.white.md) |  |
+
 ## Type Aliases
 
 |  Type Alias | Description |
