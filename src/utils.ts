@@ -41,8 +41,8 @@ export function algebraic(i: number): string {
  * Converts file and rank to a 0x88 square.
  * @public
  */
-export function getSquare(file: number, rank: number) {
-  return rank * 8 + file;
+export function getSquare(file: number, rank: number): number {
+  return rank * 8 + file
 }
 
 /**
