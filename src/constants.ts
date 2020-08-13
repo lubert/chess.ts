@@ -21,7 +21,7 @@ export const ROOK: PieceSymbol = 'r'
 export const QUEEN: PieceSymbol = 'q'
 /** @public */
 export const KING: PieceSymbol = 'k'
-
+/** @public */
 export const EMPTY = -1
 
 export const SYMBOLS = 'pnbrqkPNBRQK'

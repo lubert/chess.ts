@@ -9,7 +9,9 @@ export {
     ROOK,
     QUEEN,
     KING,
+    EMPTY,
     SQUARES,
     FLAGS,
     BITS,
 } from './constants'
+export { rank, file, algebraic } from './utils'

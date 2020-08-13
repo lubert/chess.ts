@@ -13,6 +13,7 @@ import {
 
 /**
  * Extracts the zero-based rank of an 0x88 square.
+ * @public
  */
 export function rank(i: number): number {
   return i >> 4
@@ -20,6 +21,7 @@ export function rank(i: number): number {
 
 /**
  * Extracts the zero-based file of an 0x88 square.
+ * @public
  */
 export function file(i: number): number {
   return i & 15
@@ -27,6 +29,7 @@ export function file(i: number): number {
 
 /**
  * Converts a 0x88 square to algebraic notation.
+ * @public
  */
 export function algebraic(i: number): string {
   const f = file(i)
