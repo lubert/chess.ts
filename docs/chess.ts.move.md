@@ -9,15 +9,12 @@ Represents a chess move
 <b>Signature:</b>
 
 ```typescript
-export declare type Move = {
-    to: string;
-    from: string;
-    color?: Color;
-    flags?: string;
-    piece?: PieceSymbol;
-    san?: string;
+export declare type Move = PartialMove & {
+    color: Color;
+    flags: string;
+    piece: PieceSymbol;
+    san: string;
     captured?: PieceSymbol;
-    promotion?: PieceSymbol;
 };
 ```
 

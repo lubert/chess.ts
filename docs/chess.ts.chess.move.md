@@ -9,7 +9,7 @@ Attempts to make a move on the board, returning a move object if the move was le
 <b>Signature:</b>
 
 ```typescript
-move(move: string | Move, options?: {
+move(move: string | PartialMove, options?: {
         sloppy?: boolean;
         dry_run?: boolean;
     }): Move | null;
@@ -19,7 +19,7 @@ move(move: string | Move, options?: {
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  move | string \| [Move](./chess.ts.move.md) | Case-sensitive SAN string or object, e.g. <code>'Nxb7'</code> or <code>{ from: 'h7', to: 'h8', promotion: 'q' }</code> |
+|  move | string \| [PartialMove](./chess.ts.partialmove.md) | Case-sensitive SAN string or object, e.g. <code>'Nxb7'</code> or <code>{ from: 'h7', to: 'h8', promotion: 'q' }</code> |
 |  options | { sloppy?: boolean; dry\_run?: boolean; } | Options to enable parsing of a variety of non-standard move notations |
 
 <b>Returns:</b>

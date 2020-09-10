@@ -17,7 +17,6 @@
 |  --- | --- |
 |  [algebraic(i)](./chess.ts.algebraic.md) | Converts a 0x88 square to algebraic notation. |
 |  [file(i)](./chess.ts.file.md) | Extracts the zero-based file of an 0x88 square. |
-|  [getSquare(file, rank)](./chess.ts.getsquare.md) | Converts file and rank to a 0x88 square. |
 |  [rank(i)](./chess.ts.rank.md) | Extracts the zero-based rank of an 0x88 square. |
 
 ## Variables
@@ -44,6 +43,7 @@
 |  [Color](./chess.ts.color.md) |  |
 |  [FenComment](./chess.ts.fencomment.md) |  |
 |  [Move](./chess.ts.move.md) | Represents a chess move |
+|  [PartialMove](./chess.ts.partialmove.md) |  |
 |  [Piece](./chess.ts.piece.md) |  |
 |  [PieceSymbol](./chess.ts.piecesymbol.md) |  |
 |  [Validation](./chess.ts.validation.md) |  |
