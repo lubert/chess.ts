@@ -9,7 +9,7 @@ Validates a sequence of moves, returning an array of move objects if the moves a
 <b>Signature:</b>
 
 ```typescript
-validateMoves(moves: string[] | Move[], options?: {
+validateMoves(moves: string[] | PartialMove[], options?: {
         sloppy?: boolean;
     }): Move[] | null;
 ```
@@ -18,7 +18,7 @@ validateMoves(moves: string[] | Move[], options?: {
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  moves | string\[\] \| [Move](./chess.ts.move.md)<!-- -->\[\] | Array of case-sensitive SAN strings or objects, e.g. <code>'Nxb7'</code> or <code>{ from: 'h7', to: 'h8', promotion: 'q' }</code> |
+|  moves | string\[\] \| [PartialMove](./chess.ts.partialmove.md)<!-- -->\[\] | Array of case-sensitive SAN strings or objects, e.g. <code>'Nxb7'</code> or <code>{ from: 'h7', to: 'h8', promotion: 'q' }</code> |
 |  options | { sloppy?: boolean; } | Options to enable parsing of a variety of non-standard move notations |
 
 <b>Returns:</b>

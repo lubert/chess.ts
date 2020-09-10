@@ -843,7 +843,7 @@ export class Chess {
    * move notations
    */
   public validateMoves(
-    moves: string[] | Move[],
+    moves: string[] | PartialMove[],
     options: { sloppy?: boolean } = {}
   ): Move[] | null {
     const validMoves: Move[] = []
