@@ -1,5 +1,5 @@
 export { Chess } from './chess'
-export { Color, FenComment, Move, Piece, PieceSymbol, Validation, State } from './types'
+export { Color, FenComment, Move, PartialMove, Piece, PieceSymbol, Validation, State } from './types'
 export {
     WHITE,
     BLACK,
@@ -14,4 +14,4 @@ export {
     FLAGS,
     BITS,
 } from './constants'
-export { rank, file, algebraic, getSquare } from './utils'
+export { rank, file, algebraic } from './utils'

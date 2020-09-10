@@ -35,6 +35,7 @@ import {
   Move,
   Square,
   State,
+  PartialMove,
 } from './types'
 import {
   algebraic,
@@ -1199,7 +1200,7 @@ export function getBoard(board: Board): (Piece | null)[][] {
 
 export function validateMove(
   state: State,
-  move: string | Move,
+  move: string | PartialMove,
   options: { sloppy?: boolean, checkPromotion?: boolean } = {}
 ): HexMove | null {
   // Allow the user to specify the sloppy move parser to work around over

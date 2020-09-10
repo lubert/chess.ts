@@ -104,11 +104,13 @@ export function validateFen(fen: string): Validation {
   }
 
   /* 2nd criterion: move number field is a integer value > 0? */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   if (isNaN(tokens[5] as any) || parseInt(tokens[5], 10) <= 0) {
     return { valid: false, error_number: 2, error: errors[2] }
   }
 
   /* 3rd criterion: half move counter is an integer >= 0? */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   if (isNaN(tokens[4] as any) || parseInt(tokens[4], 10) < 0) {
     return { valid: false, error_number: 3, error: errors[3] }
   }
@@ -141,6 +143,7 @@ export function validateFen(fen: string): Validation {
     let previous_was_number = false
 
     for (let k = 0; k < rows[i].length; k++) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       if (!isNaN(rows[i][k] as any)) {
         if (previous_was_number) {
           return { valid: false, error_number: 8, error: errors[8] }

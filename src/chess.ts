@@ -28,6 +28,7 @@ import {
   Piece,
   State,
   Validation,
+  PartialMove,
 } from './types'
 import {
   file,
@@ -803,7 +804,7 @@ export class Chess {
    * move notations
    */
   public move(
-    move: string | Move,
+    move: string | PartialMove,
     options: { sloppy?: boolean, dry_run?: boolean } = {}
   ): Move | null {
     const validMove = validateMove(this._state, move, options)
@@ -879,7 +880,7 @@ export class Chess {
    * move notations
    */
   public isPromotion(
-    move: string | Move,
+    move: string | PartialMove,
     options: { sloppy?: boolean } = {}
   ): boolean {
     const validMove = validateMove(this._state, move, { ...options, checkPromotion: false })

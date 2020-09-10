@@ -10,6 +10,13 @@ export type FenComment = {
   comment: string;
 }
 
+/** @public */
+export type PartialMove = {
+  to: string;
+  from: string;
+  promotion?: PieceSymbol;
+}
+
 /**
  * Represents a chess move
  *
@@ -37,15 +44,12 @@ export type FenComment = {
  *
  * @public
  */
-export type Move = {
-  to: string;
-  from: string;
-  color?: Color;
-  flags?: string;
-  piece?: PieceSymbol;
-  san?: string;
+export type Move = PartialMove & {
+  color: Color;
+  flags: string;
+  piece: PieceSymbol;
+  san: string;
   captured?: PieceSymbol;
-  promotion?: PieceSymbol;
 }
 
 /** @public */
