@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.org/lubert/chess.ts.svg?branch=master)](https://travis-ci.org/lubert/chess.ts)
 [![npm](https://img.shields.io/npm/v/@lubert/chess.ts)](https://www.npmjs.com/package/@lubert/chess.ts)
 
-chess.ts is a Typescript chess library that is used for chess move
+chess.ts is a chess library and rewrite of [chess.js](https://github.com/jhlywa/chess.js) in Typescript that is used for chess move
 generation/validation, piece placement/movement, and check/checkmate/stalemate
 detection - basically everything but the AI.
 
@@ -46,13 +46,6 @@ developers have had success integrating chess.ts with the
 [chessboard.js](http://chessboardjs.com) library. See
 [chessboard.js - Random vs Random](http://chessboardjs.com/examples#5002) for
 an example.
-
-## MUSIC
-
-Musical support provided by:
-
--   [The Grateful Dead](https://www.youtube.com/watch?v=z-D9rdJWfWs)
--   [Umphrey's McGee](https://www.youtube.com/watch?v=auEfZVcYp64)
 
 ## BUGS
 
