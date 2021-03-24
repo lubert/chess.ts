@@ -85,7 +85,12 @@ export class Chess {
 
   /** @internal */
   public get state(): State {
-    return this._state
+    return this._state.clone()
+  }
+
+  /** @internal **/
+  public get states(): State[] {
+    return [...this._history.map((gameHistory) => gameHistory.state.clone()), this.state]
   }
 
   /**
