@@ -9,6 +9,7 @@ import {
   KING,
   WHITE,
   BLACK,
+  DEFAULT_POSITION,
 } from '../src/constants'
 import { algebraic, validateFen } from '../src/utils'
 import { PieceSymbol, Move, Piece, Color } from '../src/types'
@@ -1524,8 +1525,10 @@ describe('Manipulate Comments', function () {
 
   it('comment for initial position', function () {
     const chess = new Chess()
+    const fen = chess.fen()
     chess.setComment('starting position')
     expect(chess.getComment()).toEqual('starting position')
+    expect(chess.getComment(fen)).toEqual('starting position')
     expect(chess.getComments()).toEqual([
       { fen: chess.fen(), comment: 'starting position' },
     ])
@@ -1538,9 +1541,11 @@ describe('Manipulate Comments', function () {
     const e4 = chess.fen()
     chess.setComment('good move')
     expect(chess.getComment()).toEqual('good move')
+    expect(chess.getComment(e4)).toEqual('good move')
     expect(chess.getComments()).toEqual([{ fen: e4, comment: 'good move' }])
     chess.move('e5')
     expect(chess.getComment()).toBeUndefined()
+    expect(chess.getComment(e4)).toEqual('good move')
     expect(chess.getComments()).toEqual([{ fen: e4, comment: 'good move' }])
     expect(chess.pgn()).toEqual('1. e4 {good move} e5')
   })
@@ -1549,8 +1554,10 @@ describe('Manipulate Comments', function () {
     const chess = new Chess()
     chess.move('e4')
     chess.move('e6')
+    const e6 = chess.fen()
     chess.setComment('dubious move')
     expect(chess.getComment()).toEqual('dubious move')
+    expect(chess.getComment(e6)).toEqual('dubious move')
     expect(chess.getComments()).toEqual([
       { fen: chess.fen(), comment: 'dubious move' },
     ])
@@ -1578,6 +1585,7 @@ describe('Manipulate Comments', function () {
     const e4 = chess.fen()
     chess.setComment('good move')
     expect(chess.getComment()).toEqual('good move')
+    expect(chess.getComment(e4)).toEqual('good move')
     expect(chess.getComments()).toEqual([
       { fen: initial, comment: 'starting position' },
       { fen: e4, comment: 'good move' },
@@ -1588,6 +1596,7 @@ describe('Manipulate Comments', function () {
     const e6 = chess.fen()
     chess.setComment('dubious move')
     expect(chess.getComment()).toEqual('dubious move')
+    expect(chess.getComment(e6)).toEqual('dubious move')
     expect(chess.getComments()).toEqual([
       { fen: initial, comment: 'starting position' },
       { fen: e4, comment: 'good move' },
@@ -1600,7 +1609,9 @@ describe('Manipulate Comments', function () {
 
   it('delete comments', function () {
     const chess = new Chess()
+    const init = chess.fen()
     expect(chess.deleteComment()).toBeUndefined()
+    expect(chess.deleteComment(init)).toBeUndefined()
     expect(chess.deleteComments()).toEqual([])
     const initial = chess.fen()
     chess.setComment('starting position')
@@ -1615,7 +1626,7 @@ describe('Manipulate Comments', function () {
       { fen: e4, comment: 'good move' },
       { fen: e6, comment: 'dubious move' },
     ])
-    expect(chess.deleteComment()).toEqual('dubious move')
+    expect(chess.deleteComment(e6)).toEqual('dubious move')
     expect(chess.pgn()).toEqual('{starting position} 1. e4 {good move} e6')
     expect(chess.deleteComment()).toBeUndefined()
     expect(chess.deleteComments()).toEqual([
@@ -1668,7 +1679,8 @@ describe('Format Comments', function () {
   it('wrap comments', function () {
     const chess = new Chess()
     chess.move('e4')
-    chess.setComment('good   move')
+    const e4 = chess.fen()
+    chess.setComment('good   move', e4)
     chess.move('e5')
     chess.setComment('classical response')
     expect(chess.pgn()).toEqual('1. e4 {good   move} e5 {classical response}')
