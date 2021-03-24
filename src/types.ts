@@ -127,7 +127,7 @@ export type ColorState = Record<Color, number> & {
   b: number;
 }
 
-export type Comments = Record<string, string>
+export type Comments = Partial<Record<string, string>>
 
 export type FlagKey = 'NORMAL' | 'CAPTURE' | 'BIG_PAWN' | 'EP_CAPTURE' | 'PROMOTION' | 'KSIDE_CASTLE' | 'QSIDE_CASTLE'
 

@@ -1001,7 +1001,7 @@ export class Chess {
   }
 
   /**
-   * Retrieve the comment for the current position, if it exists.
+   * Retrieve the comment for a position, if it exists.
    *
    * @example
    * ```js
@@ -1012,9 +1012,12 @@ export class Chess {
    * chess.getComment()
    * // -> "giuoco piano"
    * ```
+   *
+   * @param fen - Defaults to the current position
    */
-  public getComment(): string {
-    return this._comments[this.fen()]
+  public getComment(fen?: string): string | undefined {
+    fen = fen || this.fen()
+    return this._comments[fen]
   }
 
   /**
@@ -1043,11 +1046,11 @@ export class Chess {
     this.pruneComments()
     return Object.keys(this._comments).map((fen) => {
       return {fen: fen, comment: this._comments[fen]}
-    })
+    }) as FenComment[]
   }
 
   /**
-   * Comment on the current position.
+   * Comment on a position.
    *
    * @example
    * ```js
@@ -1059,13 +1062,17 @@ export class Chess {
    * chess.pgn()
    * // -> "1. e4 {king's pawn opening}"
    * ```
+   *
+   * @param comment
+   * @param fen - Defaults to the current position
    */
-  public setComment(comment: string): void {
-    this._comments[this.fen()] = comment.replace('{', '[').replace('}', ']')
+  public setComment(comment: string, fen?: string): void {
+    fen = fen || this.fen()
+    this._comments[fen] = comment.replace('{', '[').replace('}', ']')
   }
 
   /**
-   * Delete and return the comment for the current position, if it exists.
+   * Delete and return the comment for a position, if it exists.
    *
    * @example
    * ```js
@@ -1082,10 +1089,13 @@ export class Chess {
    * chess.getComment()
    * // -> undefined
    * ```
+   *
+   * @param fen - Defaults to the current position
    */
-  public deleteComment(): string {
-    const comment = this._comments[this.fen()]
-    delete this._comments[this.fen()]
+  public deleteComment(fen?: string): string | undefined {
+    fen = fen || this.fen()
+    const comment = this._comments[fen]
+    delete this._comments[fen]
     return comment
   }
 
@@ -1116,12 +1126,11 @@ export class Chess {
    */
   public deleteComments(): FenComment[] {
     this.pruneComments()
-    return Object.keys(this._comments)
-      .map((fen) => {
-        const comment = this._comments[fen]
-        delete this._comments[fen]
-        return {fen: fen, comment: comment}
-      })
+    return Object.keys(this._comments).map((fen) => {
+      const comment = this._comments[fen]
+      delete this._comments[fen]
+      return {fen: fen, comment: comment}
+    }) as FenComment[]
   }
 
   /**
