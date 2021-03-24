@@ -481,7 +481,7 @@ export function loadPgn(
     .replace(
       /* encode comments so they don't get deleted below */
       new RegExp(`({[^}]*})+?|;([^${mask(newline_char)}]*)`, 'g'),
-      (match, bracket, semicolon) => {
+      (_, bracket, semicolon) => {
         return bracket !== undefined
           ? encodeComment(bracket)
           : ' ' + encodeComment(`{${semicolon.slice(1)}}`)
