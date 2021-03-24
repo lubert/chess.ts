@@ -4,12 +4,12 @@
 
 ## Chess.setComment() method
 
-Comment on the current position.
+Comment on a position.
 
 <b>Signature:</b>
 
 ```typescript
-setComment(comment: string): void;
+setComment(comment: string, fen?: string): void;
 ```
 
 ## Parameters
@@ -17,6 +17,7 @@ setComment(comment: string): void;
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  comment | string |  |
+|  fen | string | Defaults to the current position |
 
 <b>Returns:</b>
 

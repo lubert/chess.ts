@@ -4,16 +4,23 @@
 
 ## Chess.deleteComment() method
 
-Delete and return the comment for the current position, if it exists.
+Delete and return the comment for a position, if it exists.
 
 <b>Signature:</b>
 
 ```typescript
-deleteComment(): string;
+deleteComment(fen?: string): string | undefined;
 ```
+
+## Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  fen | string | Defaults to the current position |
+
 <b>Returns:</b>
 
-string
+string \| undefined
 
 ## Example
 

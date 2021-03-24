@@ -35,12 +35,12 @@ export declare class Chess
 |  [board()](./chess.ts.chess.board.md) |  | Returns an 2D array representation of the current position. Empty squares are represented by <code>null</code>. |
 |  [clear(keepHeaders)](./chess.ts.chess.clear.md) |  | Clears the board. |
 |  [clearHeader()](./chess.ts.chess.clearheader.md) |  | Removes all PGN header information. |
-|  [deleteComment()](./chess.ts.chess.deletecomment.md) |  | Delete and return the comment for the current position, if it exists. |
+|  [deleteComment(fen)](./chess.ts.chess.deletecomment.md) |  | Delete and return the comment for a position, if it exists. |
 |  [deleteComments()](./chess.ts.chess.deletecomments.md) |  | Delete and return comments for all positions. |
 |  [fen()](./chess.ts.chess.fen.md) |  | Returns the FEN string for the current position. |
 |  [gameOver()](./chess.ts.chess.gameover.md) |  | Returns true if the game has ended via checkmate, stalemate, draw, threefold repetition, or insufficient material. Otherwise, returns false. |
 |  [get(square)](./chess.ts.chess.get.md) |  | Returns the piece on the square. |
-|  [getComment()](./chess.ts.chess.getcomment.md) |  | Retrieve the comment for the current position, if it exists. |
+|  [getComment(fen)](./chess.ts.chess.getcomment.md) |  | Retrieve the comment for a position, if it exists. |
 |  [getComments()](./chess.ts.chess.getcomments.md) |  | Retrieve comments for all positions. |
 |  [header()](./chess.ts.chess.header.md) |  | Returns PGN header information as an object. |
 |  [history(options)](./chess.ts.chess.history.md) |  | Returns a list containing the moves of the current game. |
@@ -62,7 +62,7 @@ export declare class Chess
 |  [remove(square)](./chess.ts.chess.remove.md) |  | Remove and return the piece on <code>square</code>. |
 |  [removeHeader(key)](./chess.ts.chess.removeheader.md) |  | Removes a PGN header entry |
 |  [reset()](./chess.ts.chess.reset.md) |  | Reset the board to the initial starting position. |
-|  [setComment(comment)](./chess.ts.chess.setcomment.md) |  | Comment on the current position. |
+|  [setComment(comment, fen)](./chess.ts.chess.setcomment.md) |  | Comment on a position. |
 |  [setHeader(header)](./chess.ts.chess.setheader.md) |  | Sets PGN header information. |
 |  [squareColor(square)](./chess.ts.chess.squarecolor.md) |  | Returns the color of the square ('light' or 'dark'). |
 |  [turn()](./chess.ts.chess.turn.md) |  | Returns the current side to move. |

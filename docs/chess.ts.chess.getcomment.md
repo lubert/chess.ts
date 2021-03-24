@@ -4,16 +4,23 @@
 
 ## Chess.getComment() method
 
-Retrieve the comment for the current position, if it exists.
+Retrieve the comment for a position, if it exists.
 
 <b>Signature:</b>
 
 ```typescript
-getComment(): string;
+getComment(fen?: string): string | undefined;
 ```
+
+## Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  fen | string | Defaults to the current position |
+
 <b>Returns:</b>
 
-string
+string \| undefined
 
 ## Example
 
