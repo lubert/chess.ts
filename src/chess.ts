@@ -45,16 +45,16 @@ import {
 
 /** @public */
 export class Chess {
-  /** internal */
+  /** @internal */
   protected _state: State
 
-  /** internal */
+  /** @internal */
   protected _history: GameHistory[]
 
-  /** internal */
+  /** @internal */
   protected _header: Record<string, string>
 
-  /** internal */
+  /** @internal */
   protected _comments: Comments
 
   /**

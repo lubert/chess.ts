@@ -17,15 +17,6 @@ export declare class Chess
 |  --- | --- | --- |
 |  [(constructor)(fen)](./chess.ts.chess._constructor_.md) |  | The Chess() constructor takes an optional parameter which specifies the board configuration in \[Forsyth-Edwards Notation\](http://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards\_Notation). |
 
-## Properties
-
-|  Property | Modifiers | Type | Description |
-|  --- | --- | --- | --- |
-|  [\_comments](./chess.ts.chess._comments.md) |  | Comments | internal |
-|  [\_header](./chess.ts.chess._header.md) |  | Record&lt;string, string&gt; | internal |
-|  [\_history](./chess.ts.chess._history.md) |  | GameHistory\[\] | internal |
-|  [\_state](./chess.ts.chess._state.md) |  | [State](./chess.ts.state.md) | internal |
-
 ## Methods
 
 |  Method | Modifiers | Description |
