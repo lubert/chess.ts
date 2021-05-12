@@ -5,12 +5,6 @@ import { getFen } from "./state"
 export type Color = 'w' | 'b'
 
 /** @public */
-export type FenComment = {
-  fen: string;
-  comment: string;
-}
-
-/** @public */
 export type PartialMove = {
   to: string;
   from: string;
@@ -132,8 +126,10 @@ export type Comments = Partial<Record<string, string>>
 export type FlagKey = 'NORMAL' | 'CAPTURE' | 'BIG_PAWN' | 'EP_CAPTURE' | 'PROMOTION' | 'KSIDE_CASTLE' | 'QSIDE_CASTLE'
 
 export type GameHistory = {
-  move: HexMove;
   state: State;
+  fen: string;
+  move?: HexMove;
+  comment?: string;
 }
 
 export type HexMove = {
