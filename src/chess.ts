@@ -1,3 +1,4 @@
+import { TreeNode } from 'treenode.ts'
 import {
   generateMoves,
   isAttacked,
@@ -12,19 +13,20 @@ import {
   inCheckmate,
   inStalemate,
   insufficientMaterial,
-  loadPgn,
-  getPgn,
   ascii,
   getBoard,
   validateMove,
+  getFen,
 } from './state'
 import {
+  loadPgn,
+  getPgn,
+} from './pgn'
+import {
   Color,
-  Comments,
   GameHistory,
   HexMove,
   Move,
-  FenComment,
   Piece,
   State,
   Validation,
@@ -46,16 +48,13 @@ import {
 /** @public */
 export class Chess {
   /** @internal */
-  protected _state: State
+  protected _stateTree: TreeNode<GameHistory>
 
   /** @internal */
-  protected _history: GameHistory[]
+  protected _currentNode: TreeNode<GameHistory>
 
   /** @internal */
   protected _header: Record<string, string>
-
-  /** @internal */
-  protected _comments: Comments
 
   /**
    * The Chess() constructor takes an optional parameter which specifies the board configuration
@@ -72,25 +71,33 @@ export class Chess {
    * )
    * ```
    */
-  constructor(fen: string = DEFAULT_POSITION) {
-    this._state = new State()
-    this._history = []
+  constructor() {
+    this._stateTree = new TreeNode<GameHistory>({
+      state: new State(),
+      fen: DEFAULT_POSITION,
+    })
+    this._currentNode = this._stateTree
     this._header = {}
-    this._comments = {}
-
-    if (!this.load(fen)) {
-      throw new Error('Error loading fen')
-    }
   }
 
   /** @internal */
-  public get state(): State {
-    return this._state.clone()
+  protected get state(): State {
+    return this._currentNode.model.state
+  }
+
+  protected set state(state: State) {
+    this._currentNode.model.state = state
   }
 
   /** @internal **/
-  public get states(): State[] {
-    return [...this._history.map((gameHistory) => gameHistory.state.clone()), this.state]
+  protected get states(): State[] {
+    return this._currentNode.path().map((node) => node.model.state)
+  }
+
+  /** @internal **/
+  protected get gameHistory(): GameHistory[] {
+    if (!this._currentNode.parent) return []
+    return this._currentNode.parent.path().map((node) => node.model)
   }
 
   /**
@@ -105,10 +112,10 @@ export class Chess {
     if (!state) {
       return false
     }
-    this._state = state
-    this._history = []
+
+    this._stateTree = new TreeNode<GameHistory>({ state, fen })
+    this._currentNode = this._stateTree
     if (!keepHeaders) this._header = {}
-    this._comments = {}
     this.updateSetup()
     return true
   }
@@ -126,10 +133,12 @@ export class Chess {
    * @param keepHeaders - Flag to keep headers
    */
   public clear(keepHeaders = false): void {
-    this._state = new State()
-    this._history = []
+    this._stateTree = new TreeNode<GameHistory>({
+      state: new State(),
+      fen: DEFAULT_POSITION,
+    })
+    this._currentNode = this._stateTree
     if (!keepHeaders) this._header = {}
-    this._comments = {}
     this.updateSetup()
   }
 
@@ -158,7 +167,7 @@ export class Chess {
    * @returns Copy of the piece or null
    */
   public get(square?: string): Piece | null {
-    return getPiece(this._state, square)
+    return getPiece(this.state, square)
   }
 
   /**
@@ -197,9 +206,9 @@ export class Chess {
    * @returns True if placed successfully, otherwise false
    */
   public put(piece: { type?: string, color?: string }, square?: string): boolean {
-    const newState = putPiece(this._state, piece, square)
+    const newState = putPiece(this.state, piece, square)
     if (newState) {
-      this._state = newState
+      this.state = newState
       this.updateSetup()
       return true
     }
@@ -227,16 +236,16 @@ export class Chess {
    * @returns Piece or null
    */
   public remove(square?: string): Piece | null {
-    const piece = getPiece(this._state, square)
+    const piece = getPiece(this.state, square)
     if (!piece) {
       return null
     }
 
-    const newState = removePiece(this._state, square)
+    const newState = removePiece(this.state, square)
     if (!newState) {
       return null
     }
-    this._state = newState
+    this.state = newState
     return piece
   }
 
@@ -288,12 +297,12 @@ export class Chess {
     // square coordinates to algebraic coordinates.  It also prunes an
     // unnecessary move keys resulting from a verbose call.
     const { square, verbose = false } = options
-    const uglyMoves = generateMoves(this._state, { square })
+    const uglyMoves = generateMoves(this.state, { square })
 
     if (verbose) {
-      return uglyMoves.map((uglyMove) => makePretty(this._state, uglyMove))
+      return uglyMoves.map((uglyMove) => makePretty(this.state, uglyMove))
     }
-    return uglyMoves.map((uglyMove) => moveToSan(this._state, uglyMove))
+    return uglyMoves.map((uglyMove) => moveToSan(this.state, uglyMove))
   }
 
   /**
@@ -313,7 +322,7 @@ export class Chess {
    * ```
    */
   public fen(): string {
-    return this._state.fen
+    return this.state.fen
   }
 
   /**
@@ -329,7 +338,7 @@ export class Chess {
    * ```
    */
   public inCheck(): boolean {
-    return inCheck(this._state)
+    return inCheck(this.state)
   }
 
   /**
@@ -345,7 +354,7 @@ export class Chess {
    * ```
    */
   public inCheckmate(): boolean {
-    return inCheckmate(this._state)
+    return inCheckmate(this.state)
   }
 
   /**
@@ -359,7 +368,7 @@ export class Chess {
    * ```
    */
   public inStalemate(): boolean {
-    return inStalemate(this._state)
+    return inStalemate(this.state)
   }
 
   /**
@@ -374,7 +383,7 @@ export class Chess {
    * ```
    */
   public insufficientMaterial(): boolean {
-    return insufficientMaterial(this._state)
+    return insufficientMaterial(this.state)
   }
 
   /**
@@ -414,12 +423,12 @@ export class Chess {
       return false
     }
 
-    for (const { state } of this._history) {
+    for (const state of this.states) {
       if (checkState(state)) {
         return true
       }
     }
-    return checkState(this._state)
+    return checkState(this.state)
   }
 
   /**
@@ -433,7 +442,7 @@ export class Chess {
    */
   public inDraw(): boolean {
     return (
-      this._state.half_moves >= 100 ||
+      this.state.half_moves >= 100 ||
         this.inStalemate() ||
         this.insufficientMaterial() ||
         this.inThreefoldRepetition()
@@ -496,7 +505,7 @@ export class Chess {
    * ```
    */
   public board(): (Piece | null)[][] {
-    return getBoard(this._state.board)
+    return getBoard(this.state.board)
   }
 
   /**
@@ -517,7 +526,7 @@ export class Chess {
    * ```
    */
   public pgn(options: { newline_char?: string, max_width?: number } = {}): string {
-    return getPgn(this._state, this._header, this._comments, this._history, options)
+    return getPgn(this._stateTree, this._header, options)
   }
 
   /**
@@ -626,11 +635,7 @@ export class Chess {
       return false
     }
 
-    const [ state, header, comments, history ] = res
-    this._state = state
-    this._header = header
-    this._comments = comments
-    this._history = history
+    [ this._stateTree, this._header ] = res
     return true
   }
 
@@ -726,7 +731,7 @@ export class Chess {
    * ```
    */
   public ascii(eol = '\n'): string {
-    return ascii(this._state.board, eol)
+    return ascii(this.state.board, eol)
   }
 
   /**
@@ -740,7 +745,7 @@ export class Chess {
    * ```
    */
   public turn(): Color {
-    return this._state.turn
+    return this.state.turn
   }
 
   /**
@@ -812,14 +817,14 @@ export class Chess {
     move: string | PartialMove,
     options: { sloppy?: boolean, dry_run?: boolean } = {}
   ): Move | null {
-    const validMove = validateMove(this._state, move, options)
+    const validMove = validateMove(this.state, move, options)
 
     if (!validMove) {
       return null
     }
 
     // Create pretty move before updating the state
-    const prettyMove = makePretty(this._state, validMove)
+    const prettyMove = makePretty(this.state, validMove)
     if (!options.dry_run) {
       this.makeMove(validMove)
     }
@@ -852,7 +857,7 @@ export class Chess {
     options: { sloppy?: boolean } = {}
   ): Move[] | null {
     const validMoves: Move[] = []
-    let state = this._state
+    let { state } = this
     for (const move of moves) {
       const validMove = validateMove(state, move, options)
       if (!validMove) {
@@ -888,7 +893,7 @@ export class Chess {
     move: string | PartialMove,
     options: { sloppy?: boolean } = {}
   ): boolean {
-    const validMove = validateMove(this._state, move, { ...options, checkPromotion: false })
+    const validMove = validateMove(this.state, move, { ...options, checkPromotion: false })
 
     if (!validMove) {
       return false
@@ -920,7 +925,7 @@ export class Chess {
    */
   public undo(): Move | null {
     const move = this.undoMove()
-    return move ? makePretty(this._state, move) : null
+    return move ? makePretty(this.state, move) : null
   }
 
   /**
@@ -961,7 +966,7 @@ export class Chess {
    * // -> ['e4', 'e5', 'f4', 'exf4']
    * ```
    */
-  public history(options?: { verbose?: false }): string[]
+  // public history(options?: { verbose?: false }): string[]
 
   /**
    * Returns a list containing the moves of the current game.
@@ -981,29 +986,28 @@ export class Chess {
    * //     { color: 'b', from: 'e5', to: 'f4', flags: 'c', piece: 'p', captured: 'p', san: 'exf4' }]
    * ```
    */
-  public history(options: { verbose: true }): Move[]
+  // public history(options: { verbose: true }): Move[]
 
-  public history(options: { verbose?: boolean } = {}): string[] | Move[] {
-    const { verbose = false } = options
+  // public history(options: { verbose?: boolean } = {}): string[] | Move[] {
+  //   const { verbose = false } = options
+  //   if (!this.gameHistory.length) {
+  //     return []
+  //   }
 
-    if (!this._history.length) {
-      return []
-    }
-
-    let state
-    if (verbose) {
-      return this._history.map((gameHistory) => {
-        const move = gameHistory.move
-        state = gameHistory.state
-        return makePretty(state, move)
-      })
-    }
-    return this._history.map((gameHistory) => {
-      const move = gameHistory.move
-      state = gameHistory.state
-      return moveToSan(state, move)
-    })
-  }
+  //   let state
+  //   if (verbose) {
+  //     return this.gameHistory.map((history) => {
+  //       const move = history.move
+  //       state = history.state
+  //       return makePretty(state, move)
+  //     })
+  //   }
+  //   return this.gameHistory.map((history) => {
+  //     const move = history.move
+  //     state = history.state
+  //     return moveToSan(state, move)
+  //   })
+  // }
 
   /**
    * Retrieve the comment for a position, if it exists.
@@ -1021,8 +1025,11 @@ export class Chess {
    * @param fen - Defaults to the current position
    */
   public getComment(fen?: string): string | undefined {
-    fen = fen || this.fen()
-    return this._comments[fen]
+    if (fen) {
+      const node = this._stateTree.breadth(({ model }) => model.fen === fen)
+      return node?.model.comment
+    }
+    return this._currentNode.model.comment
   }
 
   /**
@@ -1047,11 +1054,14 @@ export class Chess {
    * //    ]
    * ```
    */
-  public getComments(): FenComment[] {
-    this.pruneComments()
-    return Object.keys(this._comments).map((fen) => {
-      return {fen: fen, comment: this._comments[fen]}
-    }) as FenComment[]
+  public getComments(): Record<string, string> {
+    const comments: Record<string, string> = {}
+    this._currentNode.breadth(({ model }) => {
+      if (model.comment) {
+        comments[model.fen] = model.comment
+      }
+    })
+    return comments
   }
 
   /**
@@ -1072,8 +1082,16 @@ export class Chess {
    * @param fen - Defaults to the current position
    */
   public setComment(comment: string, fen?: string): void {
-    fen = fen || this.fen()
-    this._comments[fen] = comment.replace('{', '[').replace('}', ']')
+    const cleaned = comment.replace('{', '[').replace('}', ']')
+    if (fen) {
+      const node = this._stateTree.breadth(({ model }) => model.fen === fen)
+      if (node) {
+        node.model.comment = cleaned
+      }
+      return
+    }
+
+    this._currentNode.model.comment = cleaned
   }
 
   /**
@@ -1098,10 +1116,14 @@ export class Chess {
    * @param fen - Defaults to the current position
    */
   public deleteComment(fen?: string): string | undefined {
-    fen = fen || this.fen()
-    const comment = this._comments[fen]
-    delete this._comments[fen]
-    return comment
+    if (fen) {
+      const node = this._stateTree.breadth(({ model }) => model.fen === fen)
+      if (node) {
+        delete node.model.comment
+      }
+      return
+    }
+    delete this._currentNode.model.comment
   }
 
   /**
@@ -1129,13 +1151,14 @@ export class Chess {
    * // -> []
    * ```
    */
-  public deleteComments(): FenComment[] {
-    this.pruneComments()
-    return Object.keys(this._comments).map((fen) => {
-      const comment = this._comments[fen]
-      delete this._comments[fen]
-      return {fen: fen, comment: comment}
-    }) as FenComment[]
+  public deleteComments(): Record<string, string> {
+    const comments: Record<string, string> = {}
+    this._currentNode.breadth(({ model }) => {
+      if (model.comment) {
+        comments[model.fen] = model.comment
+      }
+    })
+    return comments
   }
 
   /**
@@ -1157,20 +1180,22 @@ export class Chess {
   }
 
   /** @internal */
-  public clone(): Chess {
-    const clone = new Chess()
-    clone._state = this._state
-    clone._history = [...this._history]
-    clone._header = {...this._header}
-    clone._comments = {...this._comments}
-    return clone
-  }
+  // public clone(): Chess {
+  //   const clone = new Chess()
+  //   clone._stateTree = this._stateTree.clone()
+  //   // TODO: Figure out how to copy this reference...
+  //   // clone.state = this.state
+  //   // clone._history = [...this._history]
+  //   clone._header = {...this._header}
+  //   clone._comments = {...this._comments}
+  //   return clone
+  // }
 
   /** @internal */
   public perft(depth: number): number {
-    const moves = generateMoves(this._state, { legal: false })
+    const moves = generateMoves(this.state, { legal: false })
     let nodes = 0
-    const color = this._state.turn
+    const color = this.state.turn
 
     for (let i = 0, len = moves.length; i < len; i++) {
       this.makeMove(moves[i])
@@ -1198,8 +1223,8 @@ export class Chess {
    * @internal
    */
   protected updateSetup(): void {
-    const fen = this._state.fen
-    if (this._history.length > 0) return
+    const fen = this.state.fen
+    if (this.gameHistory.length > 0) return
 
     if (fen !== DEFAULT_POSITION) {
       this._header['SetUp'] = '1'
@@ -1208,27 +1233,6 @@ export class Chess {
       delete this._header['SetUp']
       delete this._header['FEN']
     }
-  }
-
-  /** @internal */
-  protected pruneComments(): void {
-    const comments: Comments = {}
-
-    const copyComments = (fen: string) => {
-      if (fen in this._comments) {
-        comments[fen] = this._comments[fen]
-      }
-    }
-
-    this._history.forEach(({ state: historyState }) => {
-      state = historyState
-      copyComments(state.fen)
-    })
-
-    let state = this._state
-    copyComments(state.fen)
-
-    this._comments = comments
   }
 
   /**
@@ -1242,30 +1246,28 @@ export class Chess {
 
   /** @internal */
   protected attacked(color: string, square: number): boolean {
-    return isAttacked(this._state, color, square)
+    return isAttacked(this.state, color, square)
   }
 
   /** @internal */
   protected kingAttacked(color: Color): boolean {
-    return this.attacked(swapColor(color), this._state.kings[color])
+    return this.attacked(swapColor(color), this.state.kings[color])
   }
 
   /** @internal */
   protected makeMove(move: HexMove): void {
-    this._history.push({
-      move: move,
-      state: this._state,
+    const state = makeMove(this.state, move)
+    this._currentNode = this._currentNode.addModel({
+      fen: getFen(state),
+      state,
+      move,
     })
-    this._state = makeMove(this._state, move)
   }
 
   /** @internal */
   protected undoMove(): HexMove | null {
-    const prev = this._history.pop()
-    if (prev == null) {
-      return null
-    }
-    this._state = prev.state
-    return prev.move
+    if (!this._currentNode.parent) return null
+    this._currentNode = this._currentNode.parent
+    return this._currentNode.model.move || null
   }
 }
