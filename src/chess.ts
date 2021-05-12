@@ -1180,16 +1180,15 @@ export class Chess {
   }
 
   /** @internal */
-  // public clone(): Chess {
-  //   const clone = new Chess()
-  //   clone._stateTree = this._stateTree.clone()
-  //   // TODO: Figure out how to copy this reference...
-  //   // clone.state = this.state
-  //   // clone._history = [...this._history]
-  //   clone._header = {...this._header}
-  //   clone._comments = {...this._comments}
-  //   return clone
-  // }
+  public clone(): Chess {
+    const clone = new Chess()
+    clone._stateTree = this._stateTree.clone()
+    clone._currentNode = clone._stateTree.breadth(
+      ({ model }) => model.fen === this._currentNode.model.fen
+    ) || clone._stateTree
+    clone._header = {...this._header}
+    return clone
+  }
 
   /** @internal */
   public perft(depth: number): number {
