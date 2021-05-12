@@ -29,5 +29,8 @@
     "build:docs": "npm run api && api-documenter markdown --input ./temp --output ./docs",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "test": "jest"
+  },
+  "dependencies": {
+    "treenode.ts": "^0.2.0"
   }
 }
