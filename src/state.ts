@@ -30,7 +30,7 @@ import {
   Piece,
   Move,
   Square,
-  State,
+  BoardState,
   PartialMove,
 } from './types'
 import {
@@ -49,7 +49,7 @@ import {
 } from './utils'
 
 /* this function is used to uniquely identify ambiguous moves */
-export function getDisambiguator(state: State, move: HexMove, sloppy: boolean): string {
+export function getDisambiguator(state: BoardState, move: HexMove, sloppy: boolean): string {
   const moves = generateMoves(state, { legal: !sloppy })
 
   const from = move.from
@@ -101,7 +101,7 @@ export function getDisambiguator(state: State, move: HexMove, sloppy: boolean): 
   return ''
 }
 
-export function getFen(state: State): string {
+export function getFen(state: BoardState): string {
   let empty = 0
   let fen = ''
 
@@ -155,7 +155,7 @@ export function getFen(state: State): string {
   return [fen, state.turn, cflags, epflags, state.half_moves, state.move_number].join(' ')
 }
 
-export function loadFen(fen: string): State | null {
+export function loadFen(fen: string): BoardState | null {
   const tokens = fen.split(/\s+/)
   const position = tokens[0]
   let square = 0
@@ -164,7 +164,7 @@ export function loadFen(fen: string): State | null {
     return null
   }
 
-  let state = new State()
+  let state = new BoardState()
 
   for (let i = 0; i < position.length; i++) {
     const piece = position.charAt(i)
@@ -210,7 +210,7 @@ export function loadFen(fen: string): State | null {
   return state
 }
 
-export function getPiece(state: State, square?: string): Piece | null {
+export function getPiece(state: BoardState, square?: string): Piece | null {
   if (!square) return null
   square = square.toLowerCase()
   if (!isSquare(square)) return null
@@ -244,9 +244,9 @@ export function clonePiece(piece: Piece): Piece {
 }
 
 export function putPiece(
-  prevState: State,
+  prevState: BoardState,
   piece: { type?: string, color?: string }, square?: string
-): State | null {
+): BoardState | null {
   let { type, color } = piece
 
   /* check for presence */
@@ -280,7 +280,7 @@ export function putPiece(
   return state
 }
 
-export function removePiece(prevState: State, square?: string): State | null {
+export function removePiece(prevState: BoardState, square?: string): BoardState | null {
   if (!square) return null
 
   square = square.toLowerCase()
@@ -300,7 +300,7 @@ export function removePiece(prevState: State, square?: string): State | null {
 }
 
 export function generateMoves(
-  state: State,
+  state: BoardState,
   options: { legal?: boolean, square?: string } = {}
 ): HexMove[] {
   const { legal = true } = options
@@ -471,7 +471,7 @@ export function generateMoves(
  * 4. ... Ne7 is technically the valid SAN
  */
 export function moveToSan(
-  state: State,
+  state: BoardState,
   move: HexMove,
   options: { sloppy?: boolean, checkPromotion?: boolean } = {}
 ): string {
@@ -516,7 +516,7 @@ export function moveToSan(
 }
 
 export function sanToMove(
-  state: State,
+  state: BoardState,
   move: string,
   options: { sloppy?: boolean, checkPromotion?: boolean } = {}
 ): HexMove | null {
@@ -568,7 +568,7 @@ export function sanToMove(
   return null
 }
 
-export function makePretty(state: State, ugly_move: HexMove): Move {
+export function makePretty(state: BoardState, ugly_move: HexMove): Move {
   const move: HexMove = cloneMove(ugly_move)
 
   let flags = ''
@@ -590,7 +590,7 @@ export function makePretty(state: State, ugly_move: HexMove): Move {
   }
 }
 
-export function isAttacked(state: State, color: string, square: number): boolean {
+export function isAttacked(state: BoardState, color: string, square: number): boolean {
   for (let i = SQUARES.a8; i <= SQUARES.h1; i++) {
     /* did we run off the end of the board */
     if (i & 0x88) {
@@ -637,23 +637,23 @@ export function isAttacked(state: State, color: string, square: number): boolean
   return false
 }
 
-export function isKingAttacked(state: State, color: Color): boolean {
+export function isKingAttacked(state: BoardState, color: Color): boolean {
   return isAttacked(state, swapColor(color), state.kings[color])
 }
 
-export function inCheck(state: State): boolean {
+export function inCheck(state: BoardState): boolean {
   return isKingAttacked(state, state.turn)
 }
 
-export function inCheckmate(state: State): boolean {
+export function inCheckmate(state: BoardState): boolean {
   return inCheck(state) && generateMoves(state).length === 0
 }
 
-export function inStalemate(state: State): boolean {
+export function inStalemate(state: BoardState): boolean {
   return !inCheck(state) && generateMoves(state).length === 0
 }
 
-export function insufficientMaterial(state: State): boolean {
+export function insufficientMaterial(state: BoardState): boolean {
   const pieces: {[key: string]: number} = {}
   const bishops = []
   let num_pieces = 0
@@ -700,7 +700,7 @@ export function insufficientMaterial(state: State): boolean {
   return false
 }
 
-export function makeMove(prevState: State, move: HexMove): State {
+export function makeMove(prevState: BoardState, move: HexMove): BoardState {
   const state = prevState.clone()
   const us = state.turn
   const them = swapColor(us)
@@ -798,7 +798,7 @@ export function makeMove(prevState: State, move: HexMove): State {
   return state
 }
 
-export function buildMove(state: State, from: number, to: number, flags: number, promotion?: string): HexMove {
+export function buildMove(state: BoardState, from: number, to: number, flags: number, promotion?: string): HexMove {
   const move: HexMove = {
     color: state.turn,
     from: from,
@@ -863,7 +863,7 @@ export function getBoard(board: Board): (Piece | null)[][] {
 }
 
 export function validateMove(
-  state: State,
+  state: BoardState,
   move: string | PartialMove,
   options: { sloppy?: boolean, checkPromotion?: boolean } = {}
 ): HexMove | null {

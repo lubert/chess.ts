@@ -63,7 +63,7 @@ export type Validation = {
 }
 
 /** @public */
-export class State {
+export class BoardState {
   board: Board;
   kings: ColorState;
   turn: Color;
@@ -90,8 +90,8 @@ export class State {
     this.move_number = move_number || 1
   }
 
-  public clone(): State {
-    return new State(
+  public clone(): BoardState {
+    return new BoardState(
       this.board.slice(),
       {
         w: this.kings.w,
@@ -125,8 +125,8 @@ export type Comments = Partial<Record<string, string>>
 
 export type FlagKey = 'NORMAL' | 'CAPTURE' | 'BIG_PAWN' | 'EP_CAPTURE' | 'PROMOTION' | 'KSIDE_CASTLE' | 'QSIDE_CASTLE'
 
-export type GameHistory = {
-  state: State;
+export type GameState = {
+  boardState: BoardState;
   fen: string;
   move?: HexMove;
   comment?: string;

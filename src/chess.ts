@@ -24,11 +24,11 @@ import {
 } from './pgn'
 import {
   Color,
-  GameHistory,
+  GameState,
   HexMove,
   Move,
   Piece,
-  State,
+  BoardState,
   Validation,
   PartialMove,
 } from './types'
@@ -48,13 +48,13 @@ import {
 /** @public */
 export class Chess {
   /** @internal */
-  protected _stateTree: TreeNode<GameHistory>
+  protected _tree!: TreeNode<GameState>
 
   /** @internal */
-  protected _currentNode: TreeNode<GameHistory>
+  protected _currentNode!: TreeNode<GameState>
 
-  /** @internal */
-  protected _header: Record<string, string>
+  /** @public */
+  public header: Record<string, string> = {}
 
   /**
    * The Chess() constructor takes an optional parameter which specifies the board configuration
@@ -71,51 +71,45 @@ export class Chess {
    * )
    * ```
    */
-  constructor() {
-    this._stateTree = new TreeNode<GameHistory>({
-      state: new State(),
-      fen: DEFAULT_POSITION,
-    })
-    this._currentNode = this._stateTree
-    this._header = {}
+  constructor(fen: string = DEFAULT_POSITION) {
+    if (!this.load(fen)) {
+      throw new Error('Error loading fen')
+    }
+  }
+
+  public get tree(): Readonly<TreeNode<GameState>> {
+    return this._tree
   }
 
   /** @internal */
-  protected get state(): State {
-    return this._currentNode.model.state
-  }
-
-  protected set state(state: State) {
-    this._currentNode.model.state = state
+  protected get boardState(): Readonly<BoardState> {
+    return this._currentNode.model.boardState
   }
 
   /** @internal **/
-  protected get states(): State[] {
-    return this._currentNode.path().map((node) => node.model.state)
+  protected set boardState(state: Readonly<BoardState>) {
+    this._currentNode.model.boardState = state
   }
 
   /** @internal **/
-  protected get gameHistory(): GameHistory[] {
-    if (!this._currentNode.parent) return []
-    return this._currentNode.parent.path().map((node) => node.model)
+  protected get gameStates(): Readonly<GameState>[] {
+    return this._currentNode.path().map((node) => node.model)
   }
 
   /**
    * Clears the board and loads the Forsyth–Edwards Notation (FEN) string.
    *
    * @param fen - FEN string
-   * @param keepHeaders - Flag to keep headers
    * @returns True if the position was successfully loaded, otherwise false.
    */
-  public load(fen: string, keepHeaders = false): boolean {
-    const state = loadFen(fen)
-    if (!state) {
+  public load(fen: string): boolean {
+    const boardState = loadFen(fen)
+    if (!boardState) {
       return false
     }
 
-    this._stateTree = new TreeNode<GameHistory>({ state, fen })
-    this._currentNode = this._stateTree
-    if (!keepHeaders) this._header = {}
+    this._tree = new TreeNode<GameState>({ boardState, fen })
+    this._currentNode = this._tree
     this.updateSetup()
     return true
   }
@@ -129,16 +123,13 @@ export class Chess {
    * chess.fen()
    * // -> '8/8/8/8/8/8/8/8 w - - 0 1' <- empty board
    * ```
-   *
-   * @param keepHeaders - Flag to keep headers
    */
-  public clear(keepHeaders = false): void {
-    this._stateTree = new TreeNode<GameHistory>({
-      state: new State(),
+  public clear(): void {
+    this._tree = new TreeNode<GameState>({
+      boardState: new BoardState(),
       fen: DEFAULT_POSITION,
     })
-    this._currentNode = this._stateTree
-    if (!keepHeaders) this._header = {}
+    this._currentNode = this._tree
     this.updateSetup()
   }
 
@@ -167,7 +158,7 @@ export class Chess {
    * @returns Copy of the piece or null
    */
   public get(square?: string): Piece | null {
-    return getPiece(this.state, square)
+    return getPiece(this.boardState, square)
   }
 
   /**
@@ -206,9 +197,9 @@ export class Chess {
    * @returns True if placed successfully, otherwise false
    */
   public put(piece: { type?: string, color?: string }, square?: string): boolean {
-    const newState = putPiece(this.state, piece, square)
+    const newState = putPiece(this.boardState, piece, square)
     if (newState) {
-      this.state = newState
+      this.boardState = newState
       this.updateSetup()
       return true
     }
@@ -236,16 +227,16 @@ export class Chess {
    * @returns Piece or null
    */
   public remove(square?: string): Piece | null {
-    const piece = getPiece(this.state, square)
+    const piece = getPiece(this.boardState, square)
     if (!piece) {
       return null
     }
 
-    const newState = removePiece(this.state, square)
+    const newState = removePiece(this.boardState, square)
     if (!newState) {
       return null
     }
-    this.state = newState
+    this.boardState = newState
     return piece
   }
 
@@ -297,12 +288,12 @@ export class Chess {
     // square coordinates to algebraic coordinates.  It also prunes an
     // unnecessary move keys resulting from a verbose call.
     const { square, verbose = false } = options
-    const uglyMoves = generateMoves(this.state, { square })
+    const uglyMoves = generateMoves(this.boardState, { square })
 
     if (verbose) {
-      return uglyMoves.map((uglyMove) => makePretty(this.state, uglyMove))
+      return uglyMoves.map((uglyMove) => makePretty(this.boardState, uglyMove))
     }
-    return uglyMoves.map((uglyMove) => moveToSan(this.state, uglyMove))
+    return uglyMoves.map((uglyMove) => moveToSan(this.boardState, uglyMove))
   }
 
   /**
@@ -322,7 +313,7 @@ export class Chess {
    * ```
    */
   public fen(): string {
-    return this.state.fen
+    return this.boardState.fen
   }
 
   /**
@@ -338,7 +329,7 @@ export class Chess {
    * ```
    */
   public inCheck(): boolean {
-    return inCheck(this.state)
+    return inCheck(this.boardState)
   }
 
   /**
@@ -354,7 +345,7 @@ export class Chess {
    * ```
    */
   public inCheckmate(): boolean {
-    return inCheckmate(this.state)
+    return inCheckmate(this.boardState)
   }
 
   /**
@@ -368,7 +359,7 @@ export class Chess {
    * ```
    */
   public inStalemate(): boolean {
-    return inStalemate(this.state)
+    return inStalemate(this.boardState)
   }
 
   /**
@@ -383,7 +374,7 @@ export class Chess {
    * ```
    */
   public insufficientMaterial(): boolean {
-    return insufficientMaterial(this.state)
+    return insufficientMaterial(this.boardState)
   }
 
   /**
@@ -412,7 +403,7 @@ export class Chess {
   public inThreefoldRepetition(): boolean {
     const positions: Record<string, number> = {}
 
-    const checkState = (state: State): boolean => {
+    const checkState = (state: BoardState): boolean => {
       const key = state.fen.split(' ').slice(0, 4).join(' ')
 
       // Has the position occurred three or move times?
@@ -423,12 +414,14 @@ export class Chess {
       return false
     }
 
-    for (const state of this.states) {
-      if (checkState(state)) {
+    const { gameStates } = this
+    for (let i = 0; i < gameStates.length; i++) {
+      const { boardState } = gameStates[i]
+      if (checkState(boardState)) {
         return true
       }
     }
-    return checkState(this.state)
+    return checkState(this.boardState)
   }
 
   /**
@@ -442,7 +435,7 @@ export class Chess {
    */
   public inDraw(): boolean {
     return (
-      this.state.half_moves >= 100 ||
+      this.boardState.half_moves >= 100 ||
         this.inStalemate() ||
         this.insufficientMaterial() ||
         this.inThreefoldRepetition()
@@ -505,7 +498,7 @@ export class Chess {
    * ```
    */
   public board(): (Piece | null)[][] {
-    return getBoard(this.state.board)
+    return getBoard(this.boardState.board)
   }
 
   /**
@@ -526,7 +519,7 @@ export class Chess {
    * ```
    */
   public pgn(options: { newline_char?: string, max_width?: number } = {}): string {
-    return getPgn(this._stateTree, this._header, options)
+    return getPgn(this._tree, this.header, options)
   }
 
   /**
@@ -635,74 +628,8 @@ export class Chess {
       return false
     }
 
-    [ this._stateTree, this._header ] = res
+    [ this._tree, this.header ] = res
     return true
-  }
-
-  /**
-   * Returns PGN header information as an object.
-   *
-   * @example
-   * ```js
-   * chess.header()
-   * // -> { White: 'Morphy', Black: 'Anderssen', Date: '1858-??-??' }
-   * ```
-   */
-  public header(): Record<string, string> {
-    return this._header
-  }
-
-  /**
-   * Sets PGN header information.
-   *
-   * @example
-   * ```js
-   * chess.setHeader({
-   *   'White': 'Robert James Fischer',
-   *   'Black': 'Mikhail Tal'
-   * })
-   * ```
-   */
-  public setHeader(header: Record<string, string>): void {
-    this._header = header
-  }
-
-  /**
-   * Adds a PGN header entry
-   *
-   * @example
-   * ```js
-   * chess.addHeader('White', 'Robert James Fischer')
-   * chess.addHeader('Black', 'Mikhail Tal')
-   * ```
-   */
-  public addHeader(key: string, val: string): void {
-    this._header[key] = val
-  }
-
-  /**
-   * Removes a PGN header entry
-   *
-   * @example
-   * ```js
-   * chess.removeHeader('White')
-   * ```
-   */
-  public removeHeader(key: string): void {
-    delete this._header[key]
-  }
-
-  /**
-   * Removes all PGN header information.
-   *
-   * @example
-   * ```js
-   * chess.setHeader('White', 'Robert James Fischer')
-   * chess.setHeader('Black', 'Mikhail Tal')
-   * ```
-   */
-  public clearHeader(): void {
-    this._header = {}
   }
 
   /**
@@ -731,7 +658,7 @@ export class Chess {
    * ```
    */
   public ascii(eol = '\n'): string {
-    return ascii(this.state.board, eol)
+    return ascii(this.boardState.board, eol)
   }
 
   /**
@@ -745,7 +672,7 @@ export class Chess {
    * ```
    */
   public turn(): Color {
-    return this.state.turn
+    return this.boardState.turn
   }
 
   /**
@@ -817,14 +744,14 @@ export class Chess {
     move: string | PartialMove,
     options: { sloppy?: boolean, dry_run?: boolean } = {}
   ): Move | null {
-    const validMove = validateMove(this.state, move, options)
+    const validMove = validateMove(this.boardState, move, options)
 
     if (!validMove) {
       return null
     }
 
     // Create pretty move before updating the state
-    const prettyMove = makePretty(this.state, validMove)
+    const prettyMove = makePretty(this.boardState, validMove)
     if (!options.dry_run) {
       this.makeMove(validMove)
     }
@@ -857,14 +784,14 @@ export class Chess {
     options: { sloppy?: boolean } = {}
   ): Move[] | null {
     const validMoves: Move[] = []
-    let { state } = this
+    let { boardState } = this
     for (const move of moves) {
-      const validMove = validateMove(state, move, options)
+      const validMove = validateMove(boardState, move, options)
       if (!validMove) {
         return null
       }
-      validMoves.push(makePretty(state, validMove))
-      state = makeMove(state, validMove)
+      validMoves.push(makePretty(boardState, validMove))
+      boardState = makeMove(boardState, validMove)
     }
     return validMoves
   }
@@ -893,7 +820,7 @@ export class Chess {
     move: string | PartialMove,
     options: { sloppy?: boolean } = {}
   ): boolean {
-    const validMove = validateMove(this.state, move, { ...options, checkPromotion: false })
+    const validMove = validateMove(this.boardState, move, { ...options, checkPromotion: false })
 
     if (!validMove) {
       return false
@@ -925,7 +852,7 @@ export class Chess {
    */
   public undo(): Move | null {
     const move = this.undoMove()
-    return move ? makePretty(this.state, move) : null
+    return move ? makePretty(this.boardState, move) : null
   }
 
   /**
@@ -1026,7 +953,7 @@ export class Chess {
    */
   public getComment(fen?: string): string | undefined {
     if (fen) {
-      const node = this._stateTree.breadth(({ model }) => model.fen === fen)
+      const node = this._tree.breadth(({ model }) => model.fen === fen)
       return node?.model.comment
     }
     return this._currentNode.model.comment
@@ -1084,7 +1011,7 @@ export class Chess {
   public setComment(comment: string, fen?: string): void {
     const cleaned = comment.replace('{', '[').replace('}', ']')
     if (fen) {
-      const node = this._stateTree.breadth(({ model }) => model.fen === fen)
+      const node = this._tree.breadth(({ model }) => model.fen === fen)
       if (node) {
         node.model.comment = cleaned
       }
@@ -1117,7 +1044,7 @@ export class Chess {
    */
   public deleteComment(fen?: string): string | undefined {
     if (fen) {
-      const node = this._stateTree.breadth(({ model }) => model.fen === fen)
+      const node = this._tree.breadth(({ model }) => model.fen === fen)
       if (node) {
         delete node.model.comment
       }
@@ -1182,19 +1109,19 @@ export class Chess {
   /** @internal */
   public clone(): Chess {
     const clone = new Chess()
-    clone._stateTree = this._stateTree.clone()
-    clone._currentNode = clone._stateTree.breadth(
+    clone._tree = this._tree.clone()
+    clone._currentNode = clone._tree.breadth(
       ({ model }) => model.fen === this._currentNode.model.fen
-    ) || clone._stateTree
-    clone._header = {...this._header}
+    ) || clone._tree
+    clone.header = {...this.header}
     return clone
   }
 
   /** @internal */
   public perft(depth: number): number {
-    const moves = generateMoves(this.state, { legal: false })
+    const moves = generateMoves(this.boardState, { legal: false })
     let nodes = 0
-    const color = this.state.turn
+    const color = this.boardState.turn
 
     for (let i = 0, len = moves.length; i < len; i++) {
       this.makeMove(moves[i])
@@ -1222,15 +1149,15 @@ export class Chess {
    * @internal
    */
   protected updateSetup(): void {
-    const fen = this.state.fen
-    if (this.gameHistory.length > 0) return
+    const fen = this.boardState.fen
+    if (this.gameStates.length > 0) return
 
     if (fen !== DEFAULT_POSITION) {
-      this._header['SetUp'] = '1'
-      this._header['FEN'] = fen
+      this.header['SetUp'] = '1'
+      this.header['FEN'] = fen
     } else {
-      delete this._header['SetUp']
-      delete this._header['FEN']
+      delete this.header['SetUp']
+      delete this.header['FEN']
     }
   }
 
@@ -1245,20 +1172,20 @@ export class Chess {
 
   /** @internal */
   protected attacked(color: string, square: number): boolean {
-    return isAttacked(this.state, color, square)
+    return isAttacked(this.boardState, color, square)
   }
 
   /** @internal */
   protected kingAttacked(color: Color): boolean {
-    return this.attacked(swapColor(color), this.state.kings[color])
+    return this.attacked(swapColor(color), this.boardState.kings[color])
   }
 
   /** @internal */
   protected makeMove(move: HexMove): void {
-    const state = makeMove(this.state, move)
+    const boardState = makeMove(this.boardState, move)
     this._currentNode = this._currentNode.addModel({
-      fen: getFen(state),
-      state,
+      fen: getFen(boardState),
+      boardState,
       move,
     })
   }
