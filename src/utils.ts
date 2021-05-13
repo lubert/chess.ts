@@ -9,7 +9,7 @@ import {
   PieceSymbol,
   Square,
   Validation,
-} from "./types"
+} from "./interfaces/types"
 
 /**
  * Extracts the zero-based rank of an 0x88 square.

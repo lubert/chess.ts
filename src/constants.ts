@@ -3,7 +3,7 @@ import {
   FlagKey,
   PieceSymbol,
   Square,
-} from './types'
+} from './interfaces/types'
 
 /** @public */
 export const WHITE: Color = 'w'

@@ -31,7 +31,7 @@ import {
   BoardState,
   Validation,
   PartialMove,
-} from './types'
+} from './interfaces/types'
 import {
   file,
   isSquare,

@@ -1,5 +1,5 @@
-import { EMPTY, WHITE } from "./constants"
-import { getFen } from "./state"
+import { EMPTY, WHITE } from "../constants"
+import { getFen } from "../state"
 
 /** @public */
 export type Color = 'w' | 'b'

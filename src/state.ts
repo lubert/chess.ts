@@ -32,7 +32,7 @@ import {
   Square,
   BoardState,
   PartialMove,
-} from './types'
+} from './interfaces/types'
 import {
   algebraic,
   file,
