@@ -121,14 +121,16 @@ export type ColorState = Record<Color, number> & {
   b: number;
 }
 
-export type Comments = Partial<Record<string, string>>
+export type CommentMap = Partial<Record<string, string>>
+
+export type HeaderMap = Partial<Record<string, string>>
 
 export type FlagKey = 'NORMAL' | 'CAPTURE' | 'BIG_PAWN' | 'EP_CAPTURE' | 'PROMOTION' | 'KSIDE_CASTLE' | 'QSIDE_CASTLE'
 
 export type GameState = {
   boardState: BoardState;
   fen: string;
-  nags: Set<number>;
+  nags?: Set<number>;
   move?: HexMove;
   comment?: string;
 }

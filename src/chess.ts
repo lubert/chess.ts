@@ -31,6 +31,8 @@ import {
   BoardState,
   Validation,
   PartialMove,
+  HeaderMap,
+  CommentMap,
 } from './interfaces/types'
 import {
   file,
@@ -54,7 +56,7 @@ export class Chess {
   protected _currentNode!: TreeNode<GameState>
 
   /** @public */
-  public header: Record<string, string> = {}
+  public header: HeaderMap = {}
 
   /**
    * The Chess() constructor takes an optional parameter which specifies the board configuration
@@ -619,16 +621,14 @@ export class Chess {
    * // -> 'r1bqk2r/pppp1ppp/2P5/8/1b6/1Q3pP1/PP1PPP1P/R1B1KB1R b KQkq - 1 8'
    * ```
    */
-  public loadPgn(
-    pgn: string,
-    options: { newline_char?: string, sloppy?: boolean } = {}
-  ): boolean {
-    const res = loadPgn(pgn, options)
+  public loadPgn(pgn: string): boolean {
+    const res = loadPgn(pgn)
     if (!res) {
       return false
     }
 
-    [ this._tree, this.header ] = res
+    this._tree = res.tree
+    this.header = res.header
     return true
   }
 
@@ -981,8 +981,8 @@ export class Chess {
    * //    ]
    * ```
    */
-  public getComments(): Record<string, string> {
-    const comments: Record<string, string> = {}
+  public getComments(): CommentMap {
+    const comments: CommentMap = {}
     this._currentNode.breadth(({ model }) => {
       if (model.comment) {
         comments[model.fen] = model.comment
@@ -1078,8 +1078,8 @@ export class Chess {
    * // -> []
    * ```
    */
-  public deleteComments(): Record<string, string> {
-    const comments: Record<string, string> = {}
+  public deleteComments(): CommentMap {
+    const comments: CommentMap = {}
     this._currentNode.breadth(({ model }) => {
       if (model.comment) {
         comments[model.fen] = model.comment
