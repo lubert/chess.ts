@@ -9,10 +9,9 @@ import {
   KING,
   WHITE,
   BLACK,
-  DEFAULT_POSITION,
 } from '../src/constants'
 import { algebraic, validateFen } from '../src/utils'
-import { PieceSymbol, Move, Piece, Color } from '../src/types'
+import { PieceSymbol, Move, Piece, Color } from '../src/interfaces/types'
 
 const SQUARES_LIST: string[] = []
 for (let i = SQUARES.a8; i <= SQUARES.h1; i++) {
@@ -1111,12 +1110,9 @@ describe('PGN', function () {
       }
 
       if (position.header) {
-        chess.setHeader(position.header)
+        chess.header = position.header
       }
-      const pgn = chess.pgn({
-        max_width: position.max_width,
-        newline_char: position.newline_char,
-      })
+      const pgn = chess.pgn()
       const fen = chess.fen()
       passed = pgn === position.pgn && fen === position.fen
       expect(passed && error_message.length == 0).toBe(true)
@@ -1444,38 +1440,30 @@ describe('Load PGN', function () {
     },
   ]
 
-  const newline_chars = ['\n', '<br />', '\r\n', 'BLAH']
-
   tests.forEach(function (t, i) {
-    newline_chars.forEach(function (newline, j) {
-      it(i + String.fromCharCode(97 + j), function () {
-        const sloppy = t.sloppy || false
-        const result = chess.loadPgn(t.pgn.join(newline), {
-          sloppy: sloppy,
-          newline_char: newline,
-        })
-        const should_pass = t.expect
+    it(`${i}`, function () {
+      const result = chess.loadPgn(t.pgn.join('\n'))
+      const should_pass = t.expect
 
-        /* some tests are expected to fail */
-        if (should_pass) {
-          /* some PGN's tests contain comments which are stripped during parsing,
-           * so we'll need compare the results of the load against a FEN string
-           * (instead of the reconstructed PGN [e.g. test.pgn.join(newline)])
-           */
-          if ('fen' in t) {
-            expect(result && chess.fen() == t.fen).toBe(true)
-          } else {
-            expect(
-              result &&
-                chess.pgn({ max_width: 65, newline_char: newline }) ==
-                  t.pgn.join(newline)
-            ).toBe(true)
-          }
+      /* some tests are expected to fail */
+      if (should_pass) {
+        /* some PGN's tests contain comments which are stripped during parsing,
+         * so we'll need compare the results of the load against a FEN string
+         * (instead of the reconstructed PGN [e.g. test.pgn.join(newline)])
+         */
+        if ('fen' in t) {
+          expect(result && chess.fen() == t.fen).toBe(true)
         } else {
-          /* this test should fail, so make sure it does */
-          expect(result == should_pass).toBe(true)
+          expect(
+            result &&
+              chess.pgn() ==
+              t.pgn.join('\n')
+          ).toBe(true)
         }
-      })
+      } else {
+        /* this test should fail, so make sure it does */
+        expect(result == should_pass).toBe(true)
+      }
     })
   })
 
@@ -1504,7 +1492,7 @@ describe('Load PGN', function () {
       '32. Qe5 Qe8 33. a4 Qd8 34. R1f2 Qe8 35. R2f3 Qd8 36. Bd3 Qe8\n' +
       '37. Qe4 Nf6 38. Rxf6 gxf6 39. Rxf6 Kg8 40. Bc4 Kh8 41. Qf4 1-0\n'
 
-    const result = chess.loadPgn(pgn, { newline_char: '\r?\n' })
+    const result = chess.loadPgn(pgn)
     expect(result).toBe(true)
 
     expect(chess.loadPgn(pgn)).toBe(true)
@@ -1684,10 +1672,10 @@ describe('Format Comments', function () {
     chess.move('e5')
     chess.setComment('classical response')
     expect(chess.pgn()).toEqual('1. e4 {good   move} e5 {classical response}')
-    expect(chess.pgn({ max_width: 16 })).toEqual(
+    expect(chess.pgn()).toEqual(
       ['1. e4 {good', 'move} e5', '{classical', 'response}'].join('\n')
     )
-    expect(chess.pgn({ max_width: 2 })).toEqual(
+    expect(chess.pgn()).toEqual(
       ['1.', 'e4', '{good', 'move}', 'e5', '{classical', 'response}'].join('\n')
     )
   })
@@ -2848,7 +2836,7 @@ describe('Parse PGN Headers', function () {
     ]
     const chess = new Chess()
     chess.loadPgn(pgn.join('\n'))
-    expect(chess.header()['Date']).toBe('1972.01.07')
+    expect(chess.header['Date']).toBe('1972.01.07')
   })
 })
 
@@ -2943,7 +2931,7 @@ describe('Regression Tests', function () {
       FEN: 'rnbqkb1r/1p3ppp/p2ppn2/6B1/3NP3/2N5/PPP2PPP/R2QKB1R w KQkq - 0 1',
       SetUp: '1',
     }
-    expect(chess.header()).toEqual(expected)
+    expect(chess.header).toEqual(expected)
   })
 
   it('Github Issue #129 clear() should clear the board and delete all headers with the exception of SetUp and FEN', function () {
@@ -2968,7 +2956,7 @@ describe('Regression Tests', function () {
       FEN: '8/8/8/8/8/8/8/8 w - - 0 1',
       SetUp: '1',
     }
-    expect(chess.header()).toEqual(expected)
+    expect(chess.header).toEqual(expected)
   })
 })
 

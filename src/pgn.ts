@@ -50,18 +50,13 @@ export function pgnMoves(tree: TreeNode<GameState>): string[] {
 
 export function getPgn(
   tree: TreeNode<GameState>,
-  header: HeaderMap,
-  options: { newline_char?: string } = {}
+  header: HeaderMap
 ): string {
-  const {
-    newline_char = '\n',
-  } = options
-
   const headerRows = pgnHeader(header)
   const moveTokens = pgnMoves(tree)
   const result = header.Result ? ` ${header.Result}` : ''
 
-  return headerRows.join(newline_char) + moveTokens.join(' ') + result
+  return headerRows.join('\n') + moveTokens.join(' ') + result
 }
 
 export function loadPgn(pgn: string): { tree: TreeNode<GameState>, header: HeaderMap } {
@@ -170,9 +165,9 @@ export function loadPgn(pgn: string): { tree: TreeNode<GameState>, header: Heade
       if (CASTLING_MOVES.includes(token)) {
         token = token.replace(/0/g, 'O')
       }
-      const move = sanToMove(boardState, token)
+      const move = sanToMove(boardState, token, { sloppy: true })
       if (!move) {
-        throw new Error(`Invalid move token: {token}`)
+        throw new Error(`Invalid move token: ${token}`)
       }
       const nextState = makeMove(boardState, move)
       currentNode = currentNode.addModel({

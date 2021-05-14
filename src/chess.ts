@@ -95,7 +95,7 @@ export class Chess {
 
   /** @internal **/
   protected get gameStates(): Readonly<GameState>[] {
-    return this._currentNode.path().map((node) => node.model)
+    return this._currentNode.path().map((node) => node.model).filter((node) => node.move)
   }
 
   /**
@@ -520,8 +520,8 @@ export class Chess {
    * // -> '[White "Plunky"]<br />[Black "Plinkie"]<br /><br />1. e4 e5<br />2. Nc3 Nc6'
    * ```
    */
-  public pgn(options: { newline_char?: string, max_width?: number } = {}): string {
-    return getPgn(this._tree, this.header, options)
+  public pgn(): string {
+    return getPgn(this._tree, this.header)
   }
 
   /**
@@ -893,7 +893,7 @@ export class Chess {
    * // -> ['e4', 'e5', 'f4', 'exf4']
    * ```
    */
-  // public history(options?: { verbose?: false }): string[]
+  public history(options?: { verbose?: false }): string[]
 
   /**
    * Returns a list containing the moves of the current game.
@@ -913,28 +913,24 @@ export class Chess {
    * //     { color: 'b', from: 'e5', to: 'f4', flags: 'c', piece: 'p', captured: 'p', san: 'exf4' }]
    * ```
    */
-  // public history(options: { verbose: true }): Move[]
+  public history(options: { verbose: true }): Move[]
 
-  // public history(options: { verbose?: boolean } = {}): string[] | Move[] {
-  //   const { verbose = false } = options
-  //   if (!this.gameHistory.length) {
-  //     return []
-  //   }
+  public history(options: { verbose?: boolean } = {}): string[] | Move[] {
+    const { verbose = false } = options
+    const { gameStates } = this
+    if (!gameStates.length) {
+      return []
+    }
 
-  //   let state
-  //   if (verbose) {
-  //     return this.gameHistory.map((history) => {
-  //       const move = history.move
-  //       state = history.state
-  //       return makePretty(state, move)
-  //     })
-  //   }
-  //   return this.gameHistory.map((history) => {
-  //     const move = history.move
-  //     state = history.state
-  //     return moveToSan(state, move)
-  //   })
-  // }
+    if (verbose) {
+      return gameStates.map(({ boardState, move }) => {
+        return makePretty(boardState, move!)
+      })
+    }
+    return gameStates.map(({ boardState, move }) => {
+      return moveToSan(boardState, move!)
+    })
+  }
 
   /**
    * Retrieve the comment for a position, if it exists.
