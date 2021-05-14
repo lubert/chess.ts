@@ -130,7 +130,7 @@ export type FlagKey = 'NORMAL' | 'CAPTURE' | 'BIG_PAWN' | 'EP_CAPTURE' | 'PROMOT
 export type GameState = {
   boardState: BoardState;
   fen: string;
-  nags?: Set<number>;
+  nags?: number[];
   move?: HexMove;
   comment?: string;
 }

@@ -24,6 +24,10 @@ export const KING: PieceSymbol = 'k'
 /** @public */
 export const EMPTY = -1
 
+export const NULL_MOVES: string[] = ['--', 'Z0', 'pass', 'null', '@@@@', '0000']
+
+export const CASTLING_MOVES: string[] = ['O-O', 'O-O-O', '0-0', '0-0-0']
+
 export const SYMBOLS = 'pnbrqkPNBRQK'
 
 export const DEFAULT_POSITION =
