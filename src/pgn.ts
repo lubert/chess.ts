@@ -76,7 +76,7 @@ export function loadPgn(pgn: string): { tree: TreeNode<GameState>, header: Heade
   }
 
   const splitMove = (line: string) => {
-    moveTokens.push(...line.split(/(\s+)/))
+    moveTokens.push(...line.split(/\s+/))
   }
 
   // Process lines
