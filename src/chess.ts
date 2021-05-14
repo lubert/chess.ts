@@ -126,11 +126,12 @@ export class Chess {
    * // -> '8/8/8/8/8/8/8/8 w - - 0 1' <- empty board
    * ```
    */
-  public clear(): void {
+  public clear(keepHeaders = false): void {
     this._tree = new TreeNode<GameState>({
       boardState: new BoardState(),
       fen: DEFAULT_POSITION,
     })
+    if (!keepHeaders) this.header = {}
     this._currentNode = this._tree
     this.updateSetup()
   }
