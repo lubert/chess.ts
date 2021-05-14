@@ -4,6 +4,7 @@ import { Nag } from './interfaces/nag';
 import { WHITE, DEFAULT_POSITION, POSSIBLE_RESULTS, NULL_MOVES, CASTLING_MOVES } from './constants';
 import { moveToSan, loadFen, sanToMove, makeMove, getFen } from './state';
 import { addNag, isMainline } from './gamenode';
+import { REGEXP_HEADER_KEY, REGEXP_HEADER_VAL } from './regex';
 
 export function pgnHeader(header: HeaderMap): string[] {
   return Object.entries(header).map(([key, val]) => (
@@ -63,30 +64,6 @@ export function getPgn(
   return headerRows.join(newline_char) + moveTokens.join(' ') + result
 }
 
-export function mask(str: string): string {
-  return str.replace(/\\/g, '\\')
-}
-
-export function parseHeader(headerStr: string, options: { newline_char: string }) {
-  const { newline_char }  = options
-  const header: { [key: string]: string } = {}
-  const headers = headerStr.split(new RegExp(mask(newline_char)))
-  let key = ''
-  let value = ''
-
-  for (let i = 0; i < headers.length; i++) {
-    key = headers[i].replace(/^\[([A-Z][A-Za-z]*)\s.*\]$/, '$1')
-    value = headers[i].replace(/^\[[A-Za-z]+\s"(.*)" *\]$/, '$1')
-    if (key.trim().length > 0) {
-      header[key.trim()] = value
-    }
-  }
-
-  return header
-}
-
-type ParseState = 'header' | 'moves'
-
 export function loadPgn(pgn: string): { tree: TreeNode<GameState>, header: HeaderMap } {
   // Split on newlines and read line by line
   const lines = pgn.split(/\r?\n/)
@@ -95,20 +72,20 @@ export function loadPgn(pgn: string): { tree: TreeNode<GameState>, header: Heade
   const moveTokens: string[] = []
 
   const parseHeader = (line: string) => {
-    const key = line.replace(/^\[([A-Z][A-Za-z]*)\s.*\]$/, '$1').trim()
-    const val = line.replace(/^\[[A-Za-z]+\s"(.*)" *\]$/, '$1').trim()
+    const key = line.replace(REGEXP_HEADER_KEY, '$1').trim()
+    const val = line.replace(REGEXP_HEADER_VAL, '$1').trim()
     if (!key.length || !val.length) {
       throw new Error(`Could not parse header: ${line}`)
     }
     header[key] = val
   }
 
-  const parseMove = (line: string) => {
+  const splitMove = (line: string) => {
     moveTokens.push(...line.split(/(\s+)/))
   }
 
   // Process lines
-  let state: ParseState = 'header'
+  let state: 'header' | 'moves' = 'header'
   for (let i = 0; i < lines.length; i++) {
     // Remove semicolon comments
     let line = lines[i].replace(/;[^}]+$/, '').trim();
@@ -123,11 +100,11 @@ export function loadPgn(pgn: string): { tree: TreeNode<GameState>, header: Heade
       }
       // Transition to move parsing
       state = 'moves'
-      parseMove(line)
+      splitMove(line)
     } else if (state === 'moves') {
       // End game parsing on empty line
       if (!line) break
-      parseMove(line)
+      splitMove(line)
     }
   }
 
@@ -140,6 +117,7 @@ export function loadPgn(pgn: string): { tree: TreeNode<GameState>, header: Heade
 
   // Build move tree
   const tree = new TreeNode<GameState>({ fen, boardState })
+  const parentNodes: TreeNode<GameState>[] = []
   let currentNode = tree
 
   while (moveTokens.length) {
@@ -157,14 +135,16 @@ export function loadPgn(pgn: string): { tree: TreeNode<GameState>, header: Heade
         commentTokens.push(token)
       }
     } else if (token.startsWith('(')) {
+      // Start variation
       if (!currentNode.parent) throw new Error('Missing parent')
       if (token.length > 1) moveTokens.unshift(token.substring(1))
-      // Start variation
+      parentNodes.push(currentNode)
       currentNode = currentNode.parent
     } else if (token.startsWith(')')) {
-      if (!currentNode.parent) throw new Error('Missing parent')
+      // End variation and return to original node
+      if (!parentNodes.length) throw new Error('Mismatched parentheses')
       if (token.length > 1) moveTokens.unshift(token.substring(1))
-      currentNode = currentNode.parent
+      currentNode = parentNodes.pop()!
     } else if (token.startsWith('$')) {
       addNag(currentNode, parseInt(token.substring(1), 10))
     } else if (token === '!') {
@@ -185,20 +165,20 @@ export function loadPgn(pgn: string): { tree: TreeNode<GameState>, header: Heade
       }
     } else if (NULL_MOVES.includes(token)) {
       continue
-    } else if (CASTLING_MOVES.includes(token)) {
-      token.replace(/0/g, 'O');
-      const prevState = currentNode.model.boardState
-      const move = sanToMove(prevState, token)
+    } else {
+      const boardState = currentNode.model.boardState
+      if (CASTLING_MOVES.includes(token)) {
+        token = token.replace(/0/g, 'O')
+      }
+      const move = sanToMove(boardState, token)
       if (!move) {
         throw new Error(`Invalid move token: {token}`)
       }
-      const boardState = makeMove(prevState, move)
+      const nextState = makeMove(boardState, move)
       currentNode = currentNode.addModel({
-        boardState,
+        boardState: nextState,
         fen: getFen(boardState),
       })
-    } else {
-      // try to parse move
     }
   }
   return { tree, header }

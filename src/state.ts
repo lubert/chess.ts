@@ -47,6 +47,7 @@ import {
   symbol,
   validateFen,
 } from './utils'
+import { REGEXP_MOVE } from './regex'
 
 /* this function is used to uniquely identify ambiguous moves */
 export function getDisambiguator(state: BoardState, move: HexMove, sloppy: boolean): string {
@@ -530,9 +531,7 @@ export function sanToMove(
   // if we're using the sloppy parser run a regex to grab piece, to, and from
   // this should parse invalid SAN like: Pe2-e4, Rc1c4, Qf3xf7
   if (sloppy) {
-    matches = cleanMove.match(
-      /([pnbrqkPNBRQK])?([a-h][1-8])x?-?([a-h][1-8])([qrbnQRBN])?/
-    )
+    matches = cleanMove.match(REGEXP_MOVE)
     if (matches) {
       piece = matches[1]
       from = matches[2]
