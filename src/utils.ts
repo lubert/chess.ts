@@ -92,6 +92,11 @@ export function isFlagKey(key: string): key is FlagKey {
   return keys.indexOf(key) !== -1
 }
 
+export function notEmpty<T>(value: T | null | undefined): value is T {
+  if (value === null || value === undefined) return false;
+  return true;
+}
+
 /* TODO: this function is pretty much crap - it validates structure but
  * completely ignores content (e.g. doesn't verify that each side has a king)
  * ... we should rewrite this, and ditch the silly error_number field while

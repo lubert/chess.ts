@@ -36,6 +36,7 @@ import {
 import {
   file,
   isSquare,
+  notEmpty,
   rank,
   swapColor,
   validateFen,
@@ -94,8 +95,13 @@ export class Chess {
   }
 
   /** @internal **/
-  protected get gameStates(): Readonly<GameState>[] {
-    return this._currentNode.path().map((node) => node.model)
+  protected get boardStates(): Readonly<BoardState>[] {
+    return this.path.map((node) => node.model.boardState)
+  }
+
+  /** @internal **/
+  protected get path(): Readonly<TreeNode<GameState>>[] {
+    return this._currentNode.path()
   }
 
   /**
@@ -417,10 +423,9 @@ export class Chess {
       return false
     }
 
-    const { gameStates } = this
-    for (let i = 0; i < gameStates.length; i++) {
-      const { boardState } = gameStates[i]
-      if (checkState(boardState)) {
+    const { boardStates } = this
+    for (let i = 0; i < boardStates.length; i++) {
+      if (checkState(boardStates[i])) {
         return true
       }
     }
@@ -748,6 +753,8 @@ export class Chess {
   ): Move | null {
     const validMove = validateMove(this.boardState, move)
     if (!validMove) {
+      console.log(move)
+      console.log(this.ascii())
       return null
     }
 
@@ -913,19 +920,19 @@ export class Chess {
 
   public history(options: { verbose?: boolean } = {}): string[] | Move[] {
     const { verbose = false } = options
-    const { gameStates } = this
-    if (!gameStates.length) {
-      return []
-    }
+
+    const nodes = this.path.map((node) => {
+      if (!node.parent || !node.model.move) return
+      return {
+        prevState: node.parent.model.boardState,
+        move: node.model.move,
+      }
+    }).filter(notEmpty)
 
     if (verbose) {
-      return gameStates.map(({ boardState, move }) => {
-        return makePretty(boardState, move!)
-      })
+      return nodes.map(({ prevState, move }) => makePretty(prevState, move))
     }
-    return gameStates.map(({ boardState, move }) => {
-      return moveToSan(boardState, move!)
-    })
+    return nodes.map(({ prevState, move }) => moveToSan(prevState, move))
   }
 
   /**
@@ -1135,14 +1142,13 @@ export class Chess {
    * Called when the initial board setup is changed with put() or remove().
    * modifies the SetUp and FEN properties of the header object.  if the FEN is
    * equal to the default position, the SetUp and FEN are deleted
-   * the setup is only updated if history.length is zero, ie moves haven't been
-   * made.
+   * the setup is only updated if moves haven't been made.
    *
    * @internal
    */
   protected updateSetup(): void {
     const fen = this.boardState.fen
-    if (this.gameStates.length > 0) return
+    if (this._currentNode.parent) return
 
     if (fen !== DEFAULT_POSITION) {
       this.header['SetUp'] = '1'
