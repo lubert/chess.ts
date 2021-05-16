@@ -27,7 +27,7 @@ export function pgnMoves(node: TreeNode<GameState>): string[] {
     if (move.color === WHITE) {
       tokens.push(`${boardState.move_number}. ${san}`)
     } else if (isFirstMove) {
-      tokens.push(`${boardState.move_number}...${san}`)
+      tokens.push(`1...${san}`)
     } else {
       tokens.push(san)
     }
@@ -47,14 +47,22 @@ export function pgnMoves(node: TreeNode<GameState>): string[] {
 export function getPgn(
   tree: TreeNode<GameState>,
   header: HeaderMap,
-  options: { newline_char?: string, max_width?: number } = {}
+  options: { newline_char?: string } = {}
 ): string {
   const { newline_char = '\n' } = options
-  const headerRows = pgnHeader(header)
-  const moveTokens = pgnMoves(tree)
-  const result = header.Result ? ` ${header.Result}` : ''
-
-  return headerRows.join(newline_char) + newline_char + newline_char + moveTokens.join(' ') + result
+  let pgn = ''
+  pgn += pgnHeader(header).join(newline_char) + newline_char
+  pgnMoves(tree).forEach((token) => {
+    if (token.startsWith('{')) {
+      pgn += newline_char + token + newline_char
+    } else if (token.match(/^\d/)) {
+      pgn += newline_char + token
+    } else {
+      pgn += ' ' + token
+    }
+  })
+  if (header.Result) pgn += ' ' + header.Result
+  return pgn.trim()
 }
 
 export function loadPgn(pgn: string): { tree: TreeNode<GameState>, header: HeaderMap } {
