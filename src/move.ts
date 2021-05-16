@@ -522,11 +522,12 @@ export function sanToMove(
   const [match, piece, from, to, promotion] = matches
 
   const moves = generateMoves(state, { square: isSquare(from) ? from : undefined })
-  const strictOptions = { addPromotion: matchPromotion }
-  const sloppyOptions = { sloppy: true, addCheck: false, addPromotion: matchPromotion }
+  const strictOptions = { addCheck: false, addPromotion: matchPromotion }
   for (let i = 0, len = moves.length; i < len; i++) {
-    if (match === moveToSan(state, moves[i], strictOptions)) return moves[i]
-    if (match === moveToSan(state, moves[i], sloppyOptions)) return moves[i]
+    const strictSan = moveToSan(state, moves[i], strictOptions)
+    if (match.toLowerCase() === strictSan.toLowerCase()) return moves[i]
+    // const sloppySan = moveToSan(state, moves[i], { ...strictOptions, sloppy: true })
+    // if (match.toLowerCase() === sloppySan.toLowerCase()) return moves[i]
     if (
       from &&
         to &&
@@ -841,7 +842,7 @@ export function getBoard(board: Readonly<Board>): (Piece | null)[][] {
 export function validateMove(
   state: Readonly<BoardState>,
   move: string | Readonly<PartialMove>,
-  options: { sloppy?: boolean, matchPromotion?: boolean } = {}
+  options: { matchPromotion?: boolean } = {}
 ): HexMove | null {
   // Allow the user to specify the sloppy move parser to work around over
   // disambiguation bugs in Fritz and Chessbase

@@ -744,10 +744,9 @@ export class Chess {
    */
   public move(
     move: string | PartialMove,
-    options: { sloppy?: boolean, dry_run?: boolean } = {}
+    options: { dry_run?: boolean } = {}
   ): Move | null {
-    const validMove = validateMove(this.boardState, move, options)
-
+    const validMove = validateMove(this.boardState, move)
     if (!validMove) {
       return null
     }
@@ -778,17 +777,12 @@ export class Chess {
    *
    * @param moves - Array of case-sensitive SAN strings or objects, e.g. `'Nxb7'` or
    * `{ from: 'h7', to: 'h8', promotion: 'q' }`
-   * @param options - Options to enable parsing of a variety of non-standard
-   * move notations
    */
-  public validateMoves(
-    moves: string[] | PartialMove[],
-    options: { sloppy?: boolean } = {}
-  ): Move[] | null {
+  public validateMoves(moves: string[] | PartialMove[]): Move[] | null {
     const validMoves: Move[] = []
     let { boardState } = this
     for (const move of moves) {
-      const validMove = validateMove(boardState, move, options)
+      const validMove = validateMove(boardState, move)
       if (!validMove) {
         return null
       }
