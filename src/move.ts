@@ -499,9 +499,6 @@ export function moveToSan(
   }
 
   const newState = makeMove(state, move)
-  if (move.color === 'w' && move.from === 52 && move.to === 21) {
-    console.log('check', inCheck(newState))
-  }
   if (addCheck && inCheck(newState)) {
     if (inCheckmate(newState)) {
       output += '#'

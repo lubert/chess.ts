@@ -629,6 +629,7 @@ export class Chess {
     }
 
     this._tree = res.tree
+    this._currentNode = res.currentNode
     this.header = res.header
     return true
   }

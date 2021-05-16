@@ -27,7 +27,8 @@ export function pgnMoves(node: TreeNode<GameState>): string[] {
     if (move.color === WHITE) {
       tokens.push(`${boardState.move_number}. ${san}`)
     } else if (isFirstMove) {
-      tokens.push(`1...${san}`)
+      // Special case for first move black
+      tokens.push(`${node.parent.model.boardState.move_number}...${san}`)
     } else {
       tokens.push(san)
     }
@@ -65,7 +66,7 @@ export function getPgn(
   return pgn.trim()
 }
 
-export function loadPgn(pgn: string): { tree: TreeNode<GameState>, header: HeaderMap } {
+export function loadPgn(pgn: string): { tree: TreeNode<GameState>, currentNode: TreeNode<GameState>, header: HeaderMap } {
   // Split on newlines and read line by line
   const lines = pgn.split(/\r?\n/)
 
@@ -184,5 +185,5 @@ export function loadPgn(pgn: string): { tree: TreeNode<GameState>, header: Heade
       })
     }
   }
-  return { tree, header }
+  return { tree, currentNode, header }
 }
