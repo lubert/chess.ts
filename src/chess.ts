@@ -1158,15 +1158,6 @@ export class Chess {
     }
   }
 
-  /**
-   * Parses all of the decorators out of a SAN string
-   *
-   * @internal
-   */
-  protected strippedSan(move: string): string {
-    return move.replace(/=/, '').replace(/[+#]?[?!]*$/, '')
-  }
-
   /** @internal */
   protected attacked(color: string, square: number): boolean {
     return isAttacked(this.boardState, color, square)

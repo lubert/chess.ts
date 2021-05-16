@@ -173,8 +173,3 @@ export function validateFen(fen: string): Validation {
   /* everything's okay! */
   return { valid: true, error_number: 0, error: errors[0] }
 }
-
-// parses all of the decorators out of a SAN string
-export function strippedSan(move: string): string {
-  return move.replace(/=/, '').replace(/[+#]?[?!]*$/, '')
-}
