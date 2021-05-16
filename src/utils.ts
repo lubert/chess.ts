@@ -67,8 +67,24 @@ export function isPieceSymbol(symbol: string): symbol is PieceSymbol {
   return /^[pnbrqk]$/.test(symbol)
 }
 
+export function toPieceSymbol(obj: unknown): PieceSymbol | undefined {
+  if (typeof obj == 'string') {
+    const str = obj.toLowerCase()
+    if (isPieceSymbol(str)) return str
+  }
+  return
+}
+
 export function isSquare(sq: string): sq is Square {
   return /^[a-h][1-8]$/.test(sq)
+}
+
+export function toSquare(obj: unknown): Square | undefined {
+  if (typeof obj == 'string') {
+    const str = obj.toLowerCase()
+    if (isSquare(str)) return str
+  }
+  return
 }
 
 export function isFlagKey(key: string): key is FlagKey {

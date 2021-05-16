@@ -5,9 +5,17 @@ export type Color = 'w' | 'b'
 
 /** @public */
 export type PartialMove = {
-  to: string;
-  from: string;
+  to: Square;
+  from: Square;
   promotion?: PieceSymbol;
+}
+
+export type ParsedMove = {
+  to?: Square;
+  from?: Square;
+  piece?: PieceSymbol;
+  promotion?: PieceSymbol;
+  san?: string;
 }
 
 /**
@@ -60,8 +68,6 @@ export type Validation = {
   error_number: number;
   error: string;
 }
-
-
 
 /** Private types */
 export type Board = Array<Piece | undefined>

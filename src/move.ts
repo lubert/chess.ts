@@ -31,6 +31,7 @@ import {
   Move,
   Square,
   PartialMove,
+  ParsedMove,
 } from './interfaces/types'
 import {
   algebraic,
@@ -44,6 +45,8 @@ import {
   swapColor,
   symbol,
   validateFen,
+  toPieceSymbol,
+  toSquare,
 } from './utils'
 import { REGEXP_MOVE } from './regex'
 import { BoardState } from './models/BoardState'
@@ -510,34 +513,39 @@ export function moveToSan(
   return output
 }
 
+export function extractMove(move: string): ParsedMove {
+  const matches: Partial<RegExpMatchArray> | null = move.match(REGEXP_MOVE)
+  if (!matches) return {}
+  return {
+    san: matches[0]?.replace(/=([qrbn])/, (c) => c.toUpperCase()),
+    piece: toPieceSymbol(matches[1]),
+    from: toSquare(matches[2]),
+    to: toSquare(matches[3]),
+    promotion: toPieceSymbol(matches[4])
+  }
+}
+
 export function sanToMove(
   state: Readonly<BoardState>,
-  move: string,
+  moveStr: string,
   options: { matchPromotion?: boolean } = {}
 ): HexMove | null {
   const { matchPromotion = true } = options
 
-  const matches = move.match(REGEXP_MOVE)
-  if (!matches) return null
-  const [match, piece, from, to, promotion] = matches
+  const { san, piece, from, to, promotion } = extractMove(moveStr)
+  if (!san) return null
 
-  const moves = generateMoves(state, { square: isSquare(from) ? from : undefined })
+  const moves = generateMoves(state, { square: from })
   const strictOptions = { addCheck: false, addPromotion: matchPromotion }
   for (let i = 0, len = moves.length; i < len; i++) {
     const strictSan = moveToSan(state, moves[i], strictOptions)
-    if (match.toLowerCase() === strictSan.toLowerCase()) return moves[i]
+    if (san === strictSan) return moves[i]
     // const sloppySan = moveToSan(state, moves[i], { ...strictOptions, sloppy: true })
-    // if (match.toLowerCase() === sloppySan.toLowerCase()) return moves[i]
-    if (
-      from &&
-        to &&
-        isSquare(from) &&
-        isSquare(to) &&
-        matches &&
-        (!piece || piece.toLowerCase() == moves[i].piece) &&
-        SQUARES[from] == moves[i].from &&
-        SQUARES[to] == moves[i].to &&
-        (!matchPromotion || !promotion || promotion.toLowerCase() == moves[i].promotion)
+    // if (match === sloppySan) return moves[i]
+    if (from && SQUARES[from] === moves[i].from &&
+      to && SQUARES[to] === moves[i].to &&
+      (!piece || piece === moves[i].piece) &&
+      (!matchPromotion || !promotion || promotion === moves[i].promotion)
     ) {
       return moves[i]
     }
@@ -556,8 +564,8 @@ export function makePretty(state: Readonly<BoardState>, ugly_move: Readonly<HexM
   }
 
   return {
-    to: algebraic(move.to),
-    from: algebraic(move.from),
+    to: algebraic(move.to) as Square,
+    from: algebraic(move.from) as Square,
     color: move.color,
     flags,
     piece: move.piece,
