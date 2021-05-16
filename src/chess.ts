@@ -17,7 +17,7 @@ import {
   getBoard,
   validateMove,
   getFen,
-} from './state'
+} from './move'
 import {
   loadPgn,
   getPgn,
@@ -28,7 +28,6 @@ import {
   HexMove,
   Move,
   Piece,
-  BoardState,
   Validation,
   PartialMove,
   HeaderMap,
@@ -46,6 +45,7 @@ import {
   SQUARES,
   BITS,
 } from './constants'
+import { BoardState } from './models/BoardState'
 
 /** @public */
 export class Chess {
@@ -521,8 +521,8 @@ export class Chess {
    * // -> '[White "Plunky"]<br />[Black "Plinkie"]<br /><br />1. e4 e5<br />2. Nc3 Nc6'
    * ```
    */
-  public pgn(): string {
-    return getPgn(this._tree, this.header)
+  public pgn(options: { newline_char?: string, max_width?: number } = {}): string {
+    return getPgn(this._tree, this.header, options)
   }
 
   /**
@@ -658,8 +658,8 @@ export class Chess {
    * //          a  b  c  d  e  f  g  h'
    * ```
    */
-  public ascii(eol = '\n'): string {
-    return ascii(this.boardState.board, eol)
+  public ascii(newline_char = '\n'): string {
+    return ascii(this.boardState.board, newline_char)
   }
 
   /**
@@ -821,7 +821,7 @@ export class Chess {
     move: string | PartialMove,
     options: { sloppy?: boolean } = {}
   ): boolean {
-    const validMove = validateMove(this.boardState, move, { ...options, checkPromotion: false })
+    const validMove = validateMove(this.boardState, move, { ...options, matchPromotion: false })
 
     if (!validMove) {
       return false

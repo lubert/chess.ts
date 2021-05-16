@@ -1,5 +1,6 @@
 export { Chess } from './chess'
-export { Color, Move, PartialMove, Piece, PieceSymbol, Validation, BoardState } from './interfaces/types'
+export { BoardState } from './models/BoardState'
+export { Color, Move, PartialMove, Piece, PieceSymbol, Validation } from './interfaces/types'
 export {
     WHITE,
     BLACK,

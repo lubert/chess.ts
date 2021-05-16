@@ -2,9 +2,9 @@ import { TreeNode } from 'treenode.ts';
 import { GameState, HeaderMap } from './interfaces/types';
 import { Nag } from './interfaces/nag';
 import { WHITE, DEFAULT_POSITION, POSSIBLE_RESULTS, NULL_MOVES, CASTLING_MOVES } from './constants';
-import { moveToSan, loadFen, sanToMove, makeMove, getFen } from './state';
+import { moveToSan, loadFen, sanToMove, makeMove, getFen } from './move';
 import { addNag, isMainline } from './gamenode';
-import { REGEXP_HEADER_KEY, REGEXP_HEADER_VAL } from './regex';
+import { REGEXP_HEADER_KEY, REGEXP_HEADER_VAL, REGEXP_MOVE_NUMBER } from './regex';
 
 export function pgnHeader(header: HeaderMap): string[] {
   return Object.entries(header).map(([key, val]) => (
@@ -12,51 +12,49 @@ export function pgnHeader(header: HeaderMap): string[] {
   ));
 }
 
-export function pgnMoves(tree: TreeNode<GameState>): string[] {
+export function pgnMoves(node: TreeNode<GameState>): string[] {
   // 3. e4 { comment } ( variation ) e5 { comment } ( variation )
   const tokens: string[] = []
-  tree.pre((node) => {
-    const { move, boardState, comment } = node.model
+  const { move, boardState, comment } = node.model
+  if (!move) {
     // Special case for initial commented position
-    if (!move) {
-      if (comment) tokens.push(`{ ${comment} }`);
-      return
-    }
-
-    const san = moveToSan(boardState, move)
-    const isFirstMove = node.parent?.model.move !== undefined
+    if (comment) tokens.push(`{ ${comment} }`);
+  } else if (node.parent) {
+    const san = moveToSan(node.parent.model.boardState, move)
+    const isFirstMove = node.parent.model.move === undefined
 
     // Move
     if (move.color === WHITE) {
-      tokens.push('${boardState.move_number}.${san}')
+      tokens.push(`${boardState.move_number}. ${san}`)
     } else if (isFirstMove) {
-      tokens.push('${boardState.move_number}...${san}')
+      tokens.push(`${boardState.move_number}...${san}`)
     } else {
       tokens.push(san)
     }
 
     // Comment
     if (comment) tokens.push(`{ ${comment} }`)
+  }
 
-    // Variations
-    const [mainline, ...variations] = node.children
+  // Variations
+  const mainline = node.children[0]
+  if (mainline) {
     tokens.push(...pgnMoves(mainline))
-    variations.forEach((variation) =>{
-      tokens.push('(', ...pgnMoves(variation), ')')
-    })
-  });
+  }
   return tokens
 }
 
 export function getPgn(
   tree: TreeNode<GameState>,
-  header: HeaderMap
+  header: HeaderMap,
+  options: { newline_char?: string, max_width?: number } = {}
 ): string {
+  const { newline_char = '\n' } = options
   const headerRows = pgnHeader(header)
   const moveTokens = pgnMoves(tree)
   const result = header.Result ? ` ${header.Result}` : ''
 
-  return headerRows.join('\n') + moveTokens.join(' ') + result
+  return headerRows.join(newline_char) + newline_char + newline_char + moveTokens.join(' ') + result
 }
 
 export function loadPgn(pgn: string): { tree: TreeNode<GameState>, header: HeaderMap } {
@@ -160,12 +158,14 @@ export function loadPgn(pgn: string): { tree: TreeNode<GameState>, header: Heade
       }
     } else if (NULL_MOVES.includes(token)) {
       continue
+    } else if (REGEXP_MOVE_NUMBER.test(token)) {
+      continue
     } else {
       const boardState = currentNode.model.boardState
       if (CASTLING_MOVES.includes(token)) {
         token = token.replace(/0/g, 'O')
       }
-      const move = sanToMove(boardState, token, { sloppy: true })
+      const move = sanToMove(boardState, token)
       if (!move) {
         throw new Error(`Invalid move token: ${token}`)
       }

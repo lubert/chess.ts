@@ -30,7 +30,6 @@ import {
   Piece,
   Move,
   Square,
-  BoardState,
   PartialMove,
 } from './interfaces/types'
 import {
@@ -42,15 +41,15 @@ import {
   isPieceSymbol,
   isSquare,
   rank,
-  strippedSan,
   swapColor,
   symbol,
   validateFen,
 } from './utils'
 import { REGEXP_MOVE } from './regex'
+import { BoardState } from './models/BoardState'
 
 /* this function is used to uniquely identify ambiguous moves */
-export function getDisambiguator(state: BoardState, move: HexMove, sloppy: boolean): string {
+export function getDisambiguator(state: Readonly<BoardState>, move: Readonly<HexMove>, sloppy: boolean): string {
   const moves = generateMoves(state, { legal: !sloppy })
 
   const from = move.from
@@ -102,7 +101,7 @@ export function getDisambiguator(state: BoardState, move: HexMove, sloppy: boole
   return ''
 }
 
-export function getFen(state: BoardState): string {
+export function getFen(state: Readonly<BoardState>): string {
   let empty = 0
   let fen = ''
 
@@ -211,7 +210,7 @@ export function loadFen(fen: string): BoardState | null {
   return state
 }
 
-export function getPiece(state: BoardState, square?: string): Piece | null {
+export function getPiece(state: Readonly<BoardState>, square?: string): Piece | null {
   if (!square) return null
   square = square.toLowerCase()
   if (!isSquare(square)) return null
@@ -224,7 +223,7 @@ export function getPiece(state: BoardState, square?: string): Piece | null {
   return null
 }
 
-export function cloneMove(move: HexMove): HexMove {
+export function cloneMove(move: Readonly<HexMove>): HexMove {
   return {
     to: move.to,
     from: move.from,
@@ -237,7 +236,7 @@ export function cloneMove(move: HexMove): HexMove {
   }
 }
 
-export function clonePiece(piece: Piece): Piece {
+export function clonePiece(piece: Readonly<Piece>): Piece {
   return {
     color: piece.color,
     type: piece.type,
@@ -245,7 +244,7 @@ export function clonePiece(piece: Piece): Piece {
 }
 
 export function putPiece(
-  prevState: BoardState,
+  prevState: Readonly<BoardState>,
   piece: { type?: string, color?: string }, square?: string
 ): BoardState | null {
   let { type, color } = piece
@@ -281,7 +280,7 @@ export function putPiece(
   return state
 }
 
-export function removePiece(prevState: BoardState, square?: string): BoardState | null {
+export function removePiece(prevState: Readonly<BoardState>, square?: string): BoardState | null {
   if (!square) return null
 
   square = square.toLowerCase()
@@ -301,7 +300,7 @@ export function removePiece(prevState: BoardState, square?: string): BoardState 
 }
 
 export function generateMoves(
-  state: BoardState,
+  state: Readonly<BoardState>,
   options: { legal?: boolean, square?: string } = {}
 ): HexMove[] {
   const { legal = true } = options
@@ -334,14 +333,9 @@ export function generateMoves(
   /* are we generating moves for a single square? */
   let { square } = options
   if (square) {
-    square = square.toLowerCase()
-    if (isSquare(square)) {
-      first_sq = last_sq = SQUARES[square]
-      single_square = true
-    } else {
-      /* invalid square */
-      return []
-    }
+    if (!isSquare(square)) return []
+    first_sq = last_sq = SQUARES[square]
+    single_square = true
   }
 
   for (let i = first_sq; i <= last_sq; i++) {
@@ -472,11 +466,11 @@ export function generateMoves(
  * 4. ... Ne7 is technically the valid SAN
  */
 export function moveToSan(
-  state: BoardState,
-  move: HexMove,
-  options: { sloppy?: boolean, checkPromotion?: boolean } = {}
+  state: Readonly<BoardState>,
+  move: Readonly<HexMove>,
+  options: { sloppy?: boolean, addCheck?: boolean, addPromotion?: boolean } = {}
 ): string {
-  const { sloppy = false, checkPromotion = true } = options
+  const { sloppy = false, addCheck = true, addPromotion = true } = options
   let output = ''
 
   if (move.flags & BITS.KSIDE_CASTLE) {
@@ -499,13 +493,16 @@ export function moveToSan(
 
     output += algebraic(move.to)
 
-    if (checkPromotion && move.flags & BITS.PROMOTION) {
+    if (addPromotion && move.flags & BITS.PROMOTION) {
       output += '=' + move.promotion?.toUpperCase()
     }
   }
 
   const newState = makeMove(state, move)
-  if (inCheck(newState)) {
+  if (move.color === 'w' && move.from === 52 && move.to === 21) {
+    console.log('check', inCheck(newState))
+  }
+  if (addCheck && inCheck(newState)) {
     if (inCheckmate(newState)) {
       output += '#'
     } else {
@@ -517,38 +514,22 @@ export function moveToSan(
 }
 
 export function sanToMove(
-  state: BoardState,
+  state: Readonly<BoardState>,
   move: string,
-  options: { sloppy?: boolean, checkPromotion?: boolean } = {}
+  options: { matchPromotion?: boolean } = {}
 ): HexMove | null {
-  const { sloppy = false, checkPromotion = true } = options
+  const { matchPromotion = true } = options
 
-  // strip off any move decorations: e.g Nf3+?!
-  const cleanMove = strippedSan(move)
+  const matches = move.match(REGEXP_MOVE)
+  if (!matches) return null
+  const [match, piece, from, to, promotion] = matches
 
-  let matches, piece, from, to, promotion
-
-  // if we're using the sloppy parser run a regex to grab piece, to, and from
-  // this should parse invalid SAN like: Pe2-e4, Rc1c4, Qf3xf7
-  if (sloppy) {
-    matches = cleanMove.match(REGEXP_MOVE)
-    if (matches) {
-      piece = matches[1]
-      from = matches[2]
-      to = matches[3]
-      promotion = matches[4]
-    }
-  }
-
-  const moves = generateMoves(state, { square: from })
+  const moves = generateMoves(state, { square: isSquare(from) ? from : undefined })
+  const strictOptions = { addPromotion: matchPromotion }
+  const sloppyOptions = { sloppy: true, addCheck: false, addPromotion: matchPromotion }
   for (let i = 0, len = moves.length; i < len; i++) {
-    // try the strict parser first, then the sloppy parser if requested
-    // by the user
-    const san = moveToSan(state, moves[i], { checkPromotion })
-    if (cleanMove === strippedSan(san) ||
-      (sloppy && cleanMove === strippedSan(moveToSan(state, moves[i], options)))) {
-      return moves[i]
-    }
+    if (match === moveToSan(state, moves[i], strictOptions)) return moves[i]
+    if (match === moveToSan(state, moves[i], sloppyOptions)) return moves[i]
     if (
       from &&
         to &&
@@ -558,16 +539,15 @@ export function sanToMove(
         (!piece || piece.toLowerCase() == moves[i].piece) &&
         SQUARES[from] == moves[i].from &&
         SQUARES[to] == moves[i].to &&
-        (!checkPromotion || !promotion || promotion.toLowerCase() == moves[i].promotion)
+        (!matchPromotion || !promotion || promotion.toLowerCase() == moves[i].promotion)
     ) {
       return moves[i]
     }
   }
-
   return null
 }
 
-export function makePretty(state: BoardState, ugly_move: HexMove): Move {
+export function makePretty(state: Readonly<BoardState>, ugly_move: Readonly<HexMove>): Move {
   const move: HexMove = cloneMove(ugly_move)
 
   let flags = ''
@@ -589,7 +569,7 @@ export function makePretty(state: BoardState, ugly_move: HexMove): Move {
   }
 }
 
-export function isAttacked(state: BoardState, color: string, square: number): boolean {
+export function isAttacked(state: Readonly<BoardState>, color: string, square: number): boolean {
   for (let i = SQUARES.a8; i <= SQUARES.h1; i++) {
     /* did we run off the end of the board */
     if (i & 0x88) {
@@ -636,23 +616,23 @@ export function isAttacked(state: BoardState, color: string, square: number): bo
   return false
 }
 
-export function isKingAttacked(state: BoardState, color: Color): boolean {
+export function isKingAttacked(state: Readonly<BoardState>, color: Color): boolean {
   return isAttacked(state, swapColor(color), state.kings[color])
 }
 
-export function inCheck(state: BoardState): boolean {
+export function inCheck(state: Readonly<BoardState>): boolean {
   return isKingAttacked(state, state.turn)
 }
 
-export function inCheckmate(state: BoardState): boolean {
+export function inCheckmate(state: Readonly<BoardState>): boolean {
   return inCheck(state) && generateMoves(state).length === 0
 }
 
-export function inStalemate(state: BoardState): boolean {
+export function inStalemate(state: Readonly<BoardState>): boolean {
   return !inCheck(state) && generateMoves(state).length === 0
 }
 
-export function insufficientMaterial(state: BoardState): boolean {
+export function insufficientMaterial(state: Readonly<BoardState>): boolean {
   const pieces: {[key: string]: number} = {}
   const bishops = []
   let num_pieces = 0
@@ -699,7 +679,7 @@ export function insufficientMaterial(state: BoardState): boolean {
   return false
 }
 
-export function makeMove(prevState: BoardState, move: HexMove): BoardState {
+export function makeMove(prevState: Readonly<BoardState>, move: Readonly<HexMove>): BoardState {
   const state = prevState.clone()
   const us = state.turn
   const them = swapColor(us)
@@ -797,7 +777,7 @@ export function makeMove(prevState: BoardState, move: HexMove): BoardState {
   return state
 }
 
-export function buildMove(state: BoardState, from: number, to: number, flags: number, promotion?: string): HexMove {
+export function buildMove(state: Readonly<BoardState>, from: number, to: number, flags: number, promotion?: string): HexMove {
   const move: HexMove = {
     color: state.turn,
     from: from,
@@ -819,7 +799,7 @@ export function buildMove(state: BoardState, from: number, to: number, flags: nu
   return move
 }
 
-export function ascii(board: Board, eol = '\n'): string {
+export function ascii(board: Readonly<Board>, eol = '\n'): string {
   const pieces = RANKS.map(rank => {
     const rankPieces = board.slice(rank * 16, rank * 16 + 8)
     // Use a loop because `map` skips empty indexes
@@ -840,7 +820,7 @@ export function ascii(board: Board, eol = '\n'): string {
   ].join(eol)
 }
 
-export function getBoard(board: Board): (Piece | null)[][] {
+export function getBoard(board: Readonly<Board>): (Piece | null)[][] {
   const output = []
   let row = []
 
@@ -862,24 +842,25 @@ export function getBoard(board: Board): (Piece | null)[][] {
 }
 
 export function validateMove(
-  state: BoardState,
-  move: string | PartialMove,
-  options: { sloppy?: boolean, checkPromotion?: boolean } = {}
+  state: Readonly<BoardState>,
+  move: string | Readonly<PartialMove>,
+  options: { sloppy?: boolean, matchPromotion?: boolean } = {}
 ): HexMove | null {
   // Allow the user to specify the sloppy move parser to work around over
   // disambiguation bugs in Fritz and Chessbase
-  const { checkPromotion = true } = options
+  const { matchPromotion = true } = options
 
   if (typeof move === 'string') {
     return sanToMove(state, move, options)
   } else if (typeof move === 'object') {
-    const moves = generateMoves(state, { square: move.from })
+    const square = isSquare(move.from)? move.from : undefined
+    const moves = generateMoves(state, { square })
     // Find a matching move
     for (const moveObj of moves) {
       if (
         move.from === algebraic(moveObj.from) &&
           move.to === algebraic(moveObj.to) &&
-          (!checkPromotion || !('promotion' in moveObj) ||
+          (!matchPromotion || !('promotion' in moveObj) ||
             move.promotion === moveObj.promotion)
       ) {
         return moveObj
