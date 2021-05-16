@@ -89,15 +89,15 @@ export function getDisambiguator(state: Readonly<BoardState>, move: Readonly<Hex
      * the move in question, use the square as the disambiguator
      */
     if (same_rank > 0 && same_file > 0) {
-      return algebraic(from)
+      return algebraic(from) || ''
     } else if (same_file > 0) {
       /* if the moving piece rests on the same file, use the rank symbol as the
        * disambiguator
        */
-      return algebraic(from).charAt(1)
+      return algebraic(from)?.charAt(1) || ''
     } else {
       /* else use the file symbol */
-      return algebraic(from).charAt(0)
+      return algebraic(from)?.charAt(0) || ''
     }
   }
 
@@ -489,7 +489,7 @@ export function moveToSan(
 
     if (move.flags & (BITS.CAPTURE | BITS.EP_CAPTURE)) {
       if (move.piece === PAWN) {
-        output += algebraic(move.from)[0]
+        output += algebraic(move.from)?.[0] || ''
       }
       output += 'x'
     }

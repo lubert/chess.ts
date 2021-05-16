@@ -31,10 +31,10 @@ export function file(i: number): number {
  * Converts a 0x88 square to algebraic notation.
  * @public
  */
-export function algebraic(i: number): string {
+export function algebraic(i: number): Square | undefined {
   const f = file(i)
   const r = rank(i)
-  return 'abcdefgh'.substring(f, f + 1) + '87654321'.substring(r, r + 1)
+  return toSquare('abcdefgh'.substring(f, f + 1) + '87654321'.substring(r, r + 1))
 }
 
 /**
