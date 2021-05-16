@@ -295,15 +295,14 @@ describe('Threefold Repetition', function () {
     },
   ]
 
-  positions.forEach(function (position) {
-    const chess = new Chess()
-    chess.load(position.fen)
+  positions.forEach((position) => {
+    const chess = new Chess(position.fen)
 
-    it(position.fen, function () {
-      for (const move of position.moves) {
+    it(position.fen, () => {
+      position.moves.forEach((move, i) => {
         expect(chess.inThreefoldRepetition()).toBe(false)
-        chess.move(move)
-      }
+        expect(chess.move(move)).not.toBeNull()
+      })
       expect(chess.inThreefoldRepetition()).toBe(true)
       expect(chess.inDraw()).toBe(true)
     })

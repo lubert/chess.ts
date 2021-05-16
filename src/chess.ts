@@ -95,7 +95,7 @@ export class Chess {
 
   /** @internal **/
   protected get gameStates(): Readonly<GameState>[] {
-    return this._currentNode.path().map((node) => node.model).filter((node) => node.move)
+    return this._currentNode.path().map((node) => node.model)
   }
 
   /**
@@ -406,7 +406,7 @@ export class Chess {
   public inThreefoldRepetition(): boolean {
     const positions: Record<string, number> = {}
 
-    const checkState = (state: BoardState): boolean => {
+    const checkState = (state: Readonly<BoardState>): boolean => {
       const key = state.fen.split(' ').slice(0, 4).join(' ')
 
       // Has the position occurred three or move times?
@@ -424,7 +424,7 @@ export class Chess {
         return true
       }
     }
-    return checkState(this.boardState)
+    return false;
   }
 
   /**
