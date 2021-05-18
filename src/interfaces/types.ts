@@ -1,4 +1,9 @@
 import { BoardState } from "../models/BoardState"
+import { TreeNode } from "treenode.ts"
+
+export type ArrayOrObject<T> = Array<T | ArrayOrObject<T>>
+
+export type GameNode = TreeNode<GameState>
 
 /** @public */
 export type Color = 'w' | 'b'

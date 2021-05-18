@@ -32,6 +32,7 @@ import {
   PartialMove,
   HeaderMap,
   CommentMap,
+  GameNode,
 } from './interfaces/types'
 import {
   file,
@@ -51,10 +52,10 @@ import { BoardState } from './models/BoardState'
 /** @public */
 export class Chess {
   /** @internal */
-  protected _tree!: TreeNode<GameState>
+  protected _tree!: GameNode
 
   /** @internal */
-  protected _currentNode!: TreeNode<GameState>
+  protected _currentNode!: GameNode
 
   /** @public */
   public header: HeaderMap = {}
@@ -80,7 +81,7 @@ export class Chess {
     }
   }
 
-  public get tree(): Readonly<TreeNode<GameState>> {
+  public get tree(): Readonly<GameNode> {
     return this._tree
   }
 
@@ -100,7 +101,7 @@ export class Chess {
   }
 
   /** @internal **/
-  protected get path(): Readonly<TreeNode<GameState>>[] {
+  protected get path(): Readonly<GameNode>[] {
     return this._currentNode.path()
   }
 

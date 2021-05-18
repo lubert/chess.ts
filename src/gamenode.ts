@@ -1,7 +1,6 @@
-import { TreeNode } from 'treenode.ts';
-import { GameState } from './interfaces/types';
+import { GameNode } from './interfaces/types';
 
-export function isMainline(node: TreeNode<GameState>): boolean {
+export function isMainline(node: GameNode): boolean {
   while (node.parent) {
     let parent = node.parent
     if (parent.children[0] !== node) {
@@ -12,7 +11,7 @@ export function isMainline(node: TreeNode<GameState>): boolean {
   return true
 }
 
-export function addNag(node: TreeNode<GameState>, nag: number) {
+export function addNag(node: GameNode, nag: number) {
   if (!node.model.nags) {
     node.model.nags = [nag]
     return
