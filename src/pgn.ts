@@ -18,7 +18,7 @@ export function pgnMoves(node: TreeNode<GameState>): string[] {
   const { move, boardState, comment } = node.model
   if (!move) {
     // Special case for initial commented position
-    if (comment) tokens.push(`{ ${comment} }`);
+    if (comment) tokens.push(`{${comment}}`);
   } else if (node.parent) {
     const san = moveToSan(node.parent.model.boardState, move)
     const isFirstMove = node.parent.model.move === undefined
@@ -34,7 +34,7 @@ export function pgnMoves(node: TreeNode<GameState>): string[] {
     }
 
     // Comment
-    if (comment) tokens.push(`{ ${comment} }`)
+    if (comment) tokens.push(`{${comment}}`)
   }
 
   // Variations
@@ -54,9 +54,7 @@ export function getPgn(
   let pgn = ''
   pgn += pgnHeader(header).join(newline_char) + newline_char
   pgnMoves(tree).forEach((token) => {
-    if (token.startsWith('{')) {
-      pgn += newline_char + token + newline_char
-    } else if (token.match(/^\d/)) {
+    if (token.match(/^\d/)) {
       pgn += newline_char + token
     } else {
       pgn += ' ' + token
@@ -129,8 +127,10 @@ export function loadPgn(pgn: string): { tree: TreeNode<GameState>, currentNode: 
       const commentTokens = []
       while (moveTokens.length) {
         token = moveTokens.shift()!
-        if (token.startsWith('}')) {
-          if (token.length > 1) moveTokens.unshift(token.substring(1))
+        if (token.endsWith('}')) {
+          if (token.length > 1) {
+            commentTokens.push(token.substring(0, token.length - 1))
+          }
           currentNode.model.comment = commentTokens.join(' ')
           break
         }
@@ -176,12 +176,13 @@ export function loadPgn(pgn: string): { tree: TreeNode<GameState>, currentNode: 
       }
       const move = sanToMove(boardState, token)
       if (!move) {
-        throw new Error(`Invalid move token: ${token}`)
+        throw new Error(`Invalid move token: "${token}"`)
       }
       const nextState = makeMove(boardState, move)
       currentNode = currentNode.addModel({
         boardState: nextState,
         fen: getFen(boardState),
+        move,
       })
     }
   }
