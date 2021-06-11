@@ -15,10 +15,10 @@ To install the stable version:
 
 ```
 # NPM
-npm install @lubert/chess.ts
+npm install chess.ts
 
 # Yarn
-yarn add @lubert/chess.ts
+yarn add chess.ts
 ```
 
 ## [Documentation](./docs/chess.ts.md)
@@ -28,7 +28,7 @@ yarn add @lubert/chess.ts
 The code below plays a random game of chess:
 
 ```js
-import { Chess } from '@lubert/chess.ts'
+import { Chess } from 'chess.ts'
 const chess = new Chess()
 
 while (!chess.game_over()) {
