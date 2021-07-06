@@ -16,6 +16,13 @@ describe('move', () => {
         }
       },
       {
+        token: '1.e4',
+        parsedMove: {
+          san: 'e4',
+          to: 'e4',
+        }
+      },
+      {
         token: 'b2-b4',
         parsedMove: {
           san: 'b2-b4',

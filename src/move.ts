@@ -519,12 +519,12 @@ export function extractMove(move: string): ParsedMove {
   return {
     san: matches[0]?.replace(/=([qrbn])/, (c) => c.toUpperCase()).replace(/[!?]+/, ''),
     piece: toPieceSymbol(matches[1]),
-    disambiguator: matches[2],
-    from: toSquare(matches[3]),
-    to: toSquare(matches[4]),
-    promotion: toPieceSymbol(matches[5] ? matches[5][1] : null),
-    check: matches[6],
-    nag: matches[7],
+    disambiguator: matches[2] && matches[2].length === 1 ? matches[2] : undefined,
+    from: matches[2] && matches[2].length === 2 ? toSquare(matches[2]) : undefined,
+    to: toSquare(matches[3]),
+    promotion: matches[4] ? toPieceSymbol(matches[4][1]) : undefined,
+    check: matches[5],
+    nag: matches[6],
   }
 }
 
@@ -539,10 +539,15 @@ export function sanToMove(
   const { san, piece, from, to, promotion } = parsedMove
   if (!san) return null
 
+  // console.log(parsedMove)
+
   const moves = generateMoves(state, { square: from })
   const strictOptions = { addCheck: matchCheck, addPromotion: matchPromotion }
   for (let i = 0, len = moves.length; i < len; i++) {
     const strictSan = moveToSan(state, moves[i], strictOptions)
+    // if (strictSan.includes('N')) {
+    //   console.log(strictSan)
+    // }
     if (san === strictSan) {
       return moves[i]
     }
