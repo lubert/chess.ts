@@ -629,15 +629,20 @@ export class Chess {
    * ```
    */
   public loadPgn(pgn: string): boolean {
-    const res = loadPgn(pgn)
-    if (!res) {
-      return false
-    }
+    try {
+      const res = loadPgn(pgn)
+      if (!res) {
+        return false
+      }
 
-    this._tree = res.tree
-    this._currentNode = res.currentNode
-    this.header = res.header
-    return true
+      this._tree = res.tree
+      this._currentNode = res.currentNode
+      this.header = res.header
+      return true
+    } catch (e) {
+      console.debug(e);
+      return false;
+    }
   }
 
   /**
