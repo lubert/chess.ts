@@ -39,6 +39,14 @@ describe('move', () => {
         }
       },
       {
+        token: 'Qxd7',
+        parsedMove: {
+          piece: 'q',
+          san: 'Qxd7',
+          to: 'd7',
+        }
+      },
+      {
         token: 'e8=Q',
         parsedMove: {
           san: 'e8=Q',
