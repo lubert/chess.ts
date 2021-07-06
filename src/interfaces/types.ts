@@ -16,11 +16,14 @@ export type PartialMove = {
 }
 
 export type ParsedMove = {
+  san?: string;
   to?: Square;
   from?: Square;
+  disambiguator?: string;
   piece?: PieceSymbol;
   promotion?: PieceSymbol;
-  san?: string;
+  check?: string;
+  nag?: string;
 }
 
 /**

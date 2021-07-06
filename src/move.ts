@@ -514,15 +514,17 @@ export function moveToSan(
 }
 
 export function extractMove(move: string): ParsedMove {
-  const strippedMove = move.replace(/[?!]+/g, '');
-  const matches: Partial<RegExpMatchArray> | null = strippedMove.match(REGEXP_MOVE)
+  const matches: Partial<RegExpMatchArray> | null = move.match(REGEXP_MOVE)
   if (!matches) return {}
   return {
-    san: matches[0]?.replace(/=([qrbn])/, (c) => c.toUpperCase()),
+    san: matches[0]?.replace(/=([qrbn])/, (c) => c.toUpperCase()).replace(/[!?]+/, ''),
     piece: toPieceSymbol(matches[1]),
-    from: toSquare(matches[2]),
-    to: toSquare(matches[3]),
-    promotion: toPieceSymbol(matches[4]),
+    disambiguator: matches[2],
+    from: toSquare(matches[3]),
+    to: toSquare(matches[4]),
+    promotion: toPieceSymbol(matches[5] ? matches[5][1] : null),
+    check: matches[6],
+    nag: matches[7],
   }
 }
 
