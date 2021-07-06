@@ -514,32 +514,36 @@ export function moveToSan(
 }
 
 export function extractMove(move: string): ParsedMove {
-  const matches: Partial<RegExpMatchArray> | null = move.match(REGEXP_MOVE)
+  const strippedMove = move.replace(/[?!]+/g, '');
+  const matches: Partial<RegExpMatchArray> | null = strippedMove.match(REGEXP_MOVE)
   if (!matches) return {}
   return {
     san: matches[0]?.replace(/=([qrbn])/, (c) => c.toUpperCase()),
     piece: toPieceSymbol(matches[1]),
     from: toSquare(matches[2]),
     to: toSquare(matches[3]),
-    promotion: toPieceSymbol(matches[4])
+    promotion: toPieceSymbol(matches[4]),
   }
 }
 
 export function sanToMove(
   state: Readonly<BoardState>,
   moveStr: string,
-  options: { matchPromotion?: boolean } = {}
+  options: { matchCheck?: boolean, matchPromotion?: boolean } = {}
 ): HexMove | null {
-  const { matchPromotion = true } = options
+  const { matchCheck = true, matchPromotion = true } = options
 
-  const { san, piece, from, to, promotion } = extractMove(moveStr)
+  const parsedMove = extractMove(moveStr)
+  const { san, piece, from, to, promotion } = parsedMove
   if (!san) return null
 
   const moves = generateMoves(state, { square: from })
-  const strictOptions = { addCheck: false, addPromotion: matchPromotion }
+  const strictOptions = { addCheck: matchCheck, addPromotion: matchPromotion }
   for (let i = 0, len = moves.length; i < len; i++) {
     const strictSan = moveToSan(state, moves[i], strictOptions)
-    if (san === strictSan) return moves[i]
+    if (san === strictSan) {
+      return moves[i]
+    }
     // const sloppySan = moveToSan(state, moves[i], { ...strictOptions, sloppy: true })
     // if (match === sloppySan) return moves[i]
     if (from && SQUARES[from] === moves[i].from &&
