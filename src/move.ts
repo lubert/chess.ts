@@ -48,7 +48,7 @@ import {
   toPieceSymbol,
   toSquare,
 } from './utils'
-import { REGEXP_MOVE } from './regex'
+import { REGEXP_MOVE, REGEXP_NAG } from './regex'
 import { BoardState } from './models/BoardState'
 
 /* this function is used to uniquely identify ambiguous moves */
@@ -514,17 +514,19 @@ export function moveToSan(
 }
 
 export function extractMove(move: string): ParsedMove {
-  const matches: Partial<RegExpMatchArray> | null = move.match(REGEXP_MOVE)
+  const nagMatches = move.match(REGEXP_NAG)
+  const cleaned = move.replace(REGEXP_NAG, '')
+  const matches: Partial<RegExpMatchArray> | null = cleaned.match(REGEXP_MOVE)
   if (!matches) return {}
   return {
-    san: matches[0]?.replace(/=([qrbn])/, (c) => c.toUpperCase()).replace(/[!?]+/, ''),
+    san: matches[0]?.replace(/=([qrbn])/, (c) => c.toUpperCase()),
     piece: toPieceSymbol(matches[1]),
     disambiguator: matches[2] && matches[2].length === 1 ? matches[2] : undefined,
     from: matches[2] && matches[2].length === 2 ? toSquare(matches[2]) : undefined,
     to: toSquare(matches[3]),
     promotion: matches[4] ? toPieceSymbol(matches[4][1]) : undefined,
     check: matches[5],
-    nag: matches[6],
+    nag: nagMatches ? nagMatches[0] : undefined,
   }
 }
 
