@@ -759,8 +759,6 @@ export class Chess {
   ): Move | null {
     const validMove = validateMove(this.boardState, move)
     if (!validMove) {
-      console.log(move)
-      console.log(this.ascii())
       return null
     }
 
@@ -974,21 +972,15 @@ export class Chess {
    * chess.loadPgn("1. e4 e5 {king's pawn opening} 2. Nf3 Nc6 3. Bc4 Bc5 {giuoco piano} *")
    *
    * chess.getComments()
-   * // -> [
-   * //     {
-   * //       fen: "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2",
-   * //       comment: "king's pawn opening"
-   * //     },
-   * //     {
-   * //       fen: "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3",
-   * //       comment: "giuoco piano"
-   * //     }
-   * //    ]
+   * // -> {
+   * //      "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2": "king's pawn opening",
+   * //      "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3": "giuoco piano"
+   * //    }
    * ```
    */
   public getComments(): CommentMap {
     const comments: CommentMap = {}
-    this._currentNode.breadth(({ model }) => {
+    this._currentNode.path().forEach(({ model }) => {
       if (model.comment) {
         comments[model.fen] = model.comment
       }
@@ -1027,7 +1019,8 @@ export class Chess {
   }
 
   /**
-   * Delete and return the comment for a position, if it exists.
+   * Delete and return the comment for a position in the current branch,
+   * it exists.
    *
    * @example
    * ```js
@@ -1048,18 +1041,18 @@ export class Chess {
    * @param fen - Defaults to the current position
    */
   public deleteComment(fen?: string): string | undefined {
+    let node: GameNode | undefined = this._currentNode
     if (fen) {
-      const node = this._tree.breadth(({ model }) => model.fen === fen)
-      if (node) {
-        delete node.model.comment
-      }
-      return
+      node = this._currentNode.path().find((n) => n.model.fen === fen)
+      if (!node) return
     }
-    delete this._currentNode.model.comment
+    const comment = node.model.comment
+    delete node.model.comment
+    return comment
   }
 
   /**
-   * Delete and return comments for all positions.
+   * Delete and return comments for all positions in the current branch.
    *
    * @example
    * ```js
@@ -1085,9 +1078,10 @@ export class Chess {
    */
   public deleteComments(): CommentMap {
     const comments: CommentMap = {}
-    this._currentNode.breadth(({ model }) => {
+    this._currentNode.path().forEach(({ model }) => {
       if (model.comment) {
         comments[model.fen] = model.comment
+        delete model.comment
       }
     })
     return comments
