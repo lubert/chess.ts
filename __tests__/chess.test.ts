@@ -1160,62 +1160,58 @@ describe.only('Load PGN', function () {
       expect: false
     },
     {
+      name: 'Bad check',
+      pgn: '1. e4!+',
+      expect: false
+    },
+    {
       name: 'Basic nags',
       pgn: '1. e4!! e5?! 2. d4?? d5!?',
       fen: 'rnbqkbnr/ppp2ppp/8/3pp3/3PP3/8/PPP2PPP/RNBQKBNR w KQkq d6 0 3',
       expect: true,
     },
-    // {
-    //   name: 'Bad check',
-    //   pgn: '1. e4!+',
-    //   expect: false
-    // },
+    {
+      name: 'Nag id',
+      pgn: readPgn('loadPgn5.pgn'),
+      fen: 'r2r2k1/5pp1/p1p2q2/PpP1p3/1PnbP2p/5R2/2Q1BPPP/2B2RK1 b - - 3 27',
+      expect: true,
+    },
     {
       name: 'Nags with check, capture, promotion',
       pgn: '1.e4 e6 2.d4 d5 3.exd5 c6?? 4.dxe6 Nf6?! 5.exf7+!! Kd7!? 6.Nf3 Bd6 7.f8=N+!! Qxf8',
       fen: 'rnb2q1r/pp1k2pp/2pb1n2/8/3P4/5N2/PPP2PPP/RNBQKB1R w KQ - 0 8',
       expect: true,
     },
-    // {
-    //   name: 'Nag id',
-    //   pgn: readPgn('loadPgn5.pgn'),
-    //   fen: 'r2r2k1/5pp1/p1p2q2/PpP1p3/1PnbP2p/5R2/2Q1BPPP/2B2RK1 b - - 3 27',
-    //   expect: true,
-    // },
-    // {
-    //   name: 'Bracket comments and shallow variation',
-    //   pgn: "1. e4 ( 1. d4 { Queen's pawn } d5 ( 1... Nf6 ) ) e5",
-    //   fen: 'rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2',
-    //   expect: true,
-    // },
-    // {
-    //   name: 'Bracket comments and extended variations',
-    //   pgn: readPgn('loadPgn4.pgn'),
-    //   fen: '3q1rk1/1b1rbp1p/p2p1np1/1p2pP2/3BP3/P1NB3Q/1PP3PP/4RR1K w - - 0 19',
-    //   expect: true,
-    // },
-    // {
-    //   name: 'Bracket variation',
-    //   pgn: readPgn('loadPgn6.pgn'),
-    //   fen: 'rnbq1rk1/ppp1ppbp/5np1/3p4/3P1B2/4PN1P/PPP2PP1/RN1QKB1R w KQ - 1 6',
-    //   expect: true,
-    // },
-
-    // test the sloppy PGN parser
     {
-      name: 'sloppy 1',
+      name: 'Bracket comments and shallow variation',
+      pgn: "1. e4 ( 1. d4 { Queen's pawn } d5 ( 1... Nf6 ) ) e5",
+      fen: 'rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2',
+      expect: true,
+    },
+    {
+      name: 'Bracket comments and extended variations',
+      pgn: readPgn('loadPgn4.pgn'),
+      fen: '3q1rk1/1b1rbp1p/p2p1np1/1p2pP2/3BP3/P1NB3Q/1PP3PP/4RR1K w - - 0 19',
+      expect: true,
+    },
+    {
+      name: 'Bracket variation',
+      pgn: readPgn('loadPgn6.pgn'),
+      fen: 'rnbq1rk1/ppp1ppbp/5np1/3p4/3P1B2/4PN1P/PPP2PP1/RN1QKB1R w KQ - 1 6',
+      expect: true,
+    },
+    {
+      name: 'Incorrect disambiguation (Nge7)',
       pgn: readPgn('loadPgn7.pgn'),
       fen: '8/4P1bp/pk6/1p6/4r3/1P2n3/r5PP/2R4K w - - 0 33',
-      expect: false,
-      sloppy: false,
+      expect: true,
     },
-    // {
-    //   name: 'sloppy 2',
-    //   pgn: readPgn('loadPgn8.pgn'),
-    //   fen: '8/4P1bp/pk6/1p6/4r3/1P2n3/r5PP/2R4K w - - 0 33',
-    //   expect: true,
-    //   sloppy: true,
-    // },
+    {
+      name: 'sloppy 2',
+      pgn: readPgn('loadPgn8.pgn'),
+      fen: '8/4P1bp/pk6/1p6/4r3/1P2n3/r5PP/2R4K w - - 0 33',
+      expect: true,
+    },
     {
       name: 'Extra disambiguation',
       pgn: readPgn('loadPgn9.pgn'),
@@ -1246,24 +1242,24 @@ describe.only('Load PGN', function () {
       fen: '8/p2Q4/2P3kp/5p2/4b3/1P2P3/r6q/3K1R2 w - - 0 39',
       expect: true,
     },
-    // {
-    //   name: 'Long algebraic notation with underpromotions',
-    //   pgn: readPgn('loadPgn13.pgn'),
-    //   fen: '7Q/6R1/4B3/7k/4N3/8/6PP/6K1 b - - 2 68',
-    //   expect: true,
-    // },
     {
       name: 'Abbreviated long algebraic notation',
       pgn: readPgn('loadPgn14.pgn'),
       fen: '8/2kP4/4K3/8/8/1p6/8/8 b - - 2 59',
       expect: true,
     },
-    // {
-    //   name: 'Extended long algebraic notation',
-    //   pgn: readPgn('loadPgn14.pgn'),
-    //   fen: '7Q/6R1/4B3/7k/4N3/8/6PP/6K1 b - - 2 68',
-    //   expect: true,
-    // },
+    {
+      name: 'Long algebraic notation with underpromotions',
+      pgn: readPgn('loadPgn13.pgn'),
+      fen: '7Q/6R1/4B3/7k/4N3/8/6PP/6K1 b - - 2 68',
+      expect: true,
+    },
+    {
+      name: 'Extended long algebraic notation',
+      pgn: readPgn('loadPgn14.pgn'),
+      fen: '8/2kP4/4K3/8/8/1p6/8/8 b - - 2 59',
+      expect: true,
+    },
   ]
 
   examples.forEach((example) => {
@@ -1289,37 +1285,37 @@ describe.only('Load PGN', function () {
     })
   })
 
-  // // special case dirty file containing a mix of \n and \r\n
-  // it('dirty pgn', function () {
-  //   const pgn =
-  //     '[Event "Reykjavik WCh"]\n' +
-  //     '[Site "Reykjavik WCh"]\n' +
-  //     '[Date "1972.01.07"]\n' +
-  //     '[EventDate "?"]\n' +
-  //     '[Round "6"]\n' +
-  //     '[Result "1-0"]\n' +
-  //     '[White "Robert James Fischer"]\r\n' +
-  //     '[Black "Boris Spassky"]\n' +
-  //     '[ECO "D59"]\n' +
-  //     '[WhiteElo "?"]\n' +
-  //     '[BlackElo "?"]\n' +
-  //     '[PlyCount "81"]\n' +
-  //     '\r\n' +
-  //     '1. c4 e6 2. Nf3 d5 3. d4 Nf6 4. Nc3 Be7 5. Bg5 O-O 6. e3 h6\n' +
-  //     '7. Bh4 b6 8. cxd5 Nxd5 9. Bxe7 Qxe7 10. Nxd5 exd5 11. Rc1 Be6\n' +
-  //     '12. Qa4 c5 13. Qa3 Rc8 14. Bb5 a6 15. dxc5 bxc5 16. O-O Ra7\n' +
-  //     '17. Be2 Nd7 18. Nd4 Qf8 19. Nxe6 fxe6 20. e4 d4 21. f4 Qe7\r\n' +
-  //     '22. e5 Rb8 23. Bc4 Kh8 24. Qh3 Nf8 25. b3 a5 26. f5 exf5\n' +
-  //     '27. Rxf5 Nh7 28. Rcf1 Qd8 29. Qg3 Re7 30. h4 Rbb7 31. e6 Rbc7\n' +
-  //     '32. Qe5 Qe8 33. a4 Qd8 34. R1f2 Qe8 35. R2f3 Qd8 36. Bd3 Qe8\n' +
-  //     '37. Qe4 Nf6 38. Rxf6 gxf6 39. Rxf6 Kg8 40. Bc4 Kh8 41. Qf4 1-0\n'
+  // special case dirty file containing a mix of \n and \r\n
+  it('dirty pgn', function () {
+    const pgn =
+      '[Event "Reykjavik WCh"]\n' +
+      '[Site "Reykjavik WCh"]\n' +
+      '[Date "1972.01.07"]\n' +
+      '[EventDate "?"]\n' +
+      '[Round "6"]\n' +
+      '[Result "1-0"]\n' +
+      '[White "Robert James Fischer"]\r\n' +
+      '[Black "Boris Spassky"]\n' +
+      '[ECO "D59"]\n' +
+      '[WhiteElo "?"]\n' +
+      '[BlackElo "?"]\n' +
+      '[PlyCount "81"]\n' +
+      '\r\n' +
+      '1. c4 e6 2. Nf3 d5 3. d4 Nf6 4. Nc3 Be7 5. Bg5 O-O 6. e3 h6\n' +
+      '7. Bh4 b6 8. cxd5 Nxd5 9. Bxe7 Qxe7 10. Nxd5 exd5 11. Rc1 Be6\n' +
+      '12. Qa4 c5 13. Qa3 Rc8 14. Bb5 a6 15. dxc5 bxc5 16. O-O Ra7\n' +
+      '17. Be2 Nd7 18. Nd4 Qf8 19. Nxe6 fxe6 20. e4 d4 21. f4 Qe7\r\n' +
+      '22. e5 Rb8 23. Bc4 Kh8 24. Qh3 Nf8 25. b3 a5 26. f5 exf5\n' +
+      '27. Rxf5 Nh7 28. Rcf1 Qd8 29. Qg3 Re7 30. h4 Rbb7 31. e6 Rbc7\n' +
+      '32. Qe5 Qe8 33. a4 Qd8 34. R1f2 Qe8 35. R2f3 Qd8 36. Bd3 Qe8\n' +
+      '37. Qe4 Nf6 38. Rxf6 gxf6 39. Rxf6 Kg8 40. Bc4 Kh8 41. Qf4 1-0\n'
 
-  //   const result = chess.loadPgn(pgn)
-  //   expect(result).toBe(true)
+    const result = chess.loadPgn(pgn)
+    expect(result).toBe(true)
 
-  //   expect(chess.loadPgn(pgn)).toBe(true)
-  //   expect(chess.pgn().match(/^\[\[/) === null).toBe(true)
-  // })
+    expect(chess.loadPgn(pgn)).toBe(true)
+    expect(chess.pgn().match(/^\[\[/) === null).toBe(true)
+  })
 })
 
 describe('Manipulate Comments', function () {

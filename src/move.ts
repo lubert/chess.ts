@@ -542,9 +542,6 @@ export function sanToMove(
   if (!san) return null
 
   const moves = generateMoves(state, { square: from })
-  if (san === 'e7d6') {
-    console.log(moves.map((move) => algebraic(move.to)))
-  }
   // Strict
   const strictOptions = { addCheck: matchCheck, addPromotion: matchPromotion }
   for (let i = 0, len = moves.length; i < len; i++) {
