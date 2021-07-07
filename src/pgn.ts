@@ -1,10 +1,10 @@
 import { TreeNode } from 'treenode.ts';
-import { GameState, HeaderMap } from './interfaces/types';
+import { GameState, HeaderMap, GameNode, ValueOrArray } from './interfaces/types';
 import { Nag } from './interfaces/nag';
 import { WHITE, DEFAULT_POSITION, POSSIBLE_RESULTS, NULL_MOVES, CASTLING_MOVES } from './constants';
 import { moveToSan, loadFen, sanToMove, makeMove, getFen } from './move';
 import { addNag, isMainline } from './gamenode';
-import { REGEXP_HEADER_KEY, REGEXP_HEADER_VAL, REGEXP_MOVE_NUMBER } from './regex';
+import { REGEXP_HEADER_KEY, REGEXP_HEADER_VAL, REGEXP_MOVE_NUMBER, REGEXP_SEMI_COMMENT } from './regex';
 
 export function pgnHeader(header: HeaderMap): string[] {
   return Object.entries(header).map(([key, val]) => (
@@ -12,8 +12,8 @@ export function pgnHeader(header: HeaderMap): string[] {
   ));
 }
 
-export function pgnMoves(node: TreeNode<GameState>): string[] {
-  // 3. e4 { comment } ( variation ) e5 { comment } ( variation )
+export function pgnMoves(node: GameNode): string[] {
+  // 3. e4 {comment} (variation) e5 {comment} (variation)
   const tokens: string[] = []
   const { move, boardState, comment } = node.model
   if (!move) {
@@ -46,7 +46,7 @@ export function pgnMoves(node: TreeNode<GameState>): string[] {
 }
 
 export function getPgn(
-  tree: TreeNode<GameState>,
+  tree: GameNode,
   header: HeaderMap,
   options: { newline_char?: string } = {}
 ): string {
@@ -64,7 +64,7 @@ export function getPgn(
   return pgn.trim()
 }
 
-export function loadPgn(pgn: string): { tree: TreeNode<GameState>, currentNode: TreeNode<GameState>, header: HeaderMap } {
+export function loadPgn(pgn: string): { tree: GameNode, currentNode: GameNode, header: HeaderMap } {
   // Split on newlines and read line by line
   const lines = pgn.split(/\r?\n/)
 
@@ -81,15 +81,18 @@ export function loadPgn(pgn: string): { tree: TreeNode<GameState>, currentNode: 
   }
 
   const splitMove = (line: string) => {
+    const matches = line.match(REGEXP_SEMI_COMMENT)
+    line = line.replace(REGEXP_SEMI_COMMENT, '')
     moveTokens.push(...line.split(/\s+/))
+    if (matches) {
+      moveTokens.push(matches[0])
+    }
   }
 
   // Process lines
   let state: 'header' | 'moves' = 'header'
-  for (let i = 0; i < lines.length; i++) {
-    // Remove semicolon comments
-    let line = lines[i].replace(/;[^}]+$/, '').trim();
-
+  while (lines.length) {
+    const line = lines.shift()!
     if (state === 'header') {
       // Skip empty lines and comments
       if (!line || line.startsWith('%')) continue
@@ -117,12 +120,17 @@ export function loadPgn(pgn: string): { tree: TreeNode<GameState>, currentNode: 
 
   // Build move tree
   const tree = new TreeNode<GameState>({ fen, boardState })
-  const parentNodes: TreeNode<GameState>[] = []
+  const parentNodes: GameNode[] = []
   let currentNode = tree
 
   while (moveTokens.length) {
     let token = moveTokens.shift()!
-    if (token.startsWith('{')) {
+    if (!token) continue
+
+    if (token.startsWith(';')) {
+      const comment = token.substring(1).trim()
+      if (comment) currentNode.model.comment = comment
+    } else if (token.startsWith('{')) {
       if (token.length > 1) moveTokens.unshift(token.substring(1))
       const commentTokens = []
       while (moveTokens.length) {
@@ -147,6 +155,8 @@ export function loadPgn(pgn: string): { tree: TreeNode<GameState>, currentNode: 
       if (!parentNodes.length) throw new Error('Mismatched parentheses')
       if (token.length > 1) moveTokens.unshift(token.substring(1))
       currentNode = parentNodes.pop()!
+    } else if (token.endsWith(')')) {
+      moveTokens.unshift(token.slice(0, -1), ')')
     } else if (token.startsWith('$')) {
       addNag(currentNode, parseInt(token.substring(1), 10))
     } else if (token === '!') {
