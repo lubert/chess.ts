@@ -524,7 +524,7 @@ export function extractMove(move: string): ParsedMove {
     disambiguator: matches[2] && matches[2].length === 1 ? matches[2] : undefined,
     from: matches[2] && matches[2].length === 2 ? toSquare(matches[2]) : undefined,
     to: toSquare(matches[3]),
-    promotion: matches[4] ? toPieceSymbol(matches[4][1]) : undefined,
+    promotion: matches[4] ? toPieceSymbol(matches[4]) : undefined,
     check: matches[5],
     nag: nagMatches ? nagMatches[0] : undefined,
   }
@@ -541,20 +541,17 @@ export function sanToMove(
   const { san, piece, from, to, promotion } = parsedMove
   if (!san) return null
 
-  // console.log(parsedMove)
-
   const moves = generateMoves(state, { square: from })
+  if (san === 'e7d6') {
+    console.log(moves.map((move) => algebraic(move.to)))
+  }
+  // Strict
   const strictOptions = { addCheck: matchCheck, addPromotion: matchPromotion }
   for (let i = 0, len = moves.length; i < len; i++) {
     const strictSan = moveToSan(state, moves[i], strictOptions)
-    // if (strictSan.includes('N')) {
-    //   console.log(strictSan)
-    // }
     if (san === strictSan) {
       return moves[i]
     }
-    // const sloppySan = moveToSan(state, moves[i], { ...strictOptions, sloppy: true })
-    // if (match === sloppySan) return moves[i]
     if (from && SQUARES[from] === moves[i].from &&
       to && SQUARES[to] === moves[i].to &&
       (!piece || piece === moves[i].piece) &&
@@ -562,6 +559,11 @@ export function sanToMove(
     ) {
       return moves[i]
     }
+  }
+  // Sloppy
+  for (let i = 0, len = moves.length; i < len; i++) {
+    const sloppySan = moveToSan(state, moves[i], { ...strictOptions, sloppy: true })
+    if (san === sloppySan) return moves[i]
   }
   return null
 }

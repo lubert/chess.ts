@@ -98,6 +98,15 @@ describe('move', () => {
           nag: '!',
         }
       },
+      {
+        token: 'b7b8N',
+        parsedMove: {
+          san: 'b7b8N',
+          from: 'b7',
+          to: 'b8',
+          promotion: 'n',
+        }
+      },
     ]
 
     examples.forEach(({ token, parsedMove }) => {
