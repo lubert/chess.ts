@@ -2096,6 +2096,85 @@ describe('Regression Tests', () => {
     }
     expect(chess.header).toEqual(expected)
   })
+
+  it('Github Issue #279 - load_pgn duplicate last move if it has a comment', () => {
+    const history = [
+      'e4',
+      'e5',
+      'Nf3',
+      'Nc6',
+      'Bb5',
+      'd6',
+      'd4',
+      'Bd7',
+      'Nc3',
+      'Nf6',
+      'Bxc6',
+    ]
+
+    // trailing comment - no end of game marker
+    const chess = new Chess();
+    let result = chess.loadPgn("1. e4 e5 2. Nf3 Nc6 3. Bb5 d6 " +
+      "4. d4 Bd7 5. Nc3 Nf6 6. Bxc6 {comment}")
+    expect(result).toBe(true)
+    expect(chess.history()).toEqual(history)
+    expect(chess.header['Result']).toBeUndefined()
+
+    // trailing comment - end of game marker after comment
+    result = chess.loadPgn("1. e4 e5 2. Nf3 Nc6 3. Bb5 d6 " +
+      "4. d4 Bd7 5. Nc3 Nf6 6. Bxc6 {comment} *")
+    expect(result).toBe(true)
+    expect(chess.history()).toEqual(history)
+    expect(chess.header['Result']).toBe('*')
+
+    // trailing comment - end of game marker before comment
+    result = chess.loadPgn("1. e4 e5 2. Nf3 Nc6 3. Bb5 d6 " +
+      "4. d4 Bd7 5. Nc3 Nf6 6. Bxc6 * {comment}")
+    expect(result).toBe(true)
+    expect(chess.history()).toEqual(history)
+    expect(chess.header['Result']).toBe('*')
+
+    // trailing comment with PGN header - no end of game marker
+    result = chess.loadPgn("[White \"name\"]\n\n" +
+      "1. e4 e5 2. Nf3 Nc6 " +
+      "3. Bb5 d6 " + "4. d4 Bd7 5. Nc3 Nf6 " +
+      "6. Bxc6 {comment}")
+    expect(result).toBe(true)
+    expect(chess.history()).toEqual(history)
+    expect(chess.header['Result']).toBeUndefined()
+
+    // trailing comment with result header - end of game marker after comment
+    result = chess.loadPgn("[White \"name\"]\n\n" +
+      "1. e4 e5 2. Nf3 Nc6 3. Bb5 d6 " +
+      "4. d4 Bd7 5. Nc3 Nf6 6. Bxc6 {comment} *")
+    expect(result).toBe(true)
+    expect(chess.history()).toEqual(history)
+    expect(chess.header['Result']).toBe('*')
+
+    // trailing comment with result header - end of game marker before comment
+    result = chess.loadPgn("[White \"name\"]\n\n" +
+      "1. e4 e5 2. Nf3 Nc6 3. Bb5 d6 " +
+      "4. d4 Bd7 5. Nc3 Nf6 6. Bxc6 1/2-1/2 {comment}")
+    expect(result).toBe(true)
+    expect(chess.history()).toEqual(history)
+    expect(chess.header['Result']).toBe('1/2-1/2')
+  })
+
+  it('Github Issue #282 - playing a move on an empty board throws an error', function() {
+    var chess = new Chess('8/8/8/8/8/8/8/8 w KQkq - 0 1');
+    expect(chess.move('e4')).toBeNull()
+  })
+
+  it('Github Issue #284 - sloppy settings allows illegal moves', function() {
+    var chess = new Chess('4k3/8/8/8/8/4p3/8/4K3 w - - 0 1');
+    expect(chess.move('e1f2')).toBeNull()
+  })
+
+  it('Github Issue #286 - pgn should not generate sloppy moves', () => {
+    const chess = new Chess()
+    chess.loadPgn('1. e4 d5 2. Nf3 Nd7 3. Bb5 Nf6 4. O-O')
+    expect(chess.pgn()).toBe('1. e4 d5\n2. Nf3 Nd7\n3. Bb5 Nf6\n4. O-O')
+  })
 })
 
 describe('.validateMoves', () => {

@@ -316,11 +316,13 @@ export function generateMoves(
         (rank(to) === RANK_8 || rank(to) === RANK_1)
     ) {
       const pieces = [QUEEN, ROOK, BISHOP, KNIGHT]
-      for (let i = 0, len = pieces.length; i < len; i++) {
-        moves.push(buildMove(state, from, to, flags, pieces[i]))
-      }
+      pieces.forEach((piece) => {
+        const move = buildMove(state, from, to, flags, piece)
+        if (move) moves.push(move)
+      })
     } else {
-      moves.push(buildMove(state, from, to, flags))
+      const move = buildMove(state, from, to, flags)
+      if (move) moves.push(move)
     }
   }
 
@@ -795,7 +797,10 @@ export function makeMove(prevState: Readonly<BoardState>, move: Readonly<HexMove
   return state
 }
 
-export function buildMove(state: Readonly<BoardState>, from: number, to: number, flags: number, promotion?: string): HexMove {
+export function buildMove(state: Readonly<BoardState>, from: number, to: number, flags: number, promotion?: string): HexMove | null {
+  const piece = state.board[from]
+  if (!piece) return null
+
   const move: HexMove = {
     color: state.turn,
     from: from,
