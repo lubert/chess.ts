@@ -1361,11 +1361,11 @@ describe('.loadPgn', () => {
         input: '1. e4 { a classic; well-studied } e5',
         output: '1. e4 {a classic; well-studied} e5',
       },
-      // {
-      //   name: 'bracket in semicolon comment',
-      //   input: '1. e4 e5 ; a classic {well-studied}',
-      //   output: '1. e4 e5 {a classic {well-studied}}',
-      // },
+      {
+        name: 'bracket in semicolon comment',
+        input: '1. e4 e5 ; a classic {well-studied}',
+        output: '1. e4 e5 {a classic {well-studied}}',
+      },
       {
         name: 'markers in bracket comment',
         input: '1. e4 e5 {($1) 1. e4 is good}',
@@ -1378,11 +1378,11 @@ describe('.loadPgn', () => {
       },
     ]
 
-    tests.forEach((test) => {
-      it(`load ${test.name}`, () => {
+    tests.forEach(({ name, input, output}) => {
+      it(name, () => {
         const chess = new Chess()
-        chess.loadPgn(test.input)
-        expect(chess.pgn()).toEqual(test.output)
+        chess.loadPgn(input)
+        expect(chess.pgn()).toEqual(output)
       })
     })
   })

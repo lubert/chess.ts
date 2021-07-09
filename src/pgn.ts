@@ -4,7 +4,8 @@ import { Nag } from './interfaces/nag'
 import { WHITE, DEFAULT_POSITION, POSSIBLE_RESULTS, NULL_MOVES, CASTLING_MOVES } from './constants'
 import { moveToSan, loadFen, sanToMove, makeMove, getFen } from './move'
 import { addNag, isMainline } from './gamenode'
-import { REGEXP_HEADER_KEY, REGEXP_HEADER_VAL, REGEXP_MOVE_NUMBER, REGEXP_SEMI_COMMENT } from './regex'
+import { REGEXP_HEADER_KEY, REGEXP_HEADER_VAL, REGEXP_MOVE_NUMBER } from './regex'
+import { splitStr } from './utils'
 
 export function pgnHeader(header: HeaderMap): string[] {
   return Object.entries(header).map(([key, val]) => (
@@ -81,12 +82,8 @@ export function loadPgn(pgn: string): { tree: GameNode, currentNode: GameNode, h
   }
 
   const splitMove = (line: string) => {
-    const matches = line.match(REGEXP_SEMI_COMMENT)
-    line = line.replace(REGEXP_SEMI_COMMENT, '')
-    moveTokens.push(...line.split(/\s+/))
-    if (matches) {
-      moveTokens.push(matches[0])
-    }
+    // Add a newline as a hint for discerning nested commentary tokens
+    moveTokens.push(...line.split(/\s+/), '\n')
   }
 
   // Process lines
@@ -128,11 +125,27 @@ export function loadPgn(pgn: string): { tree: GameNode, currentNode: GameNode, h
     if (!token) continue
 
     if (token.startsWith(';')) {
-      const comment = token.substring(1).trim()
-      if (comment) currentNode.model.comment = comment
+      if (token.length > 1) moveTokens.unshift(token.substring(1))
+      const commentTokens: string[] = []
+      while (moveTokens.length) {
+        token = moveTokens.shift()!
+        if (token === '\n') {
+          if (commentTokens.length) {
+            currentNode.model.comment = commentTokens.join(' ')
+          }
+          break
+        } else {
+          commentTokens.push(token)
+        }
+      }
+      if (commentTokens.length) {
+        currentNode.model.comment = commentTokens.join(' ')
+      }
+    } else if (token.includes(';')) {
+      moveTokens.unshift(...splitStr(token, ';'))
     } else if (token.startsWith('{')) {
       if (token.length > 1) moveTokens.unshift(token.substring(1))
-      const commentTokens = []
+      const commentTokens: string[] = []
       while (moveTokens.length) {
         token = moveTokens.shift()!
         if (token.endsWith('}')) {
@@ -141,6 +154,8 @@ export function loadPgn(pgn: string): { tree: GameNode, currentNode: GameNode, h
           }
           currentNode.model.comment = commentTokens.join(' ')
           break
+        } else if (token === '\n') {
+          continue
         }
         commentTokens.push(token)
       }
@@ -155,8 +170,8 @@ export function loadPgn(pgn: string): { tree: GameNode, currentNode: GameNode, h
       if (!parentNodes.length) throw new Error('Mismatched parentheses')
       if (token.length > 1) moveTokens.unshift(token.substring(1))
       currentNode = parentNodes.pop()!
-    } else if (token.endsWith(')')) {
-      moveTokens.unshift(token.slice(0, -1), ')')
+    } else if (token.includes(')')) {
+      moveTokens.unshift(...splitStr(token, ')'))
     } else if (token.startsWith('$')) {
       addNag(currentNode, parseInt(token.substring(1), 10))
     } else if (token === '!') {
@@ -178,6 +193,8 @@ export function loadPgn(pgn: string): { tree: GameNode, currentNode: GameNode, h
     } else if (NULL_MOVES.includes(token)) {
       continue
     } else if (REGEXP_MOVE_NUMBER.test(token)) {
+      continue
+    } else if (token === '\n') {
       continue
     } else {
       const boardState = currentNode.model.boardState

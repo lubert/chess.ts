@@ -22,8 +22,3 @@ export const REGEXP_NAG = /([?!]+)/
  * Match move number
  */
 export const REGEXP_MOVE_NUMBER = /[0-9]+\.+$/
-
-/**
- * Match semicolon comment
- */
-export const REGEXP_SEMI_COMMENT = /(;[^}]+)$/

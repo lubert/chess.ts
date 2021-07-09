@@ -95,3 +95,9 @@ export function notEmpty<T>(value: T | null | undefined): value is T {
   if (value === null || value === undefined) return false
   return true
 }
+
+export function splitStr(str: string, char: string): string[] {
+  const index = str.indexOf(char)
+  if (index === -1) return []
+  return [str.slice(0, index), str.slice(index)]
+}
