@@ -31,6 +31,6 @@
     "test": "jest"
   },
   "dependencies": {
-    "treenode.ts": "^0.2.0"
+    "treenode.ts": "0.3.0"
   }
 }

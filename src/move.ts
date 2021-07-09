@@ -44,12 +44,12 @@ import {
   rank,
   swapColor,
   symbol,
-  validateFen,
   toPieceSymbol,
   toSquare,
 } from './utils'
 import { REGEXP_MOVE, REGEXP_NAG } from './regex'
 import { BoardState } from './models/BoardState'
+import { validateFen } from './fen'
 
 /* this function is used to uniquely identify ambiguous moves */
 export function getDisambiguator(state: Readonly<BoardState>, move: Readonly<HexMove>, sloppy: boolean): string {
@@ -334,7 +334,7 @@ export function generateMoves(
   let single_square = false
 
   /* are we generating moves for a single square? */
-  let { square } = options
+  const { square } = options
   if (square) {
     if (!isSquare(square)) return []
     first_sq = last_sq = SQUARES[square]

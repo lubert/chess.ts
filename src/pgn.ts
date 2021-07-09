@@ -1,15 +1,15 @@
-import { TreeNode } from 'treenode.ts';
-import { GameState, HeaderMap, GameNode, ValueOrArray } from './interfaces/types';
-import { Nag } from './interfaces/nag';
-import { WHITE, DEFAULT_POSITION, POSSIBLE_RESULTS, NULL_MOVES, CASTLING_MOVES } from './constants';
-import { moveToSan, loadFen, sanToMove, makeMove, getFen } from './move';
-import { addNag, isMainline } from './gamenode';
-import { REGEXP_HEADER_KEY, REGEXP_HEADER_VAL, REGEXP_MOVE_NUMBER, REGEXP_SEMI_COMMENT } from './regex';
+import { TreeNode } from 'treenode.ts'
+import { GameState, HeaderMap, GameNode } from './interfaces/types'
+import { Nag } from './interfaces/nag'
+import { WHITE, DEFAULT_POSITION, POSSIBLE_RESULTS, NULL_MOVES, CASTLING_MOVES } from './constants'
+import { moveToSan, loadFen, sanToMove, makeMove, getFen } from './move'
+import { addNag, isMainline } from './gamenode'
+import { REGEXP_HEADER_KEY, REGEXP_HEADER_VAL, REGEXP_MOVE_NUMBER, REGEXP_SEMI_COMMENT } from './regex'
 
 export function pgnHeader(header: HeaderMap): string[] {
   return Object.entries(header).map(([key, val]) => (
     `[${key} "${val}"]`
-  ));
+  ))
 }
 
 export function pgnMoves(node: GameNode): string[] {
@@ -18,7 +18,7 @@ export function pgnMoves(node: GameNode): string[] {
   const { move, boardState, comment } = node.model
   if (!move) {
     // Special case for initial commented position
-    if (comment) tokens.push(`{${comment}}`);
+    if (comment) tokens.push(`{${comment}}`)
   } else if (node.parent) {
     const san = moveToSan(node.parent.model.boardState, move)
     const isFirstMove = node.parent.model.move === undefined

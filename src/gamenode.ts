@@ -2,7 +2,7 @@ import { GameNode } from './interfaces/types';
 
 export function isMainline(node: GameNode): boolean {
   while (node.parent) {
-    let parent = node.parent
+    const parent = node.parent
     if (parent.children[0] !== node) {
       return false
     }

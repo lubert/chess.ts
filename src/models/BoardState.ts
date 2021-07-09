@@ -1,6 +1,6 @@
-import { Board, ColorState, Color } from '../interfaces/types';
-import { EMPTY, WHITE } from '../constants';
-import { getFen } from '../move';
+import { Board, ColorState, Color } from '../interfaces/types'
+import { EMPTY, WHITE } from '../constants'
+import { getFen } from '../move'
 
 /** @public */
 export class BoardState {

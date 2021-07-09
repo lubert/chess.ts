@@ -33,6 +33,7 @@ import {
   HeaderMap,
   CommentMap,
   GameNode,
+  Square,
 } from './interfaces/types'
 import {
   file,
@@ -40,7 +41,6 @@ import {
   notEmpty,
   rank,
   swapColor,
-  validateFen,
 } from './utils'
 import {
   DEFAULT_POSITION,
@@ -48,6 +48,7 @@ import {
   BITS,
 } from './constants'
 import { BoardState } from './models/BoardState'
+import { validateFen } from './fen'
 
 /** @public */
 export class Chess {
@@ -167,8 +168,35 @@ export class Chess {
    * @param square - e.g. 'e4'
    * @returns Copy of the piece or null
    */
-  public get(square?: string): Piece | null {
+  public getPiece(square: string): Piece | null {
     return getPiece(this.boardState, square)
+  }
+
+  /**
+   * Returns a map of squares to pieces.
+   *
+   * @example
+   * ```js
+   * chess.clear()
+   * chess.put({ type: chess.PAWN, color: chess.BLACK }, 'a5') // put a black pawn on a5
+   *
+   * chess.get('a5')
+   * // -> { type: 'p', color: 'b' },
+   * chess.get('a6')
+   * // -> null
+   * ```
+   *
+   * @param square - e.g. 'e4'
+   * @returns Copy of the piece or null
+   */
+  public getPieces(): Record<string, Piece> {
+    const pieces: Record<string, Piece> = {}
+    const squares = Object.keys(SQUARES) as Square[]
+    squares.forEach((square) => {
+      const piece = this.getPiece(square)
+      if (piece) pieces[square] = piece
+    })
+    return pieces
   }
 
   /**
@@ -206,7 +234,7 @@ export class Chess {
    * @param square - e.g. `'e4'`
    * @returns True if placed successfully, otherwise false
    */
-  public put(piece: { type?: string, color?: string }, square?: string): boolean {
+  public putPiece(piece: { type: string, color: string }, square: string): boolean {
     const newState = putPiece(this.boardState, piece, square)
     if (newState) {
       this.boardState = newState
@@ -236,7 +264,7 @@ export class Chess {
    * @param square - e.g. 'e4'
    * @returns Piece or null
    */
-  public remove(square?: string): Piece | null {
+  public removePiece(square: string): Piece | null {
     const piece = getPiece(this.boardState, square)
     if (!piece) {
       return null
@@ -430,7 +458,7 @@ export class Chess {
         return true
       }
     }
-    return false;
+    return false
   }
 
   /**
@@ -638,10 +666,13 @@ export class Chess {
       this._tree = res.tree
       this._currentNode = res.currentNode
       this.header = res.header
+
+      // console.log('toString', toString(this._tree))
+
       return true
     } catch (e) {
-      console.debug(e);
-      return false;
+      console.debug(e)
+      return false
     }
   }
 
@@ -820,15 +851,11 @@ export class Chess {
    *
    * @param move - Case-sensitive SAN string or object, e.g. `'Nxb7'` or
    * `{ from: 'h7', to: 'h8' }`
-   * @param options - Options to enable parsing of a variety of non-standard
-   * move notations
    */
-  public isPromotion(
-    move: string | PartialMove,
-    options: { sloppy?: boolean } = {}
-  ): boolean {
-    const validMove = validateMove(this.boardState, move, { ...options, matchPromotion: false })
-
+  public isPromotion(move: string | PartialMove): boolean {
+    const validMove = validateMove(
+      this.boardState, move, { matchPromotion: false }
+    )
     if (!validMove) {
       return false
     }

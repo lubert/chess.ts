@@ -13,8 +13,8 @@ import {
   WHITE,
   BLACK,
 } from '../src/constants'
-import { algebraic, validateFen } from '../src/utils'
-import { PieceSymbol, Move, Piece, Color, PartialMove } from '../src/interfaces/types'
+import { algebraic } from '../src/utils'
+import { PieceSymbol, Move, PartialMove } from '../src/interfaces/types'
 
 const SQUARES_LIST: string[] = []
 for (let i = SQUARES.a8; i <= SQUARES.h1; i++) {
@@ -25,11 +25,14 @@ for (let i = SQUARES.a8; i <= SQUARES.h1; i++) {
   SQUARES_LIST.push(algebraic(i) as string)
 }
 
-describe('Perft', function () {
-  const perfts = [
+function readPgn(filename: string): string {
+  return readFileSync(join(__dirname, 'fixtures/pgn', filename)).toString().trim()
+}
+
+describe('.perft', () => {
+  const examples = [
     {
-      fen:
-        'r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1',
+      fen: 'r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1',
       depth: 3,
       nodes: 97862,
     },
@@ -50,91 +53,86 @@ describe('Perft', function () {
     },
   ]
 
-  perfts.forEach(function (perft) {
-    const chess = new Chess()
-    chess.load(perft.fen)
-
-    it(perft.fen, function () {
-      const nodes = chess.perft(perft.depth)
-      expect(nodes).toBe(perft.nodes)
+  examples.forEach(({ fen, depth, nodes }) => {
+    it(fen, () => {
+      const chess = new Chess(fen)
+      expect(chess.perft(depth)).toBe(nodes)
     })
   })
 })
 
-describe('Single Square Move Generation', function () {
-  describe('san', function () {
-    const positions = [
+describe('.move', () => {
+  describe('dry-run', () => {
+    it('does not update the state', () => {
+      const chess = new Chess()
+      const fen = chess.fen()
+      chess.move('e4', { dry_run: true })
+      expect(chess.fen()).toEqual(fen)
+    })
+  })
+})
+
+describe('.moves', () => {
+  describe('san', () => {
+    const examples = [
       {
+        name: 'initial position',
         fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
         square: 'e2',
-        verbose: false,
         moves: ['e3', 'e4'],
       },
-      // invalid square
       {
+        name: 'invalid square',
         fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
         square: 'e9',
-        verbose: false,
         moves: [],
       },
-      // pinned piece
       {
+        name: 'pinned piece',
         fen: 'rnbqk1nr/pppp1ppp/4p3/8/1b1P4/2N5/PPP1PPPP/R1BQKBNR w KQkq - 2 3',
         square: 'c3',
-        verbose: false,
         moves: [],
       },
-      // promotion
       {
+        name: 'promotion',
         fen: '8/k7/8/8/8/8/7p/K7 b - - 0 1',
         square: 'h2',
-        verbose: false,
         moves: ['h1=Q+', 'h1=R+', 'h1=B', 'h1=N'],
       },
-      // castling
       {
-        fen:
-          'r1bq1rk1/1pp2ppp/p1np1n2/2b1p3/2B1P3/2NP1N2/PPPBQPPP/R3K2R w KQ - 0 8',
+        name: 'castling',
+        fen: 'r1bq1rk1/1pp2ppp/p1np1n2/2b1p3/2B1P3/2NP1N2/PPPBQPPP/R3K2R w KQ - 0 8',
         square: 'e1',
-        verbose: false,
         moves: ['Kf1', 'Kd1', 'O-O', 'O-O-O'],
       },
-      // no castling
       {
-        fen:
-          'r1bq1rk1/1pp2ppp/p1np1n2/2b1p3/2B1P3/2NP1N2/PPPBQPPP/R3K2R w - - 0 8',
+        name: 'no castling',
+        fen: 'r1bq1rk1/1pp2ppp/p1np1n2/2b1p3/2B1P3/2NP1N2/PPPBQPPP/R3K2R w - - 0 8',
         square: 'e1',
-        verbose: false,
         moves: ['Kf1', 'Kd1'],
       },
-      // trapped king
       {
+        name: 'trapped king',
         fen: '8/7K/8/8/1R6/k7/1R1p4/8 b - - 0 1',
         square: 'a3',
-        verbose: false,
         moves: [],
       },
     ]
 
-    positions.forEach(function (position) {
-      const chess = new Chess()
-      chess.load(position.fen)
-
-      it(`${position.fen} ${position.square}`, function () {
-        const moves = chess.moves({ square: position.square })
-        expect(moves.length).toEqual(position.moves.length)
-        expect(moves).toEqual(position.moves)
+    examples.forEach(({ name, fen, square, moves }) => {
+      it(name, () => {
+        const chess = new Chess(fen)
+        expect(chess.moves({ square: square })).toEqual(moves)
       })
     })
   })
 
-  describe('verbose', function () {
+  describe('verbose', () => {
     const positions = [
-      // verbose
       {
+        name: 'verbose',
         fen: '8/7K/8/8/1R6/k7/1R1p4/8 b - - 0 1',
         square: 'd2',
-        verbose: true,
         moves: [
           {
             color: 'b',
@@ -174,65 +172,312 @@ describe('Single Square Move Generation', function () {
           },
         ],
       },
-      // issue #30
       {
-        fen:
-          'rnbqk2r/ppp1pp1p/5n1b/3p2pQ/1P2P3/B1N5/P1PP1PPP/R3KBNR b KQkq - 3 5',
+        name: 'no castling moves',
+        fen: 'rnbqk2r/ppp1pp1p/5n1b/3p2pQ/1P2P3/B1N5/P1PP1PPP/R3KBNR b KQkq - 3 5',
         square: 'f1',
-        verbose: true,
         moves: [],
       },
     ]
 
-    positions.forEach(function (position) {
-      const chess = new Chess()
-      chess.load(position.fen)
+    positions.forEach(({ name, fen, square, moves }) => {
+      it(name, () => {
+        const chess = new Chess(fen)
+        expect(moves).toEqual(chess.moves({ square, verbose: true }))
+      })
+    })
+  })
 
-      it(`${position.fen} ${position.square}`, function () {
-        const moves = chess.moves({ square: position.square, verbose: true })
-        expect(moves.length).toEqual(position.moves.length)
-        expect(moves).toEqual(position.moves)
+  describe('algebraic notation', () => {
+    const examples = [
+      {
+        fen: '7k/3R4/3p2Q1/6Q1/2N1N3/8/8/3R3K w - - 0 1',
+        moves: [
+          'Rd8#',
+          'Re7',
+          'Rf7',
+          'Rg7',
+          'Rh7#',
+          'R7xd6',
+          'Rc7',
+          'Rb7',
+          'Ra7',
+          'Qf7',
+          'Qe8#',
+          'Qg7#',
+          'Qg8#',
+          'Qh7#',
+          'Q6h6#',
+          'Q6h5#',
+          'Q6f5',
+          'Q6f6#',
+          'Qe6',
+          'Qxd6',
+          'Q5f6#',
+          'Qe7',
+          'Qd8#',
+          'Q5h6#',
+          'Q5h5#',
+          'Qh4#',
+          'Qg4',
+          'Qg3',
+          'Qg2',
+          'Qg1',
+          'Qf4',
+          'Qe3',
+          'Qd2',
+          'Qc1',
+          'Q5f5',
+          'Qe5+',
+          'Qd5',
+          'Qc5',
+          'Qb5',
+          'Qa5',
+          'Na5',
+          'Nb6',
+          'Ncxd6',
+          'Ne5',
+          'Ne3',
+          'Ncd2',
+          'Nb2',
+          'Na3',
+          'Nc5',
+          'Nexd6',
+          'Nf6',
+          'Ng3',
+          'Nf2',
+          'Ned2',
+          'Nc3',
+          'Rd2',
+          'Rd3',
+          'Rd4',
+          'Rd5',
+          'R1xd6',
+          'Re1',
+          'Rf1',
+          'Rg1',
+          'Rc1',
+          'Rb1',
+          'Ra1',
+          'Kg2',
+          'Kh2',
+          'Kg1',
+        ],
+      },
+      {
+        fen: '1r3k2/P1P5/8/8/8/8/8/R3K2R w KQ - 0 1',
+        moves: [
+          'a8=Q',
+          'a8=R',
+          'a8=B',
+          'a8=N',
+          'axb8=Q+',
+          'axb8=R+',
+          'axb8=B',
+          'axb8=N',
+          'c8=Q+',
+          'c8=R+',
+          'c8=B',
+          'c8=N',
+          'cxb8=Q+',
+          'cxb8=R+',
+          'cxb8=B',
+          'cxb8=N',
+          'Ra2',
+          'Ra3',
+          'Ra4',
+          'Ra5',
+          'Ra6',
+          'Rb1',
+          'Rc1',
+          'Rd1',
+          'Kd2',
+          'Ke2',
+          'Kf2',
+          'Kf1',
+          'Kd1',
+          'Rh2',
+          'Rh3',
+          'Rh4',
+          'Rh5',
+          'Rh6',
+          'Rh7',
+          'Rh8+',
+          'Rg1',
+          'Rf1+',
+          'O-O+',
+          'O-O-O',
+        ],
+      },
+      {
+        fen: '5rk1/8/8/8/8/8/2p5/R3K2R w KQ - 0 1',
+        moves: [
+          'Ra2',
+          'Ra3',
+          'Ra4',
+          'Ra5',
+          'Ra6',
+          'Ra7',
+          'Ra8',
+          'Rb1',
+          'Rc1',
+          'Rd1',
+          'Kd2',
+          'Ke2',
+          'Rh2',
+          'Rh3',
+          'Rh4',
+          'Rh5',
+          'Rh6',
+          'Rh7',
+          'Rh8+',
+          'Rg1+',
+          'Rf1',
+        ],
+      },
+      {
+        fen: '5rk1/8/8/8/8/8/2p5/R3K2R b KQ - 0 1',
+        moves: [
+          'Rf7',
+          'Rf6',
+          'Rf5',
+          'Rf4',
+          'Rf3',
+          'Rf2',
+          'Rf1+',
+          'Re8+',
+          'Rd8',
+          'Rc8',
+          'Rb8',
+          'Ra8',
+          'Kg7',
+          'Kf7',
+          'c1=Q+',
+          'c1=R+',
+          'c1=B',
+          'c1=N',
+        ],
+      },
+      {
+        fen:
+        'r3k2r/p2pqpb1/1n2pnp1/2pPN3/1p2P3/2N2Q1p/PPPB1PPP/R3K2R w KQkq c6 0 2',
+        moves: [
+          'gxh3',
+          'Qxf6',
+          'Qxh3',
+          'Nxd7',
+          'Nxf7',
+          'Nxg6',
+          'dxc6',
+          'dxe6',
+          'Rg1',
+          'Rf1',
+          'Ke2',
+          'Kf1',
+          'Kd1',
+          'Rb1',
+          'Rc1',
+          'Rd1',
+          'g3',
+          'g4',
+          'Be3',
+          'Bf4',
+          'Bg5',
+          'Bh6',
+          'Bc1',
+          'b3',
+          'a3',
+          'a4',
+          'Qf4',
+          'Qf5',
+          'Qg4',
+          'Qh5',
+          'Qg3',
+          'Qe2',
+          'Qd1',
+          'Qe3',
+          'Qd3',
+          'Na4',
+          'Nb5',
+          'Ne2',
+          'Nd1',
+          'Nb1',
+          'Nc6',
+          'Ng4',
+          'Nd3',
+          'Nc4',
+          'd6',
+          'O-O',
+          'O-O-O',
+        ],
+      },
+      {
+        fen: 'k7/8/K7/8/3n3n/5R2/3n4/8 b - - 0 1',
+        moves: [
+          'N2xf3',
+          'Nhxf3',
+          'Nd4xf3',
+          'N2b3',
+          'Nc4',
+          'Ne4',
+          'Nf1',
+          'Nb1',
+          'Nhf5',
+          'Ng6',
+          'Ng2',
+          'Nb5',
+          'Nc6',
+          'Ne6',
+          'Ndf5',
+          'Ne2',
+          'Nc2',
+          'N4b3',
+          'Kb8',
+        ],
+      },
+    ]
+
+    examples.forEach(({ fen, moves }) => {
+      it(fen, () => {
+        const chess = new Chess(fen)
+        expect(chess.moves().sort()).toEqual(moves.sort())
       })
     })
   })
 })
 
-describe('Checkmate', function () {
-  const chess = new Chess()
-  const checkmates = [
+describe('.inCheckmate', () => {
+  const examples = [
     '8/5r2/4K1q1/4p3/3k4/8/8/8 w - - 0 7',
     '4r2r/p6p/1pnN2p1/kQp5/3pPq2/3P4/PPP3PP/R5K1 b - - 0 2',
     'r3k2r/ppp2p1p/2n1p1p1/8/2B2P1q/2NPb1n1/PP4PP/R2Q3K w kq - 0 8',
     '8/6R1/pp1r3p/6p1/P3R1Pk/1P4P1/7K/8 b - - 0 4',
   ]
 
-  checkmates.forEach(function (checkmate) {
-    chess.load(checkmate)
-
-    it(checkmate, function () {
+  examples.forEach((example) => {
+    it(example, () => {
+      const chess = new Chess(example)
       expect(chess.inCheckmate()).toBe(true)
     })
   })
 })
 
-describe('Stalemate', function () {
-  const stalemates = [
+describe('.inStalemate', () => {
+  const examples = [
     '1R6/8/8/8/8/8/7R/k6K b - - 0 1',
     '8/8/5k2/p4p1p/P4K1P/1r6/8/8 w - - 0 2',
   ]
 
-  stalemates.forEach(function (stalemate) {
-    const chess = new Chess()
-    chess.load(stalemate)
-
-    it(stalemate, function () {
+  examples.forEach((example) => {
+    it(example, () => {
+      const chess = new Chess(example)
       expect(chess.inStalemate()).toBe(true)
     })
   })
 })
 
-describe('Insufficient Material', function () {
-  const positions = [
+describe('.insufficientMaterial', () => {
+  const examples = [
     {
       fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
       draw: false,
@@ -271,21 +516,16 @@ describe('Insufficient Material', function () {
     },
   ]
 
-  positions.forEach(function (position) {
-    const chess = new Chess()
-    chess.load(position.fen)
-
-    it(position.fen, function () {
-      if (position.draw) {
-        expect(chess.insufficientMaterial() && chess.inDraw()).toBe(true)
-      } else {
-        expect(!chess.insufficientMaterial() && !chess.inDraw()).toBe(true)
-      }
+  examples.forEach(({ fen, draw }) => {
+    it(fen, () => {
+      const chess = new Chess(fen)
+      expect(chess.insufficientMaterial()).toBe(draw)
+      expect(chess.inDraw()).toBe(draw)
     })
   })
 })
 
-describe('Threefold Repetition', function () {
+describe('.inThreefoldRepetition', () => {
   const positions = [
     {
       fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
@@ -298,13 +538,12 @@ describe('Threefold Repetition', function () {
     },
   ]
 
-  positions.forEach((position) => {
-    const chess = new Chess(position.fen)
-
-    it(position.fen, () => {
-      position.moves.forEach((move, i) => {
+  positions.forEach(({ fen, moves }) => {
+    it(fen, () => {
+      const chess = new Chess(fen)
+      moves.forEach((move) => {
         expect(chess.inThreefoldRepetition()).toBe(false)
-        expect(chess.move(move)).not.toBeNull()
+        expect(chess.move(move)).toBeDefined()
       })
       expect(chess.inThreefoldRepetition()).toBe(true)
       expect(chess.inDraw()).toBe(true)
@@ -312,18 +551,89 @@ describe('Threefold Repetition', function () {
   })
 })
 
-describe('Promotion', function () {
-  const positions = [
-    // legal promotion
+describe('.move', () => {
+  interface MoveExample {
+    name: string;
+    fen: string;
+    expect: boolean;
+    move: string;
+    next?: string;
+    captured?: string;
+  }
+
+  const examples: MoveExample[] = [
     {
-      fen: '8/2P2k2/8/8/8/5K2/8/8 w - - 0 1',
-      san: 'c8',
-      move: { from: 'c7', to: 'c8' } as PartialMove,
+      name: 'legal first move',
+      fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+      expect: true,
+      move: 'e4',
+      next: 'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1',
+    },
+    {
+      name: 'illegal first move',
+      fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+      expect: false,
+      move: 'e5',
+    },
+    {
+      name: 'checkmate',
+      fen: '7k/3R4/3p2Q1/6Q1/2N1N3/8/8/3R3K w - - 0 1',
+      expect: true,
+      move: 'Rd8#',
+      next: '3R3k/8/3p2Q1/6Q1/2N1N3/8/8/3R3K b - - 1 1',
+    },
+    {
+      name: 'white en passant',
+      fen: 'rnbqkbnr/pp3ppp/2pp4/4pP2/4P3/8/PPPP2PP/RNBQKBNR w KQkq e6 0 1',
+      expect: true,
+      move: 'fxe6',
+      next: 'rnbqkbnr/pp3ppp/2ppP3/8/4P3/8/PPPP2PP/RNBQKBNR b KQkq - 0 1',
+      captured: 'p',
+    },
+    {
+      name: 'black en passant',
+      fen: 'rnbqkbnr/pppp2pp/8/4p3/4Pp2/2PP4/PP3PPP/RNBQKBNR b KQkq e3 0 1',
+      expect: true,
+      move: 'fxe3',
+      next: 'rnbqkbnr/pppp2pp/8/4p3/8/2PPp3/PP3PPP/RNBQKBNR w KQkq - 0 2',
+      captured: 'p',
+    },
+
+    {
+      name: 'correct disambiguation',
+      fen: 'r2qkbnr/ppp2ppp/2n5/1B2pQ2/4P3/8/PPP2PPP/RNB1K2R b KQkq - 3 7',
+      expect: true,
+      next: 'r2qkb1r/ppp1nppp/2n5/1B2pQ2/4P3/8/PPP2PPP/RNB1K2R w KQkq - 4 8',
+      move: 'Ne7',
+    },
+    {
+      name: 'over disambiguation',
+      fen: 'r2qkbnr/ppp2ppp/2n5/1B2pQ2/4P3/8/PPP2PPP/RNB1K2R b KQkq - 3 7',
+      expect: true,
+      next: 'r2qkb1r/ppp1nppp/2n5/1B2pQ2/4P3/8/PPP2PPP/RNB1K2R w KQkq - 4 8',
+      move: 'Nge7',
     },
   ]
 
-  positions.forEach((position) => {
-    const { fen, san, move } = position
+  examples.forEach((example) => {
+    const chess = new Chess(example.fen)
+
+    it(example.name, () => {
+      const move = chess.move(example.move)
+      if (example.expect) {
+        expect(move).toBeDefined()
+        expect(chess.fen()).toEqual(example.next)
+        expect(move!.captured).toEqual(example.captured)
+      } else {
+        expect(move).toBeNull()
+      }
+    })
+  })
+
+  describe('promotion', () => {
+    const fen = '8/2P2k2/8/8/8/5K2/8/8 w - - 0 1'
+    const san = 'c8'
+    const move: PartialMove = { from: 'c7', to: 'c8' }
     const pieces: PieceSymbol[] = [
       'q',
       'r',
@@ -332,7 +642,7 @@ describe('Promotion', function () {
     ]
 
     describe(`${fen} (${move.from} ${move.to})`, () => {
-      it('returns null when missing a promotion', () =>{
+      it('returns null when missing a promotion', () => {
         const chess = new Chess()
         expect(chess.move(san)).toBe(null)
         expect(chess.move(`${move.from}${move.to}`)).toBe(null)
@@ -340,78 +650,72 @@ describe('Promotion', function () {
       })
 
       it('works when properly formatted', () => {
-        const chess = new Chess()
         pieces.forEach((piece) => {
-          chess.load(fen)
+          const chess = new Chess(fen)
           const move = chess.move(`${san}=${piece.toUpperCase()}`)
-          if (!move) {
-            throw new Error('Move is null')
-          }
-          expect(move.promotion).toEqual(piece)
+          expect(move).toBeDefined()
+          expect(move!.promotion).toEqual(piece)
         });
       })
 
-      it('works with sloppy parsing', () => {
-        const chess = new Chess()
+      it('works when improperly formatted', () => {
         pieces.forEach((piece) => {
-          chess.load(fen)
+          const chess = new Chess(fen)
           const move = chess.move(`${san}=${piece}`)
-          if (!move) {
-            throw new Error('Move is null')
-          }
-          expect(move.promotion).toEqual(piece)
+          expect(move).toBeDefined()
+          expect(move!.promotion).toEqual(piece)
         })
       })
     })
   })
 })
 
-describe('isPromotion', function () {
-  const positions = [
-    // legal move non-promotion
+describe('.isPromotion', () => {
+  const examples = [
     {
+      name: 'non-promotion',
       fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
       san: 'e4',
       move: { from: 'e2', to: 'e4' },
       promotion: false,
     },
-    // illegal move
     {
+      name: 'illegal move',
       fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
       san: 'e8',
       move: { from: 'e2', to: 'e8' },
       promotion: false,
     },
-    // no piece on from
     {
+      name: 'no piece on from',
       fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
       san: 'e4',
       move: { from: 'e3', to: 'e4' },
       promotion: false,
     },
-    // illegal promotion due to discovery
     {
+      name: 'illegal promotion due to discovery',
       fen: '1K6/2P2k2/8/8/5b2/8/8/8 w - - 0 1',
       san: 'c8',
       move: { from: 'c7', to: 'c8' },
       promotion: false,
     },
-    // illegal move non-capturing diagonal
     {
+      name: 'illegal move non-capturing diagonal',
       fen: '8/2P2k2/8/8/8/5K2/8/8 w - - 0 1',
       san: 'b8',
       move: { from: 'c7', to: 'b8' },
       promotion: false,
     },
-    // legal promotion
     {
+      name: 'legal promotion',
       fen: '8/2P2k2/8/8/8/5K2/8/8 w - - 0 1',
       san: 'c8',
       move: { from: 'c7', to: 'c8' },
       promotion: true,
     },
-    // legal capturing promotion
     {
+      name: 'legal capturing promotion',
       fen: '1b6/2P2k2/8/8/5K2/8/8/8 w - - 0 1',
       san: 'cxb8',
       move: { from: 'c7', to: 'b8' },
@@ -419,478 +723,175 @@ describe('isPromotion', function () {
     },
   ]
 
-  positions.forEach(function (position) {
-    const { fen, san, move, promotion } = position
-    it(`${fen} (${move.from} ${move.to} ${promotion})`, function () {
-      const chess = new Chess()
-      chess.load(fen)
-      // san
+  examples.forEach(({ name, fen, san, move, promotion }) => {
+    it(name, () => {
+      const chess = new Chess(fen)
       expect(chess.isPromotion(san)).toBe(promotion)
-      // sloppy
-      expect(
-        chess.isPromotion(`${move.from}${move.to}`, { sloppy: true })
-      ).toBe(promotion)
-      // move obj
+      expect(chess.isPromotion(`${move.from}${move.to}`)).toBe(promotion)
       expect(chess.isPromotion(move as PartialMove)).toBe(promotion)
     })
   })
 })
 
-describe('Algebraic Notation', function () {
-  const positions = [
-    {
-      fen: '7k/3R4/3p2Q1/6Q1/2N1N3/8/8/3R3K w - - 0 1',
-      moves: [
-        'Rd8#',
-        'Re7',
-        'Rf7',
-        'Rg7',
-        'Rh7#',
-        'R7xd6',
-        'Rc7',
-        'Rb7',
-        'Ra7',
-        'Qf7',
-        'Qe8#',
-        'Qg7#',
-        'Qg8#',
-        'Qh7#',
-        'Q6h6#',
-        'Q6h5#',
-        'Q6f5',
-        'Q6f6#',
-        'Qe6',
-        'Qxd6',
-        'Q5f6#',
-        'Qe7',
-        'Qd8#',
-        'Q5h6#',
-        'Q5h5#',
-        'Qh4#',
-        'Qg4',
-        'Qg3',
-        'Qg2',
-        'Qg1',
-        'Qf4',
-        'Qe3',
-        'Qd2',
-        'Qc1',
-        'Q5f5',
-        'Qe5+',
-        'Qd5',
-        'Qc5',
-        'Qb5',
-        'Qa5',
-        'Na5',
-        'Nb6',
-        'Ncxd6',
-        'Ne5',
-        'Ne3',
-        'Ncd2',
-        'Nb2',
-        'Na3',
-        'Nc5',
-        'Nexd6',
-        'Nf6',
-        'Ng3',
-        'Nf2',
-        'Ned2',
-        'Nc3',
-        'Rd2',
-        'Rd3',
-        'Rd4',
-        'Rd5',
-        'R1xd6',
-        'Re1',
-        'Rf1',
-        'Rg1',
-        'Rc1',
-        'Rb1',
-        'Ra1',
-        'Kg2',
-        'Kh2',
-        'Kg1',
-      ],
-    },
-    {
-      fen: '1r3k2/P1P5/8/8/8/8/8/R3K2R w KQ - 0 1',
-      moves: [
-        'a8=Q',
-        'a8=R',
-        'a8=B',
-        'a8=N',
-        'axb8=Q+',
-        'axb8=R+',
-        'axb8=B',
-        'axb8=N',
-        'c8=Q+',
-        'c8=R+',
-        'c8=B',
-        'c8=N',
-        'cxb8=Q+',
-        'cxb8=R+',
-        'cxb8=B',
-        'cxb8=N',
-        'Ra2',
-        'Ra3',
-        'Ra4',
-        'Ra5',
-        'Ra6',
-        'Rb1',
-        'Rc1',
-        'Rd1',
-        'Kd2',
-        'Ke2',
-        'Kf2',
-        'Kf1',
-        'Kd1',
-        'Rh2',
-        'Rh3',
-        'Rh4',
-        'Rh5',
-        'Rh6',
-        'Rh7',
-        'Rh8+',
-        'Rg1',
-        'Rf1+',
-        'O-O+',
-        'O-O-O',
-      ],
-    },
-    {
-      fen: '5rk1/8/8/8/8/8/2p5/R3K2R w KQ - 0 1',
-      moves: [
-        'Ra2',
-        'Ra3',
-        'Ra4',
-        'Ra5',
-        'Ra6',
-        'Ra7',
-        'Ra8',
-        'Rb1',
-        'Rc1',
-        'Rd1',
-        'Kd2',
-        'Ke2',
-        'Rh2',
-        'Rh3',
-        'Rh4',
-        'Rh5',
-        'Rh6',
-        'Rh7',
-        'Rh8+',
-        'Rg1+',
-        'Rf1',
-      ],
-    },
-    {
-      fen: '5rk1/8/8/8/8/8/2p5/R3K2R b KQ - 0 1',
-      moves: [
-        'Rf7',
-        'Rf6',
-        'Rf5',
-        'Rf4',
-        'Rf3',
-        'Rf2',
-        'Rf1+',
-        'Re8+',
-        'Rd8',
-        'Rc8',
-        'Rb8',
-        'Ra8',
-        'Kg7',
-        'Kf7',
-        'c1=Q+',
-        'c1=R+',
-        'c1=B',
-        'c1=N',
-      ],
-    },
-    {
-      fen:
-        'r3k2r/p2pqpb1/1n2pnp1/2pPN3/1p2P3/2N2Q1p/PPPB1PPP/R3K2R w KQkq c6 0 2',
-      moves: [
-        'gxh3',
-        'Qxf6',
-        'Qxh3',
-        'Nxd7',
-        'Nxf7',
-        'Nxg6',
-        'dxc6',
-        'dxe6',
-        'Rg1',
-        'Rf1',
-        'Ke2',
-        'Kf1',
-        'Kd1',
-        'Rb1',
-        'Rc1',
-        'Rd1',
-        'g3',
-        'g4',
-        'Be3',
-        'Bf4',
-        'Bg5',
-        'Bh6',
-        'Bc1',
-        'b3',
-        'a3',
-        'a4',
-        'Qf4',
-        'Qf5',
-        'Qg4',
-        'Qh5',
-        'Qg3',
-        'Qe2',
-        'Qd1',
-        'Qe3',
-        'Qd3',
-        'Na4',
-        'Nb5',
-        'Ne2',
-        'Nd1',
-        'Nb1',
-        'Nc6',
-        'Ng4',
-        'Nd3',
-        'Nc4',
-        'd6',
-        'O-O',
-        'O-O-O',
-      ],
-    },
-    {
-      fen: 'k7/8/K7/8/3n3n/5R2/3n4/8 b - - 0 1',
-      moves: [
-        'N2xf3',
-        'Nhxf3',
-        'Nd4xf3',
-        'N2b3',
-        'Nc4',
-        'Ne4',
-        'Nf1',
-        'Nb1',
-        'Nhf5',
-        'Ng6',
-        'Ng2',
-        'Nb5',
-        'Nc6',
-        'Ne6',
-        'Ndf5',
-        'Ne2',
-        'Nc2',
-        'N4b3',
-        'Kb8',
-      ],
-    },
-  ]
-
-  positions.forEach(function (position) {
-    const chess = new Chess()
-    chess.load(position.fen)
-
-    it(position.fen, function () {
-      const moves = chess.moves()
-      expect(moves.length).toEqual(position.moves.length)
-      for (const move of moves) {
-        expect(position.moves).toContain(move)
+describe('.getPiece, .putPiece, .removePiece', () => {
+  describe('valid', () => {
+    it('non-king', () => {
+      const pieces = {
+        a7: { type: PAWN, color: WHITE },
+        b7: { type: PAWN, color: BLACK },
+        c7: { type: KNIGHT, color: WHITE },
+        d7: { type: KNIGHT, color: BLACK },
+        e7: { type: BISHOP, color: WHITE },
+        f7: { type: BISHOP, color: BLACK },
+        g7: { type: ROOK, color: WHITE },
+        h7: { type: ROOK, color: BLACK },
+        a6: { type: QUEEN, color: WHITE },
+        b6: { type: QUEEN, color: BLACK },
+        a4: { type: KING, color: WHITE },
+        h4: { type: KING, color: BLACK },
       }
-    })
-  })
-})
+      const chess = new Chess()
+      chess.clear()
 
-describe('Get/Put/Remove', function () {
-  const chess = new Chess()
-  const positions: {
-    pieces: { square: string; piece: Piece }[]
-    should_pass: boolean
-  }[] = [
-    {
-      pieces: [
-        { square: 'a7', piece: { type: PAWN, color: WHITE } },
-        { square: 'b7', piece: { type: PAWN, color: BLACK } },
-        { square: 'c7', piece: { type: KNIGHT, color: WHITE } },
-        { square: 'd7', piece: { type: KNIGHT, color: BLACK } },
-        { square: 'e7', piece: { type: BISHOP, color: WHITE } },
-        { square: 'f7', piece: { type: BISHOP, color: BLACK } },
-        { square: 'g7', piece: { type: ROOK, color: WHITE } },
-        { square: 'h7', piece: { type: ROOK, color: BLACK } },
-        { square: 'a6', piece: { type: QUEEN, color: WHITE } },
-        { square: 'b6', piece: { type: QUEEN, color: BLACK } },
-        { square: 'a4', piece: { type: KING, color: WHITE } },
-        { square: 'h4', piece: { type: KING, color: BLACK } },
-      ],
-      should_pass: true,
-    },
-    // bad piece
-    {
-      pieces: [
-        {
-          square: 'a7',
-          piece: {
-            type: 'z' as PieceSymbol,
-            color: (null as unknown) as Color,
-          },
-        },
-      ],
-      should_pass: false,
-    },
-    // bad square
-    {
-      pieces: [
-        {
-          square: 'j4',
-          piece: { type: PAWN, color: (null as unknown) as Color },
-        },
-      ],
-      should_pass: false,
-    },
-    // disallow two kings (black)
-    {
-      pieces: [
-        { square: 'a7', piece: { type: KING, color: BLACK } },
-        { square: 'h2', piece: { type: KING, color: WHITE } },
-        { square: 'a8', piece: { type: KING, color: BLACK } },
-      ],
-      should_pass: false,
-    },
-    // disallow two kings (white)
-    {
-      pieces: [
-        { square: 'a7', piece: { type: KING, color: BLACK } },
-        { square: 'h2', piece: { type: KING, color: WHITE } },
-        { square: 'h1', piece: { type: KING, color: WHITE } },
-      ],
-      should_pass: false,
-    },
-    // allow two kings if overwriting the exact same square
-    {
-      pieces: [
-        { square: 'a7', piece: { type: KING, color: BLACK } },
-        { square: 'h2', piece: { type: KING, color: WHITE } },
-        { square: 'h2', piece: { type: KING, color: WHITE } },
-      ],
-      should_pass: true,
-    },
-  ]
-
-  positions.forEach(function (position) {
-    chess.clear()
-
-    it(`position should pass - ${position.should_pass}`, function () {
-      const pieceDict: Record<string, Piece> = {}
-      position.pieces.forEach((item) => {
-        pieceDict[item.square] = item.piece
+      Object.entries(pieces).forEach(([square, piece]) => {
+        expect(chess.putPiece(piece, square)).toBe(true)
       })
-      // places the pieces
-      let passed = true
-      for (const { square, piece } of position.pieces) {
-        passed = passed && chess.put(piece, square)
-      }
-      // iterate over every square to make sure get returns the proper piece values/color
-      for (const square of SQUARES_LIST) {
-        if (!(square in pieceDict)) {
-          if (chess.get(square)) {
-            passed = false
-            break
-          }
-        } else {
-          const piece = chess.get(square)
-          if (
-            !(
-              piece &&
-              piece.type == pieceDict[square].type &&
-              piece.color == pieceDict[square].color
-            )
-          ) {
-            passed = false
-            break
-          }
-        }
+      expect(chess.getPieces()).toEqual(pieces)
+      Object.entries(pieces).forEach(([square, piece]) => {
+        expect(chess.removePiece(square)).toEqual(piece)
+      })
+      expect(chess.getPieces()).toEqual({})
+    })
+
+    it('same square kings', () => {
+      const pieces = {
+        a7: { type: KING, color: BLACK },
+        h2: { type: KING, color: WHITE },
       }
 
-      if (passed) {
-        // remove the pieces
-        for (const square of SQUARES_LIST) {
-          const piece = chess.remove(square)
-          if (!(square in pieceDict) && piece) {
-            passed = false
-            break
-          }
+      const chess = new Chess()
+      chess.clear()
 
-          if (
-            piece &&
-            (pieceDict[square].type != piece.type ||
-              pieceDict[square].color != piece.color)
-          ) {
-            passed = false
-            break
-          }
-        }
+      expect(chess.putPiece(pieces.a7, 'a7')).toBe(true)
+      expect(chess.putPiece(pieces.a7, 'a7')).toBe(true)
+      expect(chess.putPiece(pieces.h2, 'h2')).toBe(true)
+      expect(chess.putPiece(pieces.h2, 'h2')).toBe(true)
+      expect(chess.getPieces()).toEqual(pieces)
+      expect(chess.removePiece('a7')).toEqual(pieces.a7)
+      expect(chess.removePiece('h2')).toEqual(pieces.h2)
+      expect(chess.getPieces()).toEqual({})
+    })
+  });
+
+  describe('invalid', () => {
+    it('bad piece', () => {
+      const chess = new Chess()
+      chess.clear()
+
+      expect(chess.putPiece({ type: 'z' as PieceSymbol, color: BLACK }, 'a7')).toBe(false)
+      expect(chess.removePiece('a7')).toBeNull()
+      expect(chess.getPieces()).toEqual({})
+    })
+
+    it('bad square', () => {
+      const chess = new Chess()
+      chess.clear()
+
+      expect(chess.putPiece({ type: PAWN, color: WHITE }, 'j4')).toBe(false)
+      expect(chess.removePiece('j4')).toBeNull()
+      expect(chess.getPieces()).toEqual({})
+    })
+
+    it('two white kings', () => {
+      const pieces = {
+        a7: { type: KING, color: BLACK },
+        h2: { type: KING, color: WHITE },
       }
+      const badPieces = {
+        h1: { type: KING, color: WHITE },
+      }
+      const chess = new Chess()
+      chess.clear()
 
-      // finally, check for an empty board
-      passed = passed && chess.fen() == '8/8/8/8/8/8/8/8 w - - 0 1'
+      expect(chess.putPiece(pieces.a7, 'a7')).toBe(true)
+      expect(chess.putPiece(pieces.h2, 'h2')).toBe(true)
+      expect(chess.putPiece(badPieces.h1, 'h1')).toBe(false)
+      expect(chess.getPieces()).toEqual(pieces)
+      expect(chess.removePiece('a7')).toEqual(pieces.a7)
+      expect(chess.removePiece('h2')).toEqual(pieces.h2)
+      expect(chess.removePiece('h1')).toBeNull()
+      expect(chess.getPieces()).toEqual({})
+    })
 
-      expect(passed).toBe(position.should_pass)
+    it('two black kings', () => {
+      const pieces = {
+        a7: { type: KING, color: BLACK },
+        h2: { type: KING, color: WHITE },
+      }
+      const badPieces = {
+        a8: { type: KING, color: BLACK },
+      }
+      const chess = new Chess()
+      chess.clear()
+
+      expect(chess.putPiece(pieces.a7, 'a7')).toBe(true)
+      expect(chess.putPiece(pieces.h2, 'h2')).toBe(true)
+      expect(chess.putPiece(badPieces.a8, 'a8')).toBe(false)
+      expect(chess.getPieces()).toEqual(pieces)
+      expect(chess.removePiece('a7')).toEqual(pieces.a7)
+      expect(chess.removePiece('h2')).toEqual(pieces.h2)
+      expect(chess.removePiece('a8')).toBeNull()
+      expect(chess.getPieces()).toEqual({})
     })
   })
 })
 
-describe('FEN', function () {
-  const positions = [
-    {
-      fen: '8/8/8/8/8/8/8/8 w - - 0 1',
-      should_pass: true,
-    },
-    {
-      fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
-      should_pass: true,
-    },
-    {
-      fen: 'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1',
-      should_pass: true,
-    },
-    {
-      fen: '1nbqkbn1/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/1NBQKBN1 b - - 1 2',
-      should_pass: true,
-    },
-    // incomplete FEN string
-    {
-      fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBN w KQkq - 0 1',
-      should_pass: false,
-    },
-    // bad digit (9)
-    {
-      fen: 'rnbqkbnr/pppppppp/9/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
-      should_pass: false,
-    },
-    // bad piece (X)
-    {
-      fen: '1nbqkbn1/pppp1ppX/8/4p3/4P3/8/PPPP1PPP/1NBQKBN1 b - - 1 2',
-      should_pass: false,
-    },
-  ]
+describe('.fen, .load', () => {
+  describe('valid', () => {
+    const examples = [
+      '8/8/8/8/8/8/8/8 w - - 0 1',
+      'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+      'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1',
+      '1nbqkbn1/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/1NBQKBN1 b - - 1 2',
+    ];
 
-  positions.forEach(function (position) {
-    const chess = new Chess()
+    examples.forEach((example) => {
+      it(example, () => {
+        const chess = new Chess(example)
+        expect(chess.fen()).toEqual(example)
+      })
+    })
+  })
 
-    it(`${position.fen} (${position.should_pass})`, function () {
-      chess.load(position.fen)
-      expect(chess.fen() == position.fen).toEqual(position.should_pass)
+  describe('invalid', () => {
+    const examples = [
+      // incomplete FEN string
+      'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBN w KQkq - 0 1',
+      // bad digit (9)
+      'rnbqkbnr/pppppppp/9/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+      // bad piece (X)
+      '1nbqkbn1/pppp1ppX/8/4p3/4P3/8/PPPP1PPP/1NBQKBN1 b - - 1 2',
+    ]
+
+    examples.forEach((example) => {
+      it(example, () => {
+        expect(() => { new Chess(example) }).toThrowError()
+      })
     })
   })
 })
 
-describe('PGN', function () {
-  const positions: {
+describe('.pgn', () => {
+  interface PgnExample {
     moves: string[]
     header?: Record<string, string>
-    starting_position?: string
+    initial?: string
     newline_char?: string
     pgn: string
     fen: string
-  }[] = [
+  }
+
+  const positions: PgnExample[] = [
     {
       moves: [
         'd4',
@@ -1087,31 +1088,28 @@ describe('PGN', function () {
       moves: ['Ba5', 'O-O', 'd6', 'd4'], // testing a non-starting position
       pgn:
         '[SetUp "1"]\n[FEN "r1bqk1nr/pppp1ppp/2n5/4p3/1bB1P3/2P2N2/P2P1PPP/RNBQK2R b KQkq - 0 1"]\n\n1...Ba5\n2. O-O d6\n3. d4',
-      starting_position:
+      initial:
         'r1bqk1nr/pppp1ppp/2n5/4p3/1bB1P3/2P2N2/P2P1PPP/RNBQK2R b KQkq - 0 1',
       fen: 'r1bqk1nr/ppp2ppp/2np4/b3p3/2BPP3/2P2N2/P4PPP/RNBQ1RK1 b kq d3 0 3',
     },
   ]
 
-  positions.forEach(function (position, i) {
-    if (i > 0) return
-    it('Position: ' + i, function () {
-      const chess = new Chess(position.starting_position)
-      for (let j = 0; j < position.moves.length; j++) {
-        if (!chess.move(position.moves[j])) {
-          throw new Error(`move did not accept ${position.moves[j]}`)
-        }
-      }
-      if (position.header) {
-        chess.header = position.header
-      }
-      expect(chess.pgn({ newline_char: position.newline_char })).toEqual(position.pgn)
-      expect(chess.fen()).toEqual(position.fen)
+  positions.forEach(({ fen, moves, header, initial, newline_char, pgn }, i) => {
+    it('Position: ' + i, () => {
+      const chess = new Chess(initial)
+
+      moves.forEach((move) => {
+        expect(chess.move(move)).toBeDefined()
+      })
+
+      if (header) chess.header = header
+      expect(chess.pgn({ newline_char })).toEqual(pgn)
+      expect(chess.fen()).toEqual(fen)
     })
   })
 })
 
-describe('Load PGN', function () {
+describe('.loadPgn', () => {
   interface LoadPGNExample {
     name: string;
     pgn: string;
@@ -1120,9 +1118,7 @@ describe('Load PGN', function () {
     sloppy?: boolean;
   }
 
-  function readPgn(filename: string): string {
-    return readFileSync(join(__dirname, 'fixtures/pgn', filename)).toString().trim()
-  }
+
 
   const chess = new Chess()
   const examples: LoadPGNExample[] = [
@@ -1263,15 +1259,11 @@ describe('Load PGN', function () {
   ]
 
   examples.forEach((example) => {
-    it(`${example.name}`, function () {
+    it(`${example.name}`, () => {
       const pgn = example.pgn
       const result = chess.loadPgn(pgn)
 
       if (example.expect) {
-        /* some PGN's tests contain comments which are stripped during parsing,
-         * so we'll need compare the results of the load against a FEN string
-         * (instead of the reconstructed PGN [e.g. test.pgn.join(newline)])
-         */
         if (example.fen) {
           expect(result).toBe(true)
           expect(chess.fen()).toEqual(example.fen)
@@ -1285,8 +1277,14 @@ describe('Load PGN', function () {
     })
   })
 
-  // special case dirty file containing a mix of \n and \r\n
-  it('dirty pgn', function () {
+  it('ignores whitespace before closing bracket', () => {
+    const pgn = readPgn('loadPgn16.pgn')
+    const chess = new Chess()
+    chess.loadPgn(pgn)
+    expect(chess.header['Date']).toBe('1972.01.07')
+  })
+
+  it('mixed newlines', () => {
     const pgn =
       '[Event "Reykjavik WCh"]\n' +
       '[Site "Reykjavik WCh"]\n' +
@@ -1312,14 +1310,86 @@ describe('Load PGN', function () {
 
     const result = chess.loadPgn(pgn)
     expect(result).toBe(true)
-
     expect(chess.loadPgn(pgn)).toBe(true)
-    expect(chess.pgn().match(/^\[\[/) === null).toBe(true)
+    expect(chess.pgn().match(/^\[\[/)).toBeNull()
+  })
+
+  describe('comments', () => {
+    const tests = [
+      {
+        name: 'bracket comments',
+        input: '1. e4 {good move} e5 {classical response}',
+        output: '1. e4 {good move} e5 {classical response}',
+      },
+      {
+        name: 'semicolon comments',
+        input: '1. e4 e5; romantic era\n 2. Nf3 Nc6; common continuation',
+        output: '1. e4 e5 {romantic era}\n2. Nf3 Nc6 {common continuation}',
+      },
+      {
+        name: 'bracket and semicolon comments',
+        input: '1. e4 {good!} e5; standard response\n 2. Nf3 Nc6 {common}',
+        output: '1. e4 {good!} e5 {standard response}\n2. Nf3 Nc6 {common}',
+      },
+      {
+        name: 'bracket comments with newlines',
+        input: '1. e4 {good\nmove} e5 {classical\nresponse}',
+        output: '1. e4 {good move} e5 {classical response}',
+      },
+      {
+        name: 'initial comment',
+        input: '{ great game }\n1. e4 e5',
+        output: '{great game}\n1. e4 e5',
+      },
+      {
+        name: 'empty bracket comment',
+        input: '1. e4 {}',
+        output: '1. e4',
+      },
+      {
+        name: 'empty semicolon comment',
+        input: '1. e4;\ne5',
+        output: '1. e4 e5',
+      },
+      {
+        name: 'unicode comment',
+        input: '1. e4 {Δ, Й, ק ,م, ๗, あ, 叶, 葉, and 말}',
+        output: '1. e4 {Δ, Й, ק ,م, ๗, あ, 叶, 葉, and 말}',
+      },
+      {
+        name: 'semicolon in bracket comment',
+        input: '1. e4 { a classic; well-studied } e5',
+        output: '1. e4 {a classic; well-studied} e5',
+      },
+      // {
+      //   name: 'bracket in semicolon comment',
+      //   input: '1. e4 e5 ; a classic {well-studied}',
+      //   output: '1. e4 e5 {a classic {well-studied}}',
+      // },
+      {
+        name: 'markers in bracket comment',
+        input: '1. e4 e5 {($1) 1. e4 is good}',
+        output: '1. e4 e5 {($1) 1. e4 is good}',
+      },
+      {
+        name: 'markers in semicolon comment',
+        input: '1. e4 e5; ($1) 1. e4 is good',
+        output: '1. e4 e5 {($1) 1. e4 is good}',
+      },
+    ]
+
+    tests.forEach((test) => {
+      it(`load ${test.name}`, () => {
+        const chess = new Chess()
+        chess.loadPgn(test.input)
+        expect(chess.pgn()).toEqual(test.output)
+      })
+    })
   })
 })
 
-describe('Manipulate Comments', function () {
-  it('no comments', function () {
+describe('.getComment, .deleteComment', () => {
+  it('no comments', () => {
     const chess = new Chess()
     expect(chess.getComment()).toBeUndefined()
     expect(chess.getComments()).toEqual({})
@@ -1329,7 +1399,7 @@ describe('Manipulate Comments', function () {
     expect(chess.pgn()).toEqual('1. e4')
   })
 
-  it('comment for initial position', function () {
+  it('comment for initial position', () => {
     const chess = new Chess()
     const fen = chess.fen()
     const comment = 'starting position'
@@ -1340,7 +1410,7 @@ describe('Manipulate Comments', function () {
     expect(chess.pgn()).toEqual(`{${comment}}`)
   })
 
-  it('comment for first move', function () {
+  it('comment for first move', () => {
     const chess = new Chess()
     chess.move('e4')
     const e4 = chess.fen()
@@ -1356,7 +1426,7 @@ describe('Manipulate Comments', function () {
     expect(chess.pgn()).toEqual(`1. e4 {${comment}} e5`)
   })
 
-  it('comment for last move', function () {
+  it('comment for last move', () => {
     const chess = new Chess()
     chess.move('e4')
     chess.move('e6')
@@ -1368,13 +1438,13 @@ describe('Manipulate Comments', function () {
     expect(chess.pgn()).toEqual('1. e4 e6 {dubious move}')
   })
 
-  it('comment with brackets', function () {
+  it('comment with brackets', () => {
     const chess = new Chess()
     chess.setComment('{starting position}')
     expect(chess.getComment()).toEqual('[starting position]')
   })
 
-  it('comments for everything', function () {
+  it('comments for everything', () => {
     const chess = new Chess()
 
     const initial = chess.fen()
@@ -1409,7 +1479,7 @@ describe('Manipulate Comments', function () {
     )
   })
 
-  it('delete comments', function () {
+  it('delete comments', () => {
     const chess = new Chess()
     const init = chess.fen()
     expect(chess.deleteComment()).toBeUndefined()
@@ -1438,7 +1508,7 @@ describe('Manipulate Comments', function () {
     expect(chess.pgn()).toEqual('1. e4 e6')
   })
 
-  it('preserves branch comments', function () {
+  it('preserves branch comments', () => {
     const chess = new Chess()
     chess.move('e4')
     chess.setComment('tactical')
@@ -1449,7 +1519,7 @@ describe('Manipulate Comments', function () {
     expect(chess.pgn()).toEqual('1. e4 {tactical}')
   })
 
-  it('clear comments', function () {
+  it('clear comments', () => {
     const test = function (fn: (chess: Chess) => void) {
       const chess = new Chess()
       chess.move('e4')
@@ -1458,683 +1528,15 @@ describe('Manipulate Comments', function () {
       fn(chess)
       expect(chess.getComments()).toEqual({})
     }
-    test(function (chess: Chess) {
-      chess.reset()
-    })
-    test(function (chess: Chess) {
-      chess.clear()
-    })
-    test(function (chess: Chess) {
-      chess.load(chess.fen())
-    })
-    test(function (chess: Chess) {
-      chess.loadPgn('1. e4')
-    })
+    test((chess) => { chess.reset() })
+    test((chess) => { chess.clear() })
+    test((chess) => { chess.load(chess.fen()) })
+    test((chess) => { chess.loadPgn('1. e4') })
   })
 })
 
-describe('Load Comments', function() {
-  const tests = [
-    {
-      name: 'bracket comments',
-      input: '1. e4 {good move} e5 {classical response}',
-      output: '1. e4 {good move} e5 {classical response}',
-    },
-    {
-      name: 'semicolon comments',
-      input: '1. e4 e5; romantic era\n 2. Nf3 Nc6; common continuation',
-      output: '1. e4 e5 {romantic era}\n2. Nf3 Nc6 {common continuation}',
-    },
-    {
-      name: 'bracket and semicolon comments',
-      input: '1. e4 {good!} e5; standard response\n 2. Nf3 Nc6 {common}',
-      output: '1. e4 {good!} e5 {standard response}\n2. Nf3 Nc6 {common}',
-    },
-    {
-      name: 'bracket comments with newlines',
-      input: '1. e4 {good\nmove} e5 {classical\nresponse}',
-      output: '1. e4 {good move} e5 {classical response}',
-    },
-    {
-      name: 'initial comment',
-      input: '{ great game }\n1. e4 e5',
-      output: '{great game}\n1. e4 e5',
-    },
-    {
-      name: 'empty bracket comment',
-      input: '1. e4 {}',
-      output: '1. e4',
-    },
-    {
-      name: 'empty semicolon comment',
-      input: '1. e4;\ne5',
-      output: '1. e4 e5',
-    },
-    {
-      name: 'unicode comment',
-      input: '1. e4 {Δ, Й, ק ,م, ๗, あ, 叶, 葉, and 말}',
-      output: '1. e4 {Δ, Й, ק ,م, ๗, あ, 叶, 葉, and 말}',
-    },
-    {
-      name: 'semicolon in bracket comment',
-      input: '1. e4 { a classic; well-studied } e5',
-      output: '1. e4 {a classic; well-studied} e5',
-    },
-    // {
-    //   name: 'bracket in semicolon comment',
-    //   input: '1. e4 e5 ; a classic {well-studied}',
-    //   output: '1. e4 e5 {a classic {well-studied}}',
-    // },
-    {
-      name: 'markers in bracket comment',
-      input: '1. e4 e5 {($1) 1. e4 is good}',
-      output: '1. e4 e5 {($1) 1. e4 is good}',
-    },
-    {
-      name: 'markers in semicolon comment',
-      input: '1. e4 e5; ($1) 1. e4 is good',
-      output: '1. e4 e5 {($1) 1. e4 is good}',
-    },
-  ]
-
-  tests.forEach(function (test) {
-    it(`load ${test.name}`, function () {
-      const chess = new Chess()
-      chess.loadPgn(test.input)
-      expect(chess.pgn()).toEqual(test.output)
-    })
-  })
-})
-
-describe('Make Move', function () {
-  interface MakeMoveExample {
-    name: string;
-    fen: string;
-    expect: boolean;
-    move: string;
-    next?: string;
-    captured?: string;
-  }
-
-  const examples: MakeMoveExample[] = [
-    {
-      name: 'legal first move',
-      fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
-      expect: true,
-      move: 'e4',
-      next: 'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1',
-    },
-    {
-      name: 'illegal first move',
-      fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
-      expect: false,
-      move: 'e5',
-    },
-    {
-      name: 'checkmate',
-      fen: '7k/3R4/3p2Q1/6Q1/2N1N3/8/8/3R3K w - - 0 1',
-      expect: true,
-      move: 'Rd8#',
-      next: '3R3k/8/3p2Q1/6Q1/2N1N3/8/8/3R3K b - - 1 1',
-    },
-    {
-      name: 'white en passant',
-      fen: 'rnbqkbnr/pp3ppp/2pp4/4pP2/4P3/8/PPPP2PP/RNBQKBNR w KQkq e6 0 1',
-      expect: true,
-      move: 'fxe6',
-      next: 'rnbqkbnr/pp3ppp/2ppP3/8/4P3/8/PPPP2PP/RNBQKBNR b KQkq - 0 1',
-      captured: 'p',
-    },
-    {
-      name: 'black en passant',
-      fen: 'rnbqkbnr/pppp2pp/8/4p3/4Pp2/2PP4/PP3PPP/RNBQKBNR b KQkq e3 0 1',
-      expect: true,
-      move: 'fxe3',
-      next: 'rnbqkbnr/pppp2pp/8/4p3/8/2PPp3/PP3PPP/RNBQKBNR w KQkq - 0 2',
-      captured: 'p',
-    },
-
-    {
-      name: 'correct disambiguation',
-      fen: 'r2qkbnr/ppp2ppp/2n5/1B2pQ2/4P3/8/PPP2PPP/RNB1K2R b KQkq - 3 7',
-      expect: true,
-      next: 'r2qkb1r/ppp1nppp/2n5/1B2pQ2/4P3/8/PPP2PPP/RNB1K2R w KQkq - 4 8',
-      move: 'Ne7',
-    },
-    {
-      name: 'over disambiguation',
-      fen: 'r2qkbnr/ppp2ppp/2n5/1B2pQ2/4P3/8/PPP2PPP/RNB1K2R b KQkq - 3 7',
-      expect: true,
-      next: 'r2qkb1r/ppp1nppp/2n5/1B2pQ2/4P3/8/PPP2PPP/RNB1K2R w KQkq - 4 8',
-      move: 'Nge7',
-    },
-  ]
-
-  examples.forEach((example) => {
-    const chess = new Chess(example.fen)
-
-    it(example.name, () => {
-      const move = chess.move(example.move)
-      if (example.expect) {
-        expect(move).toBeDefined()
-        expect(chess.fen()).toEqual(example.next)
-        expect(move!.captured).toEqual(example.captured)
-      } else {
-        expect(move).toBeNull()
-      }
-    })
-  })
-})
-
-describe('Validate FEN', function () {
-  const positions = [
-    {
-      fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNRw KQkq - 0 1',
-      error_number: 1,
-    },
-    {
-      fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 x',
-      error_number: 2,
-    },
-    {
-      fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0',
-      error_number: 2,
-    },
-    {
-      fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 -1',
-      error_number: 2,
-    },
-    {
-      fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - x 1',
-      error_number: 3,
-    },
-    {
-      fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - -1 1',
-      error_number: 3,
-    },
-    {
-      fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq e2 0 1',
-      error_number: 4,
-    },
-    {
-      fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq e7 0 1',
-      error_number: 4,
-    },
-    {
-      fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq x 0 1',
-      error_number: 4,
-    },
-    {
-      fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQxkq - 0 1',
-      error_number: 5,
-    },
-    {
-      fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w kqKQ - 0 1',
-      error_number: 5,
-    },
-    {
-      fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR ? KQkq - 0 1',
-      error_number: 6,
-    },
-    { fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP w KQkq - 0 1', error_number: 7 },
-    {
-      fen: 'rnbqkbnr/pppppppp/17/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
-      error_number: 8,
-    },
-    {
-      fen: 'rnbqk?nr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
-      error_number: 9,
-    },
-    {
-      fen: 'rnbqkbnr/pppppppp/7/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
-      error_number: 10,
-    },
-    {
-      fen: 'rnbqkbnr/p1p1p1p1p/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
-      error_number: 10,
-    },
-    {
-      fen: 'r1bqkbnr/2pppppp/n7/1p6/8/4P3/PPPP1PPP/RNBQK1NR b KQkq b6 0 4',
-      error_number: 11,
-    },
-    {
-      fen: 'rnbqkbnr/1p1ppppp/B1p5/8/6P1/4P3/PPPP1P1P/RNBQK1NR w KQkq g3 0 3',
-      error_number: 11,
-    },
-    {
-      fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
-      error_number: 0,
-    },
-    {
-      fen: 'rnbqkbnr/pppp1ppp/8/4p3/2P5/8/PP1PPPPP/RNBQKBNR w KQkq e6 0 2',
-      error_number: 0,
-    },
-    {
-      fen: '3r2k1/p1q2pp1/2nr1n1p/2p1p3/4P2B/P1P2Q1P/B4PP1/1R2R1K1 b - - 3 20',
-      error_number: 0,
-    },
-    {
-      fen: 'r2q1rk1/3bbppp/p3pn2/1p1pB3/3P4/1QNBP3/PP3PPP/R4RK1 w - - 4 13',
-      error_number: 0,
-    },
-    {
-      fen: 'rnbqk2r/ppp1bppp/4pn2/3p4/2PP4/2N2N2/PP2PPPP/R1BQKB1R w KQkq - 1 5',
-      error_number: 0,
-    },
-    {
-      fen: '1k1rr3/1p5p/p1Pp2q1/3nppp1/PB6/3P4/3Q1PPP/1R3RK1 b - - 0 28',
-      error_number: 0,
-    },
-    {
-      fen: 'r3r1k1/3n1pp1/2q1p2p/2p5/p1p2P2/P3P2P/1PQ2BP1/1R2R1K1 w - - 0 27',
-      error_number: 0,
-    },
-    {
-      fen: 'r3rbk1/1R3p1p/3Pq1p1/6B1/p6P/5Q2/5PP1/3R2K1 b - - 3 26',
-      error_number: 0,
-    },
-    {
-      fen: 'r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3',
-      error_number: 0,
-    },
-    {
-      fen: 'r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3',
-      error_number: 0,
-    },
-    {
-      fen:
-        'r1bqkb1r/1ppp1ppp/p1n2n2/4p3/B3P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 2 5',
-      error_number: 0,
-    },
-    {
-      fen:
-        'r1b2rk1/4bppp/p1np4/q3p1P1/1p2P2P/4BP2/PPP1N1Q1/1K1R1B1R w - - 0 17',
-      error_number: 0,
-    },
-    {
-      fen:
-        'r2q1rk1/ppp1bppp/2np1nb1/4p3/P1B1P1P1/3P1N1P/1PP2P2/RNBQR1K1 w - - 1 10',
-      error_number: 0,
-    },
-    {
-      fen:
-        'r2qkb1r/pb1n1p2/4pP2/1ppP2B1/2p5/2N3P1/PP3P1P/R2QKB1R b KQkq - 0 13',
-      error_number: 0,
-    },
-    {
-      fen: '3k1b1r/p2n1p2/5P2/2pN4/P1p2B2/1p3qP1/1P2KP2/3R4 w - - 0 29',
-      error_number: 0,
-    },
-    {
-      fen:
-        'rnbq1rk1/1pp1ppbp/p2p1np1/8/2PPP3/2N1BP2/PP2N1PP/R2QKB1R b KQ - 1 7',
-      error_number: 0,
-    },
-    {
-      fen:
-        'rn1qkb1r/pb1p1ppp/1p2pn2/4P3/2Pp4/5NP1/PP1N1PBP/R1BQK2R b KQkq - 0 8',
-      error_number: 0,
-    },
-    {
-      fen: 'rnbqkbnr/pp1p1ppp/4p3/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 0 3',
-      error_number: 0,
-    },
-    {
-      fen: 'r1bq1rk1/pp2ppbp/3p1np1/8/3pPP2/3B4/PPPPN1PP/R1BQ1RK1 w - - 4 10',
-      error_number: 0,
-    },
-    {
-      fen: 'r1b3k1/5pbp/2N1p1p1/p6q/2p2P2/2P1B3/PPQ3PP/3R2K1 b - - 0 22',
-      error_number: 0,
-    },
-    {
-      fen: 'rnbqkb1r/ppp1pppp/3p1n2/8/3PP3/8/PPP2PPP/RNBQKBNR w KQkq - 1 3',
-      error_number: 0,
-    },
-    {
-      fen:
-        'r1bqkb1r/pppp1ppp/2n2n2/4p3/2PP4/2N2N2/PP2PPPP/R1BQKB1R b KQkq d3 0 4',
-      error_number: 0,
-    },
-    {
-      fen: 'r1bqk2r/ppp1bppp/2n5/3p4/3Pn3/3B1N2/PPP2PPP/RNBQ1RK1 w kq - 4 8',
-      error_number: 0,
-    },
-    {
-      fen: '4kb1r/1p3pp1/p3p3/4P1BN/1n1p1PPP/PR6/1P4r1/1KR5 b k - 0 24',
-      error_number: 0,
-    },
-    {
-      fen: 'r3kb1r/pbpp1ppp/1qp1n3/4P3/2P5/1N2Q3/PP1B1PPP/R3KB1R w KQkq - 7 13',
-      error_number: 0,
-    },
-    {
-      fen: 'r1b1r1k1/p4p1p/2pb2p1/3pn3/N7/4BP2/PPP2KPP/3RRB2 b - - 3 18',
-      error_number: 0,
-    },
-    {
-      fen: 'r1b2rk1/p2nqp1p/3P2p1/2p2p2/2B5/1PB3N1/P4PPP/R2Q2K1 b - - 0 18',
-      error_number: 0,
-    },
-    {
-      fen: 'rnb1k2r/1p3ppp/p3Pn2/8/3N2P1/2q1B3/P1P1BP1P/R2Q1K1R b kq - 1 12',
-      error_number: 0,
-    },
-    {
-      fen: 'rnb1k2r/1pq1bppp/p2ppn2/8/3NPP2/2N1B3/PPP1B1PP/R2QK2R w KQkq - 1 9',
-      error_number: 0,
-    },
-    {
-      fen: 'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1',
-      error_number: 0,
-    },
-    {
-      fen: '4r3/1pr3pk/p2p2q1/3Pppbp/8/1NPQ1PP1/PP2R2P/1K1R4 w - - 8 28',
-      error_number: 0,
-    },
-    {
-      fen: 'b2r3r/4kp2/p3p1p1/1p2P3/1P1n1P2/P1NB4/KP4P1/3R2R1 b - - 2 26',
-      error_number: 0,
-    },
-    {
-      fen: 'rnbqk2r/ppppppbp/5np1/8/2PPP3/2N5/PP3PPP/R1BQKBNR b KQkq e3 0 4',
-      error_number: 0,
-    },
-    {
-      fen: 'rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2',
-      error_number: 0,
-    },
-    {
-      fen: 'rn1q1rk1/pbp2pp1/1p3b1p/3p4/3P4/2NBPN2/PP3PPP/2RQK2R b K - 1 11',
-      error_number: 0,
-    },
-    {
-      fen: '2rq1rk1/pp1bppbp/3p1np1/8/2BNP3/2N1BP2/PPPQ2PP/1K1R3R b - - 0 13',
-      error_number: 0,
-    },
-    {
-      fen:
-        'r2qkb1r/1p1bpppp/p1np4/6B1/B3P1n1/2PQ1N2/PP3PPP/RN2R1K1 b kq - 0 10',
-      error_number: 0,
-    },
-    {
-      fen: 'r1bq1rk1/1p2npb1/p6p/3p2p1/3P3B/2N5/PP2BPPP/R2QR1K1 w - - 0 15',
-      error_number: 0,
-    },
-    {
-      fen:
-        'r3r1k1/pbq1bppp/4pnn1/2p1B1N1/2P2P2/1P1B2N1/P3Q1PP/4RRK1 b - - 4 17',
-      error_number: 0,
-    },
-    {
-      fen: '4k3/5p2/p1q1pbp1/1pr1P3/3n1P2/1B2B2Q/PP3P2/3R3K w - - 1 28',
-      error_number: 0,
-    },
-    {
-      fen: '2k4r/pp1r1p1p/8/2Pq1p2/1Pn2P2/PQ3NP1/3p1NKP/R7 b - - 0 28',
-      error_number: 0,
-    },
-    {
-      fen: 'rnbqkb1r/ppp2ppp/3p1n2/4N3/4P3/8/PPPP1PPP/RNBQKB1R w KQkq - 0 4',
-      error_number: 0,
-    },
-    {
-      fen: '3r1rk1/Qpp2p1p/7q/1P2P1p1/2B1Rn2/6NP/P4P1P/5RK1 b - - 0 22',
-      error_number: 0,
-    },
-    {
-      fen:
-        'rn2kb1r/2qp1ppp/b3pn2/2pP2B1/1pN1P3/5P2/PP4PP/R2QKBNR w KQkq - 4 11',
-      error_number: 0,
-    },
-    {
-      fen: 'r3k2r/pp1nbp1p/2p2pb1/3p4/3P3N/2N1P3/PP3PPP/R3KB1R w KQkq - 4 12',
-      error_number: 0,
-    },
-    {
-      fen: 'rn1qr1k1/pbppbppp/1p3n2/3P4/8/P1N1P1P1/1P2NPBP/R1BQK2R b KQ - 2 10',
-      error_number: 0,
-    },
-    {
-      fen:
-        'r1bqk2r/pp1nbppp/2p2n2/3p2B1/3P4/2N1PN2/PP3PPP/R2QKB1R w KQkq - 1 8',
-      error_number: 0,
-    },
-    {
-      fen: 'r1bqk2r/pppp1pp1/2n2n1p/8/1bPN3B/2N5/PP2PPPP/R2QKB1R b KQkq - 1 7',
-      error_number: 0,
-    },
-    {
-      fen: 'r1bqk2r/1pppbppp/p1n2n2/4p3/B3P3/5N2/PPPP1PPP/RNBQ1RK1 w kq - 4 6',
-      error_number: 0,
-    },
-    {
-      fen:
-        'r1b1kb1r/p2p1ppp/1qp1p3/3nP3/2P1NP2/8/PP4PP/R1BQKB1R b KQkq c3 0 10',
-      error_number: 0,
-    },
-    { fen: '8/R7/2b5/3k2K1/P1p1r3/2B5/1P6/8 b - - 8 74', error_number: 0 },
-    {
-      fen: '2q5/5pk1/5p1p/4b3/1p1pP3/7P/1Pr3P1/R2Q1RK1 w - - 14 37',
-      error_number: 0,
-    },
-    {
-      fen: 'r4rk1/1bqnbppp/p2p4/1p2p3/3BPP2/P1NB4/1PP3PP/3RQR1K w - - 0 16',
-      error_number: 0,
-    },
-    {
-      fen: 'r1bqk2r/pp1n1ppp/2pbpn2/6N1/3P4/3B1N2/PPP2PPP/R1BQK2R w KQkq - 2 8',
-      error_number: 0,
-    },
-    {
-      fen: 'r1b1kb1r/pp3ppp/1qnppn2/8/2B1PB2/1NN5/PPP2PPP/R2QK2R b KQkq - 1 8',
-      error_number: 0,
-    },
-    {
-      fen: '1r3r1k/2q1n1pb/pn5p/1p2pP2/6B1/PPNRQ2P/2P1N1P1/3R3K b - - 0 28',
-      error_number: 0,
-    },
-    {
-      fen:
-        'rnbqk2r/ppp1bppp/4pn2/3p2B1/2PP4/2N2N2/PP2PPPP/R2QKB1R b KQkq - 3 5',
-      error_number: 0,
-    },
-    {
-      fen: '2r3k1/5pp1/p2p3p/1p1Pp2P/5b2/8/qP1K2P1/3QRB1R w - - 0 26',
-      error_number: 0,
-    },
-    {
-      fen: '6k1/1Q3p2/2p1r3/B1Pn2p1/3P1b1p/5P1P/5P2/5K2 w - - 6 47',
-      error_number: 0,
-    },
-    { fen: '8/k7/Pr2R3/7p/8/4n1P1/1r2p1P1/4R1K1 w - - 0 59', error_number: 0 },
-    {
-      fen: '8/3k4/1nbPp2p/1pK2np1/p7/PP1R1P2/2P4P/4R3 b - - 7 34',
-      error_number: 0,
-    },
-    {
-      fen: '4rbk1/rnR2p1p/pp2pnp1/3p4/3P4/1P2PB1P/P2BNPP1/R5K1 b - - 0 20',
-      error_number: 0,
-    },
-    { fen: '5r2/6pk/8/p3P1p1/1R6/7Q/1Pr2P1K/2q5 b - - 2 48', error_number: 0 },
-    {
-      fen: '1br2rk1/2q2pp1/p3bnp1/1p1p4/8/1PN1PBPP/PB1Q1P2/R2R2K1 b - - 0 19',
-      error_number: 0,
-    },
-    {
-      fen: '4r1k1/b4p2/p4pp1/1p6/3p1N1P/1P2P1P1/P4P2/3R2K1 w - - 0 30',
-      error_number: 0,
-    },
-    {
-      fen: '3rk3/1Q4p1/p3p3/4RPqp/4p2P/P7/KPP5/8 b - h3 0 33',
-      error_number: 0,
-    },
-    {
-      fen: '6k1/1p1r1pp1/5qp1/p1pBP3/Pb3n2/1Q1RB2P/1P3PP1/6K1 b - - 0 28',
-      error_number: 0,
-    },
-    {
-      fen: '3r2k1/pp2bp2/1q4p1/3p1b1p/4PB1P/2P2PQ1/P2R2P1/3R2K1 w - - 1 28',
-      error_number: 0,
-    },
-    {
-      fen: '3r4/p1qn1pk1/1p1R3p/2P1pQpP/8/4B3/5PP1/6K1 w - - 0 35',
-      error_number: 0,
-    },
-    {
-      fen: 'rnb1k1nr/pp2q1pp/2pp4/4pp2/2PPP3/8/PP2NPPP/R1BQKB1R w KQkq f6 0 8',
-      error_number: 0,
-    },
-    {
-      fen: 'rnbqkbnr/pp1ppppp/2p5/8/3PP3/8/PPP2PPP/RNBQKBNR b KQkq d3 0 2',
-      error_number: 0,
-    },
-    {
-      fen: '4q1k1/6p1/p2rnpPp/1p2p3/7P/1BP5/PP3Q2/1K3R2 w - - 0 34',
-      error_number: 0,
-    },
-    {
-      fen: '3r2k1/p1q2pp1/1n2rn1p/1B2p3/P1p1P3/2P3BP/4QPP1/1R2R1K1 b - - 1 25',
-      error_number: 0,
-    },
-    { fen: '8/p7/1b2BkR1/5P2/4K3/7r/P7/8 b - - 9 52', error_number: 0 },
-    {
-      fen: '2rq2k1/p4p1p/1p1prp2/1Ppb4/8/P1QPP1P1/1B3P1P/R3R1K1 w - - 2 20',
-      error_number: 0,
-    },
-    {
-      fen: '8/1pQ3bk/p2p1qp1/P2Pp2p/NP6/7P/5PP1/6K1 w - - 1 36',
-      error_number: 0,
-    },
-    {
-      fen: '8/1pQ3bk/p2p2p1/P2Pp2p/1P5P/2N3P1/2q2PK1/8 b - - 0 39',
-      error_number: 0,
-    },
-    {
-      fen:
-        'r1bq1rk1/pp2n1bp/2pp1np1/3PppN1/1PP1P3/2N2B2/P4PPP/R1BQR1K1 w - - 0 13',
-      error_number: 0,
-    },
-    {
-      fen: '1r4k1/5p2/3P2pp/p3Pp2/5q2/2Q2P1P/5P2/4R1K1 w - - 0 29',
-      error_number: 0,
-    },
-    {
-      fen: 'rnbqkbnr/pp2pppp/3p4/8/3pP3/5N2/PPP2PPP/RNBQKB1R w KQkq - 0 4',
-      error_number: 0,
-    },
-    {
-      fen:
-        'R2qk2r/2p2ppp/1bnp1n2/1p2p3/3PP1b1/1BP2N2/1P3PPP/1NBQ1RK1 b k - 0 11',
-      error_number: 0,
-    },
-    {
-      fen: '6k1/4qp2/3p2p1/3Pp2p/7P/4Q1P1/5PBK/8 b - - 20 57',
-      error_number: 0,
-    },
-    { fen: '3k4/r3q3/3p1p2/2pB4/P7/7P/6P1/1Q4K1 b - - 6 43', error_number: 0 },
-    {
-      fen: '5k2/1n4p1/2p2p2/p2q1B1P/P4PK1/6P1/1Q6/8 b - - 4 46',
-      error_number: 0,
-    },
-    {
-      fen: '6k1/pr2pb2/5pp1/1B1p4/P7/4QP2/1PP3Pq/2KR4 w - - 1 27',
-      error_number: 0,
-    },
-    {
-      fen:
-        '1rbqk2r/2pp1ppp/2n2n2/1pb1p3/4P3/1BP2N2/1P1P1PPP/RNBQ1RK1 b k - 0 9',
-      error_number: 0,
-    },
-    {
-      fen: '6r1/2p5/pbpp1k1r/5b2/3P1N1p/1PP2N1P/P4R2/2K1R3 w - - 4 33',
-      error_number: 0,
-    },
-    {
-      fen: 'rnbqkb1r/pppppppp/5n2/8/3P4/5N2/PPP1PPPP/RNBQKB1R b KQkq - 2 2',
-      error_number: 0,
-    },
-    {
-      fen: 'rnbqkb1r/pppppppp/5n2/8/2PP4/8/PP2PPPP/RNBQKBNR b KQkq c3 0 2',
-      error_number: 0,
-    },
-    {
-      fen: '4b3/5p1k/r7/p3BNQp/4P1pP/1r1n4/1P3P1N/7K b - - 2 40',
-      error_number: 0,
-    },
-    {
-      fen:
-        'r2q1rk1/pb1p2pp/1p1bpnn1/5p2/2PP4/PPN1BP1P/2B1N1P1/1R1Q1R1K b - - 2 16',
-      error_number: 0,
-    },
-    {
-      fen: 'rnbqkbnr/ppp1pppp/8/8/2pP4/5N2/PP2PPPP/RNBQKB1R b KQkq - 1 3',
-      error_number: 0,
-    },
-    {
-      fen: '4rrk1/8/p1pR4/1p6/1PPKNq2/3P1p2/PB5n/R2Q4 b - - 6 40',
-      error_number: 0,
-    },
-    {
-      fen: 'r1bqk1nr/1p2bppp/p1np4/4p3/2P1P3/N1N5/PP3PPP/R1BQKB1R b KQkq - 1 8',
-      error_number: 0,
-    },
-    {
-      fen: 'r1bqk2r/pp2bppp/2n1p3/3n4/3P4/2NB1N2/PP3PPP/R1BQ1RK1 b kq - 3 9',
-      error_number: 0,
-    },
-    {
-      fen: 'r1bqkbnr/pppp2pp/2n5/1B2p3/3Pp3/5N2/PPP2PPP/RNBQK2R w KQkq - 0 5',
-      error_number: 0,
-    },
-    {
-      fen: '2n1r3/p1k2pp1/B1p3b1/P7/5bP1/2N1B3/1P2KP2/2R5 b - - 4 25',
-      error_number: 0,
-    },
-    {
-      fen: 'r4rk1/2q3pp/4p3/p1Pn1p2/1p1P4/4PP2/1B1Q2PP/R3R1K1 w - - 0 22',
-      error_number: 0,
-    },
-    { fen: '8/8/1p6/3b4/1P1k1p2/8/3KBP2/8 w - - 2 68', error_number: 0 },
-    {
-      fen: '2b2k2/1p5p/2p5/p1p1q3/2PbN3/1P5P/P5B1/3RR2K w - - 4 33',
-      error_number: 0,
-    },
-    {
-      fen: '1b6/5kp1/5p2/1b1p4/1P6/4PPq1/2Q2RNp/7K b - - 2 41',
-      error_number: 0,
-    },
-    {
-      fen: 'r3r1k1/p2nqpp1/bpp2n1p/3p4/B2P4/P1Q1PP2/1P2NBPP/R3K2R w KQ - 6 16',
-      error_number: 0,
-    },
-    {
-      fen: 'r3k2r/8/p4p2/3p2p1/4b3/2R2PP1/P6P/4R1K1 b kq - 0 27',
-      error_number: 0,
-    },
-    {
-      fen: 'r1rb2k1/5ppp/pqp5/3pPb2/QB1P4/2R2N2/P4PPP/2R3K1 b - - 7 23',
-      error_number: 0,
-    },
-    {
-      fen: '3r1r2/3P2pk/1p1R3p/1Bp2p2/6q1/4Q3/PP3P1P/7K w - - 4 30',
-      error_number: 0,
-    },
-  ]
-
-  positions.forEach(function (position) {
-    it(
-      position.fen + ' (valid: ' + (position.error_number == 0) + ')',
-      function () {
-        const result = validateFen(position.fen)
-        expect(result.error_number == position.error_number).toBe(true)
-      }
-    )
-  })
-})
-
-describe('History', function () {
-  it('default', function () {
+describe('.history', () => {
+  it('default', () => {
     const chess = new Chess()
     const fen = '4q2k/2r1r3/4PR1p/p1p5/P1Bp1Q1P/1P6/6P1/6K1 b - - 4 41'
     const moves = [
@@ -2221,18 +1623,13 @@ describe('History', function () {
       'Qf4',
     ]
 
-    for (const move of moves) {
-      chess.move(move)
-    }
-
+    moves.forEach((move) => chess.move(move))
     const history = chess.history()
-
     expect(fen).toEqual(chess.fen())
-    expect(history.length).toEqual(moves.length)
     expect(moves).toEqual(history)
   })
 
-  it('verbose', function () {
+  it('verbose', () => {
     const chess = new Chess()
     const fen = '4q2k/2r1r3/4PR1p/p1p5/P1Bp1Q1P/1P6/6P1/6K1 b - - 4 41'
     const moves: Move[] = [
@@ -2439,21 +1836,17 @@ describe('History', function () {
       { color: 'w', from: 'e4', to: 'f4', flags: 'n', piece: 'q', san: 'Qf4' },
     ]
 
-    for (const move of moves) {
-      chess.move(move)
-    }
-
+    moves.forEach((move) => chess.move(move))
     const history = chess.history({ verbose: true })
-
     expect(fen).toEqual(chess.fen())
-    expect(history.length).toEqual(moves.length)
     expect(moves).toEqual(history)
   })
 })
 
-describe('Board Tests', function () {
-  const tests = [
+describe('.board', () => {
+  const examples = [
     {
+      name: 'initial position',
       fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
       board: [
         [
@@ -2502,8 +1895,8 @@ describe('Board Tests', function () {
         ],
       ],
     },
-    // checkmate
     {
+      name: 'checkmate',
       fen: 'r3k2r/ppp2p1p/2n1p1p1/8/2B2P1q/2NPb1n1/PP4PP/R2Q3K w kq - 0 8',
       board: [
         [
@@ -2581,49 +1974,16 @@ describe('Board Tests', function () {
     },
   ]
 
-  tests.forEach(function (test) {
-    it('Board - ' + test.fen, function () {
-      const chess = new Chess(test.fen)
-      expect(JSON.stringify(chess.board()) === JSON.stringify(test.board)).toBe(
-        true
-      )
+  examples.forEach(({ name, fen, board }) => {
+    it(name, () => {
+      const chess = new Chess(fen)
+      expect(chess.board()).toEqual(board)
     })
   })
 })
 
-describe('Parse PGN Headers', function () {
-  it('Github Issue #191 - whitespace before closing bracket', function () {
-    const pgn = [
-      '[Event "Reykjavik WCh"]',
-      '[Site "Reykjavik WCh"]',
-      '[Date "1972.01.07" ]',
-      '[EventDate "?"]',
-      '[Round "6"]',
-      '[Result "1-0"]',
-      '[White "Robert James Fischer"]',
-      '[Black "Boris Spassky"]',
-      '[ECO "D59"]',
-      '[WhiteElo "?"]',
-      '[BlackElo "?"]',
-      '[PlyCount "81"]',
-      '',
-      '1. c4 e6 2. Nf3 d5 3. d4 Nf6 4. Nc3 Be7 5. Bg5 O-O 6. e3 h6',
-      '7. Bh4 b6 8. cxd5 Nxd5 9. Bxe7 Qxe7 10. Nxd5 exd5 11. Rc1 Be6',
-      '12. Qa4 c5 13. Qa3 Rc8 14. Bb5 a6 15. dxc5 bxc5 16. O-O Ra7',
-      '17. Be2 Nd7 18. Nd4 Qf8 19. Nxe6 fxe6 20. e4 d4 21. f4 Qe7',
-      '22. e5 Rb8 23. Bc4 Kh8 24. Qh3 Nf8 25. b3 a5 26. f5 exf5',
-      '27. Rxf5 Nh7 28. Rcf1 Qd8 29. Qg3 Re7 30. h4 Rbb7 31. e6 Rbc7',
-      '32. Qe5 Qe8 33. a4 Qd8 34. R1f2 Qe8 35. R2f3 Qd8 36. Bd3 Qe8',
-      '37. Qe4 Nf6 38. Rxf6 gxf6 39. Rxf6 Kg8 40. Bc4 Kh8 41. Qf4 1-0',
-    ]
-    const chess = new Chess()
-    chess.loadPgn(pgn.join('\n'))
-    expect(chess.header['Date']).toBe('1972.01.07')
-  })
-})
-
-describe('Regression Tests', function () {
-  it('Github Issue #32 - castling flag reappearing', function () {
+describe('Regression Tests', () => {
+  it('Github Issue #32 - castling flag reappearing', () => {
     const chess = new Chess(
       'b3k2r/5p2/4p3/1p5p/6p1/2PR2P1/BP3qNP/6QK b k - 2 28'
     )
@@ -2633,15 +1993,15 @@ describe('Regression Tests', function () {
     ).toBe(true)
   })
 
-  it('Github Issue #58 - placing more than one king', function () {
+  it('Github Issue #58 - placing more than one king', () => {
     const chess = new Chess('N3k3/8/8/8/8/8/5b2/4K3 w - - 0 1')
-    expect(chess.put({ type: 'k', color: 'w' }, 'a1')).toBe(false)
-    chess.put({ type: 'q', color: 'w' }, 'a1')
-    chess.remove('a1')
+    expect(chess.putPiece({ type: 'k', color: 'w' }, 'a1')).toBe(false)
+    chess.putPiece({ type: 'q', color: 'w' }, 'a1')
+    chess.removePiece('a1')
     expect(chess.moves().join(' ')).toBe('Kd2 Ke2 Kxf2 Kf1 Kd1')
   })
 
-  it('Github Issue #85 (white) - SetUp and FEN should be accepted in loadPgn', function () {
+  it('Github Issue #85 (white) - SetUp and FEN should be accepted in loadPgn', () => {
     const chess = new Chess()
     const pgn = [
       '[SetUp "1"]',
@@ -2654,7 +2014,7 @@ describe('Regression Tests', function () {
     expect(chess.fen()).toBe('7k/5K2/7R/8/8/8/8/8 b KQkq - 1 1')
   })
 
-  it('Github Issue #85 (black) - SetUp and FEN should be accepted in loadPgn', function () {
+  it('Github Issue #85 (black) - SetUp and FEN should be accepted in loadPgn', () => {
     const chess = new Chess()
     const pgn = [
       '[SetUp "1"]',
@@ -2669,19 +2029,19 @@ describe('Regression Tests', function () {
     )
   })
 
-  it('Github Issue #98 (white) - Wrong movement number after setting a position via FEN', function () {
+  it('Github Issue #98 (white) - Wrong movement number after setting a position via FEN', () => {
     const chess = new Chess('4r3/8/2p2PPk/1p6/pP2p1R1/P1B5/2P2K2/3r4 w - - 1 45')
     chess.move('f7')
     expect(chess.pgn()).toContain('45. f7')
   })
 
-  it('Github Issue #98 (black) - Wrong movement number after setting a position via FEN', function () {
+  it('Github Issue #98 (black) - Wrong movement number after setting a position via FEN', () => {
     const chess = new Chess('4r3/8/2p2PPk/1p6/pP2p1R1/P1B5/2P2K2/3r4 b - - 1 45')
     chess.move('Rf1+')
     expect(chess.pgn()).toContain('45...Rf1+')
   })
 
-  it('Github Issue #129 loadPgn() should not clear headers if PGN contains SetUp and FEN tags', function () {
+  it('Github Issue #129 loadPgn() should not clear headers if PGN contains SetUp and FEN tags', () => {
     const pgn = [
       '[Event "Test Olympiad"]',
       '[Site "Earth"]',
@@ -2712,7 +2072,7 @@ describe('Regression Tests', function () {
     expect(chess.header).toEqual(expected)
   })
 
-  it('Github Issue #129 clear() should clear the board and delete all headers with the exception of SetUp and FEN', function () {
+  it('Github Issue #129 clear() should clear the board and delete all headers with the exception of SetUp and FEN', () => {
     const pgn = [
       '[Event "Test Olympiad"]',
       '[Site "Earth"]',
@@ -2738,17 +2098,8 @@ describe('Regression Tests', function () {
   })
 })
 
-describe('Move Dry-Run', function () {
-  it('does not update the state', function () {
-    const chess = new Chess()
-    const fen = chess.fen()
-    chess.move('e4', { dry_run: true })
-    expect(chess.fen()).toEqual(fen)
-  })
-})
-
-describe('Validate Moves', function () {
-  it('valid moves', function () {
+describe('.validateMoves', () => {
+  it('returns moves', () => {
     const chess = new Chess()
     const moves = ['e4', 'e5', 'Nf3', 'Nc6']
     const expected = [
@@ -2789,8 +2140,8 @@ describe('Validate Moves', function () {
   })
 })
 
-describe('ASCII Generation', function () {
-  it('works', function () {
+describe('.ascii', () => {
+  it('initial position', () => {
     const chess = new Chess()
     expect(chess.ascii()).toBe(
       '  +------------------------+\n' +
