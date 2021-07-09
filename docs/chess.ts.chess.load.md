@@ -9,7 +9,7 @@ Clears the board and loads the Forsyth–Edwards Notation (FEN) string.
 <b>Signature:</b>
 
 ```typescript
-load(fen: string, keepHeaders?: boolean): boolean;
+load(fen: string): boolean;
 ```
 
 ## Parameters
@@ -17,7 +17,6 @@ load(fen: string, keepHeaders?: boolean): boolean;
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  fen | string | FEN string |
-|  keepHeaders | boolean | Flag to keep headers |
 
 <b>Returns:</b>
 

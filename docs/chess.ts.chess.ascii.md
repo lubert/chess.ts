@@ -9,14 +9,14 @@ Returns a string containing an ASCII diagram of the current position.
 <b>Signature:</b>
 
 ```typescript
-ascii(eol?: string): string;
+ascii(newline_char?: string): string;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  eol | string |  |
+|  newline\_char | string |  |
 
 <b>Returns:</b>
 

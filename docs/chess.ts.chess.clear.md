@@ -16,7 +16,7 @@ clear(keepHeaders?: boolean): void;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  keepHeaders | boolean | Flag to keep headers |
+|  keepHeaders | boolean |  |
 
 <b>Returns:</b>
 

@@ -4,16 +4,16 @@
 
 ## Chess.deleteComments() method
 
-Delete and return comments for all positions.
+Delete and return comments for all positions in the current branch.
 
 <b>Signature:</b>
 
 ```typescript
-deleteComments(): FenComment[];
+deleteComments(): CommentMap;
 ```
 <b>Returns:</b>
 
-[FenComment](./chess.ts.fencomment.md)<!-- -->\[\]
+CommentMap
 
 ## Example
 

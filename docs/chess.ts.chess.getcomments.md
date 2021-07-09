@@ -9,11 +9,11 @@ Retrieve comments for all positions.
 <b>Signature:</b>
 
 ```typescript
-getComments(): FenComment[];
+getComments(): CommentMap;
 ```
 <b>Returns:</b>
 
-[FenComment](./chess.ts.fencomment.md)<!-- -->\[\]
+CommentMap
 
 ## Example
 
@@ -24,16 +24,10 @@ const chess = new Chess()
 chess.loadPgn("1. e4 e5 {king's pawn opening} 2. Nf3 Nc6 3. Bc4 Bc5 {giuoco piano} *")
 
 chess.getComments()
-// -> [
-//     {
-//       fen: "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2",
-//       comment: "king's pawn opening"
-//     },
-//     {
-//       fen: "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3",
-//       comment: "giuoco piano"
-//     }
-//    ]
+// -> {
+//      "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2": "king's pawn opening",
+//      "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3": "giuoco piano"
+//    }
 
 ```
 

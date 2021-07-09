@@ -2,14 +2,14 @@
 
 [Home](./index.md) &gt; [chess.ts](./chess.ts.md) &gt; [State](./chess.ts.state.md) &gt; [clone](./chess.ts.state.clone.md)
 
-## State.clone() method
+## BoardState.clone() method
 
 <b>Signature:</b>
 
 ```typescript
-clone(): State;
+clone(): BoardState;
 ```
 <b>Returns:</b>
 
-[State](./chess.ts.state.md)
+[BoardState](./chess.ts.boardstate.md)
 

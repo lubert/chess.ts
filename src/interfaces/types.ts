@@ -1,7 +1,7 @@
 import { BoardState } from "../models/BoardState"
 import { TreeNode } from "treenode.ts"
 
-export type ArrayOrObject<T> = Array<T | ArrayOrObject<T>>
+export type ValueOrArray<T> = T | Array<ValueOrArray<T>>
 
 export type GameNode = TreeNode<GameState>
 

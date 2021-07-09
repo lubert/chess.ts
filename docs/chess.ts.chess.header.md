@@ -2,25 +2,11 @@
 
 [Home](./index.md) &gt; [chess.ts](./chess.ts.md) &gt; [Chess](./chess.ts.chess.md) &gt; [header](./chess.ts.chess.header.md)
 
-## Chess.header() method
+## Chess.header property
 
-Returns PGN header information as an object.
 
 <b>Signature:</b>
 
 ```typescript
-header(): Record<string, string>;
+header: HeaderMap;
 ```
-<b>Returns:</b>
-
-Record&lt;string, string&gt;
-
-## Example
-
-
-```js
-chess.header()
-// -> { White: 'Morphy', Black: 'Anderssen', Date: '1858-??-??' }
-
-```
-

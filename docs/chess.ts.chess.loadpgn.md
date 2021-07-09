@@ -15,10 +15,7 @@ The method will return `true` if the PGN was parsed successfully, otherwise `fal
 <b>Signature:</b>
 
 ```typescript
-loadPgn(pgn: string, options?: {
-        newline_char?: string;
-        sloppy?: boolean;
-    }): boolean;
+loadPgn(pgn: string): boolean;
 ```
 
 ## Parameters
@@ -26,7 +23,6 @@ loadPgn(pgn: string, options?: {
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  pgn | string |  |
-|  options | { newline\_char?: string; sloppy?: boolean; } |  |
 
 <b>Returns:</b>
 

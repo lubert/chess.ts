@@ -9,9 +9,7 @@ Checks if a move results in a promotion.
 <b>Signature:</b>
 
 ```typescript
-isPromotion(move: string | PartialMove, options?: {
-        sloppy?: boolean;
-    }): boolean;
+isPromotion(move: string | PartialMove): boolean;
 ```
 
 ## Parameters
@@ -19,7 +17,6 @@ isPromotion(move: string | PartialMove, options?: {
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  move | string \| [PartialMove](./chess.ts.partialmove.md) | Case-sensitive SAN string or object, e.g. <code>'Nxb7'</code> or <code>{ from: 'h7', to: 'h8' }</code> |
-|  options | { sloppy?: boolean; } | Options to enable parsing of a variety of non-standard move notations |
 
 <b>Returns:</b>
 

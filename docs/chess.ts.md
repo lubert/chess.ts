@@ -8,8 +8,8 @@
 
 |  Class | Description |
 |  --- | --- |
+|  [BoardState](./chess.ts.boardstate.md) |  |
 |  [Chess](./chess.ts.chess.md) |  |
-|  [State](./chess.ts.state.md) |  |
 
 ## Functions
 
@@ -41,7 +41,6 @@
 |  Type Alias | Description |
 |  --- | --- |
 |  [Color](./chess.ts.color.md) |  |
-|  [FenComment](./chess.ts.fencomment.md) |  |
 |  [Move](./chess.ts.move.md) | Represents a chess move |
 |  [PartialMove](./chess.ts.partialmove.md) |  |
 |  [Piece](./chess.ts.piece.md) |  |

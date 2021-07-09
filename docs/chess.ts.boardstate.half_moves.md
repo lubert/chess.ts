@@ -2,7 +2,7 @@
 
 [Home](./index.md) &gt; [chess.ts](./chess.ts.md) &gt; [State](./chess.ts.state.md) &gt; [half\_moves](./chess.ts.state.half_moves.md)
 
-## State.half\_moves property
+## BoardState.half\_moves property
 
 <b>Signature:</b>
 

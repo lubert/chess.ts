@@ -2,7 +2,7 @@
 
 [Home](./index.md) &gt; [chess.ts](./chess.ts.md) &gt; [State](./chess.ts.state.md) &gt; [ep\_square](./chess.ts.state.ep_square.md)
 
-## State.ep\_square property
+## BoardState.ep\_square property
 
 <b>Signature:</b>
 

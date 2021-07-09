@@ -2,7 +2,7 @@
 
 [Home](./index.md) &gt; [chess.ts](./chess.ts.md) &gt; [State](./chess.ts.state.md) &gt; [castling](./chess.ts.state.castling.md)
 
-## State.castling property
+## BoardState.castling property
 
 <b>Signature:</b>
 

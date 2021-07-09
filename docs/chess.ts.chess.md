@@ -17,23 +17,28 @@ export declare class Chess
 |  --- | --- | --- |
 |  [(constructor)(fen)](./chess.ts.chess._constructor_.md) |  | The Chess() constructor takes an optional parameter which specifies the board configuration in \[Forsyth-Edwards Notation\](http://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards\_Notation). |
 
+## Properties
+
+|  Property | Modifiers | Type | Description |
+|  --- | --- | --- | --- |
+|  [header](./chess.ts.chess.header.md) |  | HeaderMap |  |
+|  [tree](./chess.ts.chess.tree.md) |  | Readonly&lt;GameNode&gt; |  |
+
 ## Methods
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [addHeader(key, val)](./chess.ts.chess.addheader.md) |  | Adds a PGN header entry |
-|  [ascii(eol)](./chess.ts.chess.ascii.md) |  | Returns a string containing an ASCII diagram of the current position. |
+|  [ascii(newline\_char)](./chess.ts.chess.ascii.md) |  | Returns a string containing an ASCII diagram of the current position. |
 |  [board()](./chess.ts.chess.board.md) |  | Returns an 2D array representation of the current position. Empty squares are represented by <code>null</code>. |
 |  [clear(keepHeaders)](./chess.ts.chess.clear.md) |  | Clears the board. |
-|  [clearHeader()](./chess.ts.chess.clearheader.md) |  | Removes all PGN header information. |
-|  [deleteComment(fen)](./chess.ts.chess.deletecomment.md) |  | Delete and return the comment for a position, if it exists. |
-|  [deleteComments()](./chess.ts.chess.deletecomments.md) |  | Delete and return comments for all positions. |
+|  [deleteComment(fen)](./chess.ts.chess.deletecomment.md) |  | Delete and return the comment for a position in the current branch, it exists. |
+|  [deleteComments()](./chess.ts.chess.deletecomments.md) |  | Delete and return comments for all positions in the current branch. |
 |  [fen()](./chess.ts.chess.fen.md) |  | Returns the FEN string for the current position. |
 |  [gameOver()](./chess.ts.chess.gameover.md) |  | Returns true if the game has ended via checkmate, stalemate, draw, threefold repetition, or insufficient material. Otherwise, returns false. |
-|  [get(square)](./chess.ts.chess.get.md) |  | Returns the piece on the square. |
 |  [getComment(fen)](./chess.ts.chess.getcomment.md) |  | Retrieve the comment for a position, if it exists. |
 |  [getComments()](./chess.ts.chess.getcomments.md) |  | Retrieve comments for all positions. |
-|  [header()](./chess.ts.chess.header.md) |  | Returns PGN header information as an object. |
+|  [getPiece(square)](./chess.ts.chess.getpiece.md) |  | Returns the piece on the square. |
+|  [getPieces()](./chess.ts.chess.getpieces.md) |  | Returns a map of squares to pieces. |
 |  [history(options)](./chess.ts.chess.history.md) |  | Returns a list containing the moves of the current game. |
 |  [history(options)](./chess.ts.chess.history_1.md) |  | Returns a list containing the moves of the current game. |
 |  [inCheck()](./chess.ts.chess.incheck.md) |  | Returns true or false if the side to move is in check. |
@@ -42,22 +47,20 @@ export declare class Chess
 |  [inStalemate()](./chess.ts.chess.instalemate.md) |  | Returns true or false if the side to move has been stalemated. |
 |  [insufficientMaterial()](./chess.ts.chess.insufficientmaterial.md) |  | Returns true if the game is drawn due to insufficient material (K vs. K, K vs. KB, or K vs. KN) otherwise false. |
 |  [inThreefoldRepetition()](./chess.ts.chess.inthreefoldrepetition.md) |  | Returns true or false if the current board position has occurred three or more times. |
-|  [isPromotion(move, options)](./chess.ts.chess.ispromotion.md) |  | Checks if a move results in a promotion. |
-|  [load(fen, keepHeaders)](./chess.ts.chess.load.md) |  | Clears the board and loads the Forsyth–Edwards Notation (FEN) string. |
-|  [loadPgn(pgn, options)](./chess.ts.chess.loadpgn.md) |  | Load the moves of a game stored in \[Portable Game Notation\](http://en.wikipedia.org/wiki/Portable\_Game\_Notation). <code>pgn</code> should be a string. Options is an optional <code>object</code> which may contain a string <code>newline_char</code> and a boolean <code>sloppy</code>.<!-- -->The <code>newline_char</code> is a string representation of a valid RegExp fragment and is used to process the PGN. It defaults to <code>\r?\n</code>. Special characters should not be pre-escaped, but any literal special characters should be escaped as is normal for a RegExp. Keep in mind that backslashes in JavaScript strings must themselves be escaped (see <code>sloppy_pgn</code> example below). Avoid using a <code>newline_char</code> that may occur elsewhere in a PGN, such as <code>.</code> or <code>x</code>, as this will result in unexpected behavior.<!-- -->The <code>sloppy</code> flag is a boolean that permits chess.js to parse moves in non-standard notations. See <code>.move</code> documentation for more information about non-SAN notations.<!-- -->The method will return <code>true</code> if the PGN was parsed successfully, otherwise <code>false</code>. |
+|  [isPromotion(move)](./chess.ts.chess.ispromotion.md) |  | Checks if a move results in a promotion. |
+|  [load(fen)](./chess.ts.chess.load.md) |  | Clears the board and loads the Forsyth–Edwards Notation (FEN) string. |
+|  [loadPgn(pgn)](./chess.ts.chess.loadpgn.md) |  | Load the moves of a game stored in \[Portable Game Notation\](http://en.wikipedia.org/wiki/Portable\_Game\_Notation). <code>pgn</code> should be a string. Options is an optional <code>object</code> which may contain a string <code>newline_char</code> and a boolean <code>sloppy</code>.<!-- -->The <code>newline_char</code> is a string representation of a valid RegExp fragment and is used to process the PGN. It defaults to <code>\r?\n</code>. Special characters should not be pre-escaped, but any literal special characters should be escaped as is normal for a RegExp. Keep in mind that backslashes in JavaScript strings must themselves be escaped (see <code>sloppy_pgn</code> example below). Avoid using a <code>newline_char</code> that may occur elsewhere in a PGN, such as <code>.</code> or <code>x</code>, as this will result in unexpected behavior.<!-- -->The <code>sloppy</code> flag is a boolean that permits chess.js to parse moves in non-standard notations. See <code>.move</code> documentation for more information about non-SAN notations.<!-- -->The method will return <code>true</code> if the PGN was parsed successfully, otherwise <code>false</code>. |
 |  [move(move, options)](./chess.ts.chess.move.md) |  | Attempts to make a move on the board, returning a move object if the move was legal, otherwise null. The .move function can be called two ways, by passing a string in Standard Algebraic Notation (SAN): |
 |  [moves(options)](./chess.ts.chess.moves.md) |  | Returns a list of legal moves from the current position. The function takes an optional parameter which controls the single-square move generation and verbosity. |
 |  [moves(options)](./chess.ts.chess.moves_1.md) |  | Returns a list of legal moves from the current position. The function takes an optional parameter which controls the single-square move generation and verbosity. |
 |  [pgn(options)](./chess.ts.chess.pgn.md) |  | Returns the game in PGN format. Options is an optional parameter which may include max width and/or a newline character settings. |
-|  [put(piece, square)](./chess.ts.chess.put.md) |  | Place a piece on the square where piece is an object with the form <code>{ type: ..., color: ... }</code>. Returns true if the piece was successfully placed, otherwise, the board remains unchanged and false is returned. <code>put()</code> will fail when passed an invalid piece or square, or when two or more kings of the same color are placed. |
-|  [remove(square)](./chess.ts.chess.remove.md) |  | Remove and return the piece on <code>square</code>. |
-|  [removeHeader(key)](./chess.ts.chess.removeheader.md) |  | Removes a PGN header entry |
+|  [putPiece(piece, square)](./chess.ts.chess.putpiece.md) |  | Place a piece on the square where piece is an object with the form <code>{ type: ..., color: ... }</code>. Returns true if the piece was successfully placed, otherwise, the board remains unchanged and false is returned. <code>put()</code> will fail when passed an invalid piece or square, or when two or more kings of the same color are placed. |
+|  [removePiece(square)](./chess.ts.chess.removepiece.md) |  | Remove and return the piece on <code>square</code>. |
 |  [reset()](./chess.ts.chess.reset.md) |  | Reset the board to the initial starting position. |
 |  [setComment(comment, fen)](./chess.ts.chess.setcomment.md) |  | Comment on a position. |
-|  [setHeader(header)](./chess.ts.chess.setheader.md) |  | Sets PGN header information. |
 |  [squareColor(square)](./chess.ts.chess.squarecolor.md) |  | Returns the color of the square ('light' or 'dark'). |
 |  [turn()](./chess.ts.chess.turn.md) |  | Returns the current side to move. |
 |  [undo()](./chess.ts.chess.undo.md) |  | Takeback the last half-move, returning a move object if successful, otherwise null. |
 |  [validateFen(fen)](./chess.ts.chess.validatefen.md) |  | Returns a validation object specifying validity or the errors found within the FEN string. |
-|  [validateMoves(moves, options)](./chess.ts.chess.validatemoves.md) |  | Validates a sequence of moves, returning an array of move objects if the moves are all legal, otherwise null. |
+|  [validateMoves(moves)](./chess.ts.chess.validatemoves.md) |  | Validates a sequence of moves, returning an array of move objects if the moves are all legal, otherwise null. |
 

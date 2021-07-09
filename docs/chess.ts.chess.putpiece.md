@@ -2,24 +2,24 @@
 
 [Home](./index.md) &gt; [chess.ts](./chess.ts.md) &gt; [Chess](./chess.ts.chess.md) &gt; [put](./chess.ts.chess.put.md)
 
-## Chess.put() method
+## Chess.putPiece() method
 
 Place a piece on the square where piece is an object with the form `{ type: ..., color: ... }`<!-- -->. Returns true if the piece was successfully placed, otherwise, the board remains unchanged and false is returned. `put()` will fail when passed an invalid piece or square, or when two or more kings of the same color are placed.
 
 <b>Signature:</b>
 
 ```typescript
-put(piece: {
-        type?: string;
-        color?: string;
-    }, square?: string): boolean;
+putPiece(piece: {
+        type: string;
+        color: string;
+    }, square: string): boolean;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  piece | { type?: string; color?: string; } | Object of the form <code>{ type: 'p', color: 'w' }</code> |
+|  piece | { type: string; color: string; } | Object of the form <code>{ type: 'p', color: 'w' }</code> |
 |  square | string | e.g. <code>'e4'</code> |
 
 <b>Returns:</b>

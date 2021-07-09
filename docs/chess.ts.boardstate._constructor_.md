@@ -2,9 +2,9 @@
 
 [Home](./index.md) &gt; [chess.ts](./chess.ts.md) &gt; [State](./chess.ts.state.md) &gt; [(constructor)](./chess.ts.state._constructor_.md)
 
-## State.(constructor)
+## BoardState.(constructor)
 
-Constructs a new instance of the `State` class
+Constructs a new instance of the `BoardState` class
 
 <b>Signature:</b>
 

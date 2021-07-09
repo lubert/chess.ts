@@ -9,8 +9,8 @@
 
 ```typescript
 export declare type PartialMove = {
-    to: string;
-    from: string;
+    to: Square;
+    from: Square;
     promotion?: PieceSymbol;
 };
 ```

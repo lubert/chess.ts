@@ -2,7 +2,7 @@
 
 [Home](./index.md) &gt; [chess.ts](./chess.ts.md) &gt; [State](./chess.ts.state.md) &gt; [turn](./chess.ts.state.turn.md)
 
-## State.turn property
+## BoardState.turn property
 
 <b>Signature:</b>
 

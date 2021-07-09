@@ -4,7 +4,7 @@
 
 ## Chess.deleteComment() method
 
-Delete and return the comment for a position, if it exists.
+Delete and return the comment for a position in the current branch, it exists.
 
 <b>Signature:</b>
 
