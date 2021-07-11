@@ -82,8 +82,9 @@ export class Chess {
     }
   }
 
-  public get tree(): Readonly<GameNode> {
-    return this._tree
+  /** @public */
+  public get state(): Readonly<BoardState> {
+    return this.boardState
   }
 
   /** @internal */
