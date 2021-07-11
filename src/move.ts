@@ -516,7 +516,6 @@ export function moveToSan(
 }
 
 export function extractMove(move: string): ParsedMove {
-  const nagMatches = move.match(REGEXP_NAG)
   const cleaned = move.replace(REGEXP_NAG, '')
   const matches: Partial<RegExpMatchArray> | null = cleaned.match(REGEXP_MOVE)
   if (!matches) return {}
@@ -528,7 +527,6 @@ export function extractMove(move: string): ParsedMove {
     to: toSquare(matches[3]),
     promotion: matches[4] ? toPieceSymbol(matches[4]) : undefined,
     check: matches[5],
-    nag: nagMatches ? nagMatches[0] : undefined,
   }
 }
 

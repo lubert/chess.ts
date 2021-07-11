@@ -38,7 +38,7 @@ import {
 import {
   file,
   isSquare,
-  notEmpty,
+  isDefined,
   rank,
   swapColor,
 } from './utils'
@@ -551,33 +551,29 @@ export class Chess {
    * chess.move('Nc3')
    * chess.move('Nc6')
    *
-   * chess.pgn({ max_width: 5, newline_char: '<br />' })
+   * chess.pgn({ width: 5, newline: '<br />' })
    * // -> '[White "Plunky"]<br />[Black "Plinkie"]<br /><br />1. e4 e5<br />2. Nc3 Nc6'
    * ```
    */
-  public pgn(options: { newline_char?: string, max_width?: number } = {}): string {
+  public pgn(options: { newline?: string, width?: number } = {}): string {
     return getPgn(this._tree, this.header, options)
   }
 
   /**
    * Load the moves of a game stored in
    * [Portable Game Notation](http://en.wikipedia.org/wiki/Portable_Game_Notation).
-   * `pgn` should be a string. Options is an optional `object` which may contain
-   * a string `newline_char` and a boolean `sloppy`.
+   * `pgn` should be a string. Options is an optional `object` which may
+   * contain a string `newline`.
    *
-   * The `newline_char` is a string representation of a valid RegExp fragment and is
-   * used to process the PGN. It defaults to `\r?\n`. Special characters
-   * should not be pre-escaped, but any literal special characters should be escaped
-   * as is normal for a RegExp. Keep in mind that backslashes in JavaScript strings
-   * must themselves be escaped (see `sloppy_pgn` example below). Avoid using
-   * a `newline_char` that may occur elsewhere in a PGN, such as `.` or `x`, as this
-   * will result in unexpected behavior.
+   * The `newline` is a string representation of a valid RegExp fragment and is
+   * used to process the PGN. It defaults to `\r?\n`. Special characters should
+   * not be pre-escaped, but any literal special characters should be escaped
+   * as is normal for a RegExp. Keep in mind that backslashes in JavaScript
+   * strings must themselves be escaped. Avoid using a `newline` that may occur
+   * elsewhere in a PGN, such as `.` or `x`, as this will result in
+   * behavior.
    *
-   * The `sloppy` flag is a boolean that permits chess.js to parse moves in
-   * non-standard notations. See `.move` documentation for more information about
-   * non-SAN notations.
-   *
-   * The method will return `true` if the PGN was parsed successfully, otherwise `false`.
+   * The method will throw an error if the PGN was not parsed successfully.
    *
    * @example
    * ```js
@@ -642,8 +638,7 @@ export class Chess {
    * ].join('|')
    *
    * const options = {
-   *     newline_char: '\\|', // Literal '|' character escaped
-   *     sloppy: true
+   *     newline: '\\|', // Literal '|' character escaped
    * }
    *
    * chess.loadPgn(sloppyPgn)
@@ -656,24 +651,11 @@ export class Chess {
    * // -> 'r1bqk2r/pppp1ppp/2P5/8/1b6/1Q3pP1/PP1PPP1P/R1B1KB1R b KQkq - 1 8'
    * ```
    */
-  public loadPgn(pgn: string): boolean {
-    try {
-      const res = loadPgn(pgn)
-      if (!res) {
-        return false
-      }
-
-      this._tree = res.tree
-      this._currentNode = res.currentNode
-      this.header = res.header
-
-      // console.log('toString', toString(this._tree))
-
-      return true
-    } catch (e) {
-      console.debug(e)
-      return false
-    }
+  public loadPgn(pgn: string, options: { newline?: string } = {}): void {
+    const { tree, currentNode, header } = loadPgn(pgn, options)
+    this._tree = tree
+    this._currentNode = currentNode
+    this.header = header
   }
 
   /**
@@ -958,7 +940,7 @@ export class Chess {
         prevState: node.parent.model.boardState,
         move: node.model.move,
       }
-    }).filter(notEmpty)
+    }).filter(isDefined)
 
     if (verbose) {
       return nodes.map(({ prevState, move }) => makePretty(prevState, move))

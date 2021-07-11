@@ -91,7 +91,7 @@ export function isFlagKey(key: string): key is FlagKey {
   return keys.indexOf(key) !== -1
 }
 
-export function notEmpty<T>(value: T | null | undefined): value is T {
+export function isDefined<T>(value: T | null | undefined): value is T {
   if (value === null || value === undefined) return false
   return true
 }

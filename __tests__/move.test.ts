@@ -95,7 +95,6 @@ describe('move', () => {
         token: 'O-O-O!',
         parsedMove: {
           san: 'O-O-O',
-          nag: '!',
         }
       },
       {

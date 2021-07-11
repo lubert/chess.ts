@@ -1,6 +1,6 @@
 import { TreeNode } from 'treenode.ts'
 import { GameState, HeaderMap, GameNode } from './interfaces/types'
-import { Nag } from './interfaces/nag'
+import { Nag, extractNags } from './interfaces/nag'
 import { WHITE, DEFAULT_POSITION, POSSIBLE_RESULTS, NULL_MOVES, CASTLING_MOVES } from './constants'
 import { moveToSan, loadFen, sanToMove, makeMove, getFen } from './move'
 import { addNag, isMainline } from './gamenode'
@@ -16,31 +16,44 @@ export function pgnHeader(header: HeaderMap): string[] {
 export function pgnMoves(node: GameNode): string[] {
   // 3. e4 {comment} (variation) e5 {comment} (variation)
   const tokens: string[] = []
-  const { move, boardState, comment } = node.model
-  if (!move) {
-    // Special case for initial commented position
-    if (comment) tokens.push(`{${comment}}`)
-  } else if (node.parent) {
-    const san = moveToSan(node.parent.model.boardState, move)
-    const isFirstMove = node.parent.model.move === undefined
+  const { boardState } = node.model
 
-    // Move
-    if (move.color === WHITE) {
-      tokens.push(`${boardState.move_number}. ${san}`)
-    } else if (isFirstMove) {
-      // Special case for first move black
-      tokens.push(`${node.parent.model.boardState.move_number}...${san}`)
-    } else {
-      tokens.push(san)
+  // Special case for initial commented position
+  if (!node.parent && node.model.comment) {
+    tokens.push(`{${node.model.comment}}`)
+  }
+
+  const formatMove = (state: GameState, isVariation=false) => {
+    const { move, comment, nags } = state
+    if (move) {
+      const isFirstMove = !node.model.move
+      const san = moveToSan(boardState, move)
+      const nagStr = nags && nags.length
+        ? ' ' + nags.map((nag) => `$${nag}`).join(' ')
+        : ''
+      // Move
+      if (move.color === WHITE) {
+        tokens.push(`${boardState.move_number}. ${san}${nagStr}`)
+      } else if (isFirstMove || isVariation) {
+        // Special case for first move black
+        tokens.push(`${boardState.move_number}...${san}${nagStr}`)
+      } else {
+        tokens.push(`${san}${nagStr}`)
+      }
     }
-
     // Comment
     if (comment) tokens.push(`{${comment}}`)
   }
 
-  // Variations
-  const mainline = node.children[0]
+  const [mainline, ...variations] = node.children
   if (mainline) {
+    formatMove(mainline.model)
+    variations.forEach((variation) => {
+      tokens.push('(')
+      formatMove(variation.model, true)
+      tokens.push(...pgnMoves(variation))
+      tokens.push(')')
+    })
     tokens.push(...pgnMoves(mainline))
   }
   return tokens
@@ -49,25 +62,27 @@ export function pgnMoves(node: GameNode): string[] {
 export function getPgn(
   tree: GameNode,
   header: HeaderMap,
-  options: { newline_char?: string } = {}
+  options: { newline?: string } = {}
 ): string {
-  const { newline_char = '\n' } = options
+  const { newline = '\n' } = options
   let pgn = ''
-  pgn += pgnHeader(header).join(newline_char) + newline_char
-  pgnMoves(tree).forEach((token) => {
-    if (token.match(/^\d/)) {
-      pgn += newline_char + token
-    } else {
-      pgn += ' ' + token
-    }
-  })
+
+  // Omit header if "Result" is the only key
+  if (!header.Result || Object.keys(header).length > 1) {
+    pgn += pgnHeader(header).join(newline) + newline + newline
+  }
+  const moves = pgnMoves(tree)
+  pgn += moves.join(' ')
   if (header.Result) pgn += ' ' + header.Result
   return pgn.trim()
 }
 
-export function loadPgn(pgn: string): { tree: GameNode, currentNode: GameNode, header: HeaderMap } {
+export function loadPgn(pgn: string, options: { newline?: string, width?: number } = {}): { tree: GameNode, currentNode: GameNode, header: HeaderMap } {
+  const { newline = '\r?\n' } = options
+
   // Split on newlines and read line by line
-  const lines = pgn.split(/\r?\n/)
+  const newlineRe = new RegExp(newline)
+  const lines = pgn.split(newlineRe)
 
   const header: HeaderMap = {}
   const moveTokens: string[] = []
@@ -81,9 +96,10 @@ export function loadPgn(pgn: string): { tree: GameNode, currentNode: GameNode, h
     header[key] = val
   }
 
+  const NULL_CHAR = '\0'
   const splitMove = (line: string) => {
     // Add a newline as a hint for discerning nested commentary tokens
-    moveTokens.push(...line.split(/\s+/), '\n')
+    moveTokens.push(...line.split(/\s+/), NULL_CHAR)
   }
 
   // Process lines
@@ -129,7 +145,7 @@ export function loadPgn(pgn: string): { tree: GameNode, currentNode: GameNode, h
       const commentTokens: string[] = []
       while (moveTokens.length) {
         token = moveTokens.shift()!
-        if (token === '\n') {
+        if (token === NULL_CHAR) {
           if (commentTokens.length) {
             currentNode.model.comment = commentTokens.join(' ')
           }
@@ -154,7 +170,7 @@ export function loadPgn(pgn: string): { tree: GameNode, currentNode: GameNode, h
           }
           currentNode.model.comment = commentTokens.join(' ')
           break
-        } else if (token === '\n') {
+        } else if (token === NULL_CHAR) {
           continue
         }
         commentTokens.push(token)
@@ -194,7 +210,7 @@ export function loadPgn(pgn: string): { tree: GameNode, currentNode: GameNode, h
       continue
     } else if (REGEXP_MOVE_NUMBER.test(token)) {
       continue
-    } else if (token === '\n') {
+    } else if (token === NULL_CHAR) {
       continue
     } else {
       const boardState = currentNode.model.boardState
@@ -209,6 +225,7 @@ export function loadPgn(pgn: string): { tree: GameNode, currentNode: GameNode, h
       currentNode = currentNode.addModel({
         boardState: nextState,
         fen: getFen(boardState),
+        nags: extractNags(token),
         move,
       })
     }

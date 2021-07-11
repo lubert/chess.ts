@@ -23,7 +23,6 @@ export type ParsedMove = {
   piece?: PieceSymbol;
   promotion?: PieceSymbol;
   check?: string;
-  nag?: string;
 }
 
 /**
