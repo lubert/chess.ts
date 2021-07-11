@@ -4,6 +4,9 @@
   "license": "BSD-2-Clause",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist/"
+  ],
   "homepage": "https://github.com/lubert/chess.ts",
   "keywords": [
     "chess"
