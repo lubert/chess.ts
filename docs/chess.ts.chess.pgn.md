@@ -10,8 +10,8 @@ Returns the game in PGN format. Options is an optional parameter which may inclu
 
 ```typescript
 pgn(options?: {
-        newline_char?: string;
-        max_width?: number;
+        newline?: string;
+        width?: number;
     }): string;
 ```
 
@@ -19,7 +19,7 @@ pgn(options?: {
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | { newline\_char?: string; max\_width?: number; } |  |
+|  options | { newline?: string; width?: number; } |  |
 
 <b>Returns:</b>
 
@@ -36,7 +36,7 @@ chess.move('e5')
 chess.move('Nc3')
 chess.move('Nc6')
 
-chess.pgn({ max_width: 5, newline_char: '<br />' })
+chess.pgn({ width: 5, newline: '<br />' })
 // -> '[White "Plunky"]<br />[Black "Plinkie"]<br /><br />1. e4 e5<br />2. Nc3 Nc6'
 
 ```

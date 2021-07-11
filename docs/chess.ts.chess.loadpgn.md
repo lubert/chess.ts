@@ -4,18 +4,18 @@
 
 ## Chess.loadPgn() method
 
-Load the moves of a game stored in \[Portable Game Notation\](http://en.wikipedia.org/wiki/Portable\_Game\_Notation). `pgn` should be a string. Options is an optional `object` which may contain a string `newline_char` and a boolean `sloppy`<!-- -->.
+Load the moves of a game stored in \[Portable Game Notation\](http://en.wikipedia.org/wiki/Portable\_Game\_Notation). `pgn` should be a string. Options is an optional `object` which may contain a string `newline`<!-- -->.
 
-The `newline_char` is a string representation of a valid RegExp fragment and is used to process the PGN. It defaults to `\r?\n`<!-- -->. Special characters should not be pre-escaped, but any literal special characters should be escaped as is normal for a RegExp. Keep in mind that backslashes in JavaScript strings must themselves be escaped (see `sloppy_pgn` example below). Avoid using a `newline_char` that may occur elsewhere in a PGN, such as `.` or `x`<!-- -->, as this will result in unexpected behavior.
+The `newline` is a string representation of a valid RegExp fragment and is used to process the PGN. It defaults to `\r?\n`<!-- -->. Special characters should not be pre-escaped, but any literal special characters should be escaped as is normal for a RegExp. Keep in mind that backslashes in JavaScript strings must themselves be escaped. Avoid using a `newline` that may occur elsewhere in a PGN, such as `.` or `x`<!-- -->, as this will result in behavior.
 
-The `sloppy` flag is a boolean that permits chess.js to parse moves in non-standard notations. See `.move` documentation for more information about non-SAN notations.
-
-The method will return `true` if the PGN was parsed successfully, otherwise `false`<!-- -->.
+The method will throw an error if the PGN was not parsed successfully.
 
 <b>Signature:</b>
 
 ```typescript
-loadPgn(pgn: string): boolean;
+loadPgn(pgn: string, options?: {
+        newline?: string;
+    }): void;
 ```
 
 ## Parameters
@@ -23,10 +23,11 @@ loadPgn(pgn: string): boolean;
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  pgn | string |  |
+|  options | { newline?: string; } |  |
 
 <b>Returns:</b>
 
-boolean
+void
 
 ## Example
 
@@ -93,8 +94,7 @@ const sloppyPgn = [
 ].join('|')
 
 const options = {
-    newline_char: '\\|', // Literal '|' character escaped
-    sloppy: true
+    newline: '\\|', // Literal '|' character escaped
 }
 
 chess.loadPgn(sloppyPgn)

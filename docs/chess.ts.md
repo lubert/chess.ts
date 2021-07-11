@@ -17,7 +17,18 @@
 |  --- | --- |
 |  [algebraic(i)](./chess.ts.algebraic.md) | Converts a 0x88 square to algebraic notation. |
 |  [file(i)](./chess.ts.file.md) | Extracts the zero-based file of an 0x88 square. |
+|  [isColor(color)](./chess.ts.iscolor.md) |  |
+|  [isDefined(value)](./chess.ts.isdefined.md) |  |
+|  [isDigit(c)](./chess.ts.isdigit.md) | Checks if a character is a numeric digit. |
+|  [isFlagKey(key)](./chess.ts.isflagkey.md) |  |
+|  [isPieceSymbol(symbol)](./chess.ts.ispiecesymbol.md) |  |
+|  [isSquare(sq)](./chess.ts.issquare.md) |  |
 |  [rank(i)](./chess.ts.rank.md) | Extracts the zero-based rank of an 0x88 square. |
+|  [splitStr(str, char)](./chess.ts.splitstr.md) |  |
+|  [swapColor(c)](./chess.ts.swapcolor.md) | Returns the opposite color. |
+|  [symbol({ type, color })](./chess.ts.symbol.md) | Returns the ASCII symbol for each piece. White pieces are in uppercase, black in lowercase. |
+|  [toPieceSymbol(obj)](./chess.ts.topiecesymbol.md) |  |
+|  [toSquare(obj)](./chess.ts.tosquare.md) |  |
 
 ## Variables
 
