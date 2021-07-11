@@ -1,6 +1,15 @@
 export { Chess } from './chess'
 export { BoardState } from './models/BoardState'
-export { Color, Move, PartialMove, Piece, PieceSymbol, Validation } from './interfaces/types'
+export {
+  Color,
+  CommentMap,
+  Move,
+  PartialMove,
+  Piece,
+  PieceSymbol,
+  Square,
+  Validation,
+} from './interfaces/types'
 export {
   WHITE,
   BLACK,
@@ -15,4 +24,11 @@ export {
   FLAGS,
   BITS,
 } from './constants'
-export * from './utils'
+export {
+  rank,
+  file,
+  algebraic,
+  isColor,
+  isPieceSymbol,
+  isSquare,
+} from './utils'
