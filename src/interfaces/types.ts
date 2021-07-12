@@ -1,5 +1,4 @@
 import { BoardState } from "../models/BoardState"
-import { TreeNode } from "treenode.ts"
 
 /** @public */
 export type Color = 'w' | 'b'
@@ -85,9 +84,7 @@ export type ColorState = Record<Color, number> & {
 
 export type FlagKey = 'NORMAL' | 'CAPTURE' | 'BIG_PAWN' | 'EP_CAPTURE' | 'PROMOTION' | 'KSIDE_CASTLE' | 'QSIDE_CASTLE'
 
-export type GameNode = TreeNode<GameState>
-
-export type GameState = {
+export type HexState = {
   boardState: BoardState;
   fen: string;
   nags?: number[];  // Array instead of set for easier serialization
@@ -105,7 +102,6 @@ export type HexMove = {
   piece: PieceSymbol;
   captured?: PieceSymbol;
   promotion?: PieceSymbol;
-  san?: string;
 }
 
 export type ParsedMove = {
@@ -117,5 +113,3 @@ export type ParsedMove = {
   promotion?: PieceSymbol;
   check?: string;
 }
-
-export type ValueOrArray<T> = T | Array<ValueOrArray<T>>

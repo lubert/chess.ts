@@ -24,7 +24,7 @@ import {
 } from './pgn'
 import {
   Color,
-  GameState,
+  HexState,
   HexMove,
   Move,
   Piece,
@@ -32,7 +32,6 @@ import {
   PartialMove,
   HeaderMap,
   CommentMap,
-  GameNode,
   Square,
 } from './interfaces/types'
 import {
@@ -53,10 +52,10 @@ import { validateFen } from './fen'
 /** @public */
 export class Chess {
   /** @internal */
-  protected _tree!: GameNode
+  protected _tree!: TreeNode<HexState>
 
   /** @internal */
-  protected _currentNode!: GameNode
+  protected _currentNode!: TreeNode<HexState>
 
   /** @public */
   public header: HeaderMap = {}
@@ -103,7 +102,7 @@ export class Chess {
   }
 
   /** @internal **/
-  protected get path(): Readonly<GameNode>[] {
+  protected get path(): Readonly<TreeNode<HexState>>[] {
     return this._currentNode.path()
   }
 
@@ -119,7 +118,7 @@ export class Chess {
       return false
     }
 
-    this._tree = new TreeNode<GameState>({ boardState, fen })
+    this._tree = new TreeNode<HexState>({ boardState, fen })
     this._currentNode = this._tree
     this.updateSetup()
     return true
@@ -136,7 +135,7 @@ export class Chess {
    * ```
    */
   public clear(keepHeaders = false): void {
-    this._tree = new TreeNode<GameState>({
+    this._tree = new TreeNode<HexState>({
       boardState: new BoardState(),
       fen: DEFAULT_POSITION,
     })
@@ -1051,7 +1050,7 @@ export class Chess {
    * @param fen - Defaults to the current position
    */
   public deleteComment(fen?: string): string | undefined {
-    let node: GameNode | undefined = this._currentNode
+    let node: TreeNode<HexState> | undefined = this._currentNode
     if (fen) {
       node = this._currentNode.path().find((n) => n.model.fen === fen)
       if (!node) return

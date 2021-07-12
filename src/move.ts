@@ -235,7 +235,6 @@ export function cloneMove(move: Readonly<HexMove>): HexMove {
     piece: move.piece,
     captured: move.captured,
     promotion: move.promotion,
-    san: move.san,
   }
 }
 

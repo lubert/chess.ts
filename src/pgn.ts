@@ -1,11 +1,29 @@
 import { TreeNode } from 'treenode.ts'
-import { GameState, HeaderMap, GameNode } from './interfaces/types'
+import { HexState, HeaderMap } from './interfaces/types'
 import { Nag, extractNags } from './interfaces/nag'
 import { WHITE, DEFAULT_POSITION, POSSIBLE_RESULTS, NULL_MOVES, CASTLING_MOVES } from './constants'
 import { moveToSan, loadFen, sanToMove, makeMove, getFen } from './move'
-import { addNag, isMainline } from './gamenode'
 import { REGEXP_HEADER_KEY, REGEXP_HEADER_VAL, REGEXP_MOVE_NUMBER } from './regex'
 import { splitStr } from './utils'
+
+export function addNag(node: TreeNode<HexState>, nag: number): void {
+  if (!node.model.nags) {
+    node.model.nags = [nag]
+    return
+  }
+  node.model.nags = Array.from(new Set<number>([...node.model.nags, nag]))
+}
+
+export function isMainline(node: TreeNode<HexState>): boolean {
+  while (node.parent) {
+    const parent = node.parent
+    if (parent.children[0] !== node) {
+      return false
+    }
+    node = parent
+  }
+  return true
+}
 
 export function pgnHeader(header: HeaderMap): string[] {
   return Object.entries(header).map(([key, val]) => (
@@ -13,7 +31,7 @@ export function pgnHeader(header: HeaderMap): string[] {
   ))
 }
 
-export function pgnMoves(node: GameNode): string[] {
+export function pgnMoves(node: TreeNode<HexState>): string[] {
   // 3. e4 {comment} (variation) e5 {comment} (variation)
   const tokens: string[] = []
   const { boardState } = node.model
@@ -23,7 +41,7 @@ export function pgnMoves(node: GameNode): string[] {
     tokens.push(`{${node.model.comment}}`)
   }
 
-  const formatMove = (state: GameState, isVariation=false) => {
+  const formatMove = (state: HexState, isVariation=false) => {
     const { move, comment, nags } = state
     if (move) {
       const isFirstMove = !node.model.move
@@ -60,7 +78,7 @@ export function pgnMoves(node: GameNode): string[] {
 }
 
 export function getPgn(
-  tree: GameNode,
+  tree: TreeNode<HexState>,
   header: HeaderMap,
   options: { newline?: string } = {}
 ): string {
@@ -77,7 +95,8 @@ export function getPgn(
   return pgn.trim()
 }
 
-export function loadPgn(pgn: string, options: { newline?: string, width?: number } = {}): { tree: GameNode, currentNode: GameNode, header: HeaderMap } {
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+export function loadPgn(pgn: string, options: { newline?: string, width?: number } = {}): { tree: TreeNode<HexState>, currentNode: TreeNode<HexState>, header: HeaderMap } {
   const { newline = '\r?\n' } = options
 
   // Split on newlines and read line by line
@@ -132,8 +151,8 @@ export function loadPgn(pgn: string, options: { newline?: string, width?: number
   }
 
   // Build move tree
-  const tree = new TreeNode<GameState>({ fen, boardState })
-  const parentNodes: GameNode[] = []
+  const tree = new TreeNode<HexState>({ fen, boardState })
+  const parentNodes: TreeNode<HexState>[] = []
   let currentNode = tree
 
   while (moveTokens.length) {
@@ -232,3 +251,4 @@ export function loadPgn(pgn: string, options: { newline?: string, width?: number
   }
   return { tree, currentNode, header }
 }
+/* eslint-enable @typescript-eslint/no-non-null-assertion */
