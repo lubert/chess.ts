@@ -21,6 +21,7 @@ import {
 import {
   loadPgn,
   getPgn,
+  isMainline,
 } from './pgn'
 import {
   Color,
@@ -33,6 +34,7 @@ import {
   HeaderMap,
   CommentMap,
   Square,
+  GameState,
 } from './interfaces/types'
 import {
   file,
@@ -84,6 +86,25 @@ export class Chess {
   /** @public */
   public get state(): Readonly<BoardState> {
     return this.boardState
+  }
+
+  /** @public */
+  public get tree(): Readonly<TreeNode<GameState>> {
+    return this._tree.map((node) => {
+      let move
+      if (node.model.move && node.parent?.model.boardState) {
+        move = makePretty(this.boardState, node.model.move)
+      }
+      const gameState: GameState = {
+        fen: node.model.fen,
+        nags: node.model.nags,
+        comment: node.model.comment,
+        move,
+        isMainline: isMainline(node),
+        isCurrent: node === this._currentNode,
+      }
+      return gameState
+    })
   }
 
   /** @internal */

@@ -6,6 +6,16 @@ export type Color = 'w' | 'b'
 /** @public */
 export type CommentMap = Partial<Record<string, string>>
 
+/** @public */
+export type GameState = {
+  fen: string;
+  move?: Move;
+  nags?: number[];
+  comment?: string;
+  isMainline: boolean;
+  isCurrent: boolean;
+}
+
 /**
  * Represents a chess move
  *

@@ -29,6 +29,61 @@ function readPgn(filename: string): string {
   return readFileSync(join(__dirname, 'fixtures/pgn', filename)).toString().trim()
 }
 
+describe('gameTree', () => {
+  it('returns the expected tree', () => {
+    const chess = new Chess()
+    chess.move('e4')
+    chess.setComment('tactical')
+    chess.undo()
+    chess.move('d4')
+    chess.setComment('positional')
+    const expected = {
+      model: {
+        fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+        isMainline: true,
+        isCurrent: false
+      },
+      children: [
+        {
+          model: {
+            fen: "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1",
+            comment: "tactical",
+            move: {
+              to: "e4",
+              from: "e2",
+              color: "w",
+              flags: "b",
+              piece: "p",
+              san: "e4"
+            },
+            isMainline: true,
+            isCurrent: false
+          },
+          children: []
+        },
+        {
+          model: {
+            fen: "rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b KQkq d3 0 1",
+            comment: "positional",
+            move: {
+              to: "d4",
+              from: "d2",
+              color: "w",
+              flags: "b",
+              piece: "p",
+              san: "d4"
+            },
+            isMainline: false,
+            isCurrent: true
+          },
+          children: []
+        }
+      ]
+    }
+    expect(chess.tree.toObject()).toEqual(expected)
+  })
+})
+
 describe('.perft', () => {
   const examples = [
     {
