@@ -3805,10 +3805,10 @@ tr46@^2.1.0:
   dependencies:
     punycode "^2.1.1"
 
-treenode.ts@0.3.0:
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/treenode.ts/-/treenode.ts-0.3.0.tgz#3ce1048aec9b9c7146ca79616f27a68aa3d5be97"
-  integrity sha512-kZx33ndFOQz3ZcEiHkccD+qiHmZobtwtu0rZYAXaJYpKCXkfksSbPxteYmO5opJx4V/jSvd51bKqDOF8+g5ezQ==
+treenode.ts@^0.4.0:
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/treenode.ts/-/treenode.ts-0.4.0.tgz#f56f3d9351a93ec77b7f2160081e3084aad02944"
+  integrity sha512-uvQS6CJuDw26YLpVjkOuTsuMB1WnMsRAl67srFllQgcrnQnQnrNGNvRwKEMOlA7H5sULfB84GFIokpJxAqN8RA==
 
 ts-jest@^26.1.1:
   version "26.1.1"
