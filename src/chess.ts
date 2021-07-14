@@ -107,6 +107,13 @@ export class Chess {
     })
   }
 
+  /** @public */
+  public setMove(indices: number[]) {
+    let node = this._tree
+    indices.forEach((i) => node = node.children[i])
+    this._currentNode = node
+  }
+
   /** @internal */
   protected get boardState(): Readonly<BoardState> {
     return this._currentNode.model.boardState
