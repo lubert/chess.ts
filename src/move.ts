@@ -32,6 +32,7 @@ import {
   Square,
   PartialMove,
   ParsedMove,
+  HexState,
 } from './interfaces/types'
 import {
   algebraic,
@@ -50,6 +51,7 @@ import {
 import { REGEXP_MOVE, REGEXP_NAG } from './regex'
 import { BoardState } from './models/BoardState'
 import { validateFen } from './fen'
+import { TreeNode } from 'treenode.ts'
 
 /* this function is used to uniquely identify ambiguous moves */
 export function getDisambiguator(state: Readonly<BoardState>, move: Readonly<HexMove>, sloppy: boolean): string {
@@ -564,25 +566,23 @@ export function sanToMove(
   return null
 }
 
-export function makePretty(state: Readonly<BoardState>, ugly_move: Readonly<HexMove>): Move {
-  const move: HexMove = cloneMove(ugly_move)
-
+export function hexToMove(state: Readonly<BoardState>, hexMove: Readonly<HexMove>): Move {
   let flags = ''
   for (const flag in BITS) {
-    if (isFlagKey(flag) && BITS[flag] & move.flags) {
+    if (isFlagKey(flag) && BITS[flag] & hexMove.flags) {
       flags += FLAGS[flag]
     }
   }
 
   return {
-    to: algebraic(move.to) as Square,
-    from: algebraic(move.from) as Square,
-    color: move.color,
+    to: algebraic(hexMove.to) as Square,
+    from: algebraic(hexMove.from) as Square,
+    color: hexMove.color,
     flags,
-    piece: move.piece,
-    san: moveToSan(state, move),
-    captured: move.captured,
-    promotion: move.promotion,
+    piece: hexMove.piece,
+    san: moveToSan(state, hexMove),
+    captured: hexMove.captured,
+    promotion: hexMove.promotion,
   }
 }
 
@@ -888,5 +888,12 @@ export function validateMove(
     }
   }
 
+  return null
+}
+
+export function nodeMove(node: TreeNode<HexState>): Move | null {
+  if (node.model.move && node.parent?.model.move) {
+    return hexToMove(node.parent.model.boardState, node.model.move)
+  }
   return null
 }

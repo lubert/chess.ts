@@ -6,7 +6,7 @@ import {
   moveToSan,
   putPiece,
   loadFen,
-  makePretty,
+  hexToMove,
   getPiece,
   removePiece,
   inCheck,
@@ -17,6 +17,7 @@ import {
   getBoard,
   validateMove,
   getFen,
+  nodeMove,
 } from './move'
 import {
   loadPgn,
@@ -91,15 +92,12 @@ export class Chess {
   /** @public */
   public get tree(): Readonly<TreeNode<GameState>> {
     return this._tree.map((node) => {
-      let move
-      if (node.model.move && node.parent?.model.boardState) {
-        move = makePretty(this.boardState, node.model.move)
-      }
+      const move = nodeMove(node)
       const gameState: GameState = {
         fen: node.model.fen,
         nags: node.model.nags,
         comment: node.model.comment,
-        move,
+        move: move || undefined,
         isMainline: isMainline(node),
         isCurrent: node === this._currentNode,
       }
@@ -108,10 +106,11 @@ export class Chess {
   }
 
   /** @public */
-  public setMove(indices: number[]) {
+  public setMove(indices: number[]): Move | null {
     let node = this._tree
     indices.forEach((i) => node = node.children[i])
     this._currentNode = node
+    return nodeMove(this._currentNode)
   }
 
   /** @internal */
@@ -357,7 +356,7 @@ export class Chess {
     const uglyMoves = generateMoves(this.boardState, { square })
 
     if (verbose) {
-      return uglyMoves.map((uglyMove) => makePretty(this.boardState, uglyMove))
+      return uglyMoves.map((uglyMove) => hexToMove(this.boardState, uglyMove))
     }
     return uglyMoves.map((uglyMove) => moveToSan(this.boardState, uglyMove))
   }
@@ -804,7 +803,7 @@ export class Chess {
     }
 
     // Create pretty move before updating the state
-    const prettyMove = makePretty(this.boardState, validMove)
+    const prettyMove = hexToMove(this.boardState, validMove)
     if (!options.dry_run) {
       this.makeMove(validMove)
     }
@@ -838,7 +837,7 @@ export class Chess {
       if (!validMove) {
         return null
       }
-      validMoves.push(makePretty(boardState, validMove))
+      validMoves.push(hexToMove(boardState, validMove))
       boardState = makeMove(boardState, validMove)
     }
     return validMoves
@@ -896,7 +895,35 @@ export class Chess {
    */
   public undo(): Move | null {
     const move = this.undoMove()
-    return move ? makePretty(this.boardState, move) : null
+    return move ? hexToMove(this.boardState, move) : null
+  }
+
+  /**
+   * Undo all moves.
+   */
+  public undoAll(): Move[] {
+    this._currentNode = this._tree
+    return this.path.map(nodeMove).filter(isDefined)
+  }
+
+  /**
+   * Redo mainline move.
+   */
+  public redo(): Move | null {
+    if (this._currentNode.children.length) {
+      this._currentNode = this._currentNode.children[0]
+    }
+    return nodeMove(this._currentNode)
+  }
+
+  /**
+   * Redo all mainline moves.
+   */
+  public redoAll(): Move[] {
+    while(this._currentNode.children.length) {
+      this._currentNode = this._currentNode.children[0]
+    }
+    return this.path.map(nodeMove).filter(isDefined)
   }
 
   /**
@@ -971,7 +998,7 @@ export class Chess {
     }).filter(isDefined)
 
     if (verbose) {
-      return nodes.map(({ prevState, move }) => makePretty(prevState, move))
+      return nodes.map(({ prevState, move }) => hexToMove(prevState, move))
     }
     return nodes.map(({ prevState, move }) => moveToSan(prevState, move))
   }
