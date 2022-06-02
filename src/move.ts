@@ -892,7 +892,8 @@ export function validateMove(
 }
 
 export function nodeMove(node: TreeNode<HexState>): Move | null {
-  if (node.model.move && node.parent?.model.move) {
+  // Need a parent board state to return a valid move
+  if (node.model.move && node.parent?.model) {
     return hexToMove(node.parent.model.boardState, node.model.move)
   }
   return null
