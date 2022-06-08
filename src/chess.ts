@@ -20,11 +20,7 @@ import {
   nodeMove,
   hexToGameState,
 } from './move'
-import {
-  loadPgn,
-  getPgn,
-  isMainline,
-} from './pgn'
+import { loadPgn, getPgn, isMainline } from './pgn'
 import {
   Color,
   HexState,
@@ -38,18 +34,8 @@ import {
   Square,
   GameState,
 } from './interfaces/types'
-import {
-  file,
-  isSquare,
-  isDefined,
-  rank,
-  swapColor,
-} from './utils'
-import {
-  DEFAULT_POSITION,
-  SQUARES,
-  BITS,
-} from './constants'
+import { file, isSquare, isDefined, rank, swapColor } from './utils'
+import { DEFAULT_POSITION, SQUARES, BITS } from './constants'
 import { BoardState } from './models/BoardState'
 import { validateFen } from './fen'
 
@@ -269,7 +255,10 @@ export class Chess {
    * @param square - e.g. `'e4'`
    * @returns True if placed successfully, otherwise false
    */
-  public putPiece(piece: { type: string, color: string }, square: string): boolean {
+  public putPiece(
+    piece: { type: string; color: string },
+    square: string
+  ): boolean {
     const newState = putPiece(this.boardState, piece, square)
     if (newState) {
       this.boardState = newState
@@ -332,7 +321,7 @@ export class Chess {
    * // -> []
    * ```
    */
-  public moves(options?: { square?: string, verbose?: false }): string[]
+  public moves(options?: { square?: string; verbose?: false }): string[]
 
   /**
    * Returns a list of legal moves from the current position. The function
@@ -353,9 +342,11 @@ export class Chess {
    * ```
    * {@link Move}
    */
-  public moves(options: { square?: string, verbose: true }): Move[]
+  public moves(options: { square?: string; verbose: true }): Move[]
 
-  public moves(options: { square?: string, verbose?: boolean} = {}): string[] | Move[] {
+  public moves(
+    options: { square?: string; verbose?: boolean } = {}
+  ): string[] | Move[] {
     // The internal representation of a chess move is in 0x88 format, and
     // not meant to be human-readable.  The code below converts the 0x88
     // square coordinates to algebraic coordinates.  It also prunes an
@@ -508,9 +499,9 @@ export class Chess {
   public inDraw(): boolean {
     return (
       this.boardState.half_moves >= 100 ||
-        this.inStalemate() ||
-        this.insufficientMaterial() ||
-        this.inThreefoldRepetition()
+      this.inStalemate() ||
+      this.insufficientMaterial() ||
+      this.inThreefoldRepetition()
     )
   }
 
@@ -590,7 +581,7 @@ export class Chess {
    * // -> '[White "Plunky"]<br />[Black "Plinkie"]<br /><br />1. e4 e5<br />2. Nc3 Nc6'
    * ```
    */
-  public pgn(options: { newline?: string, width?: number } = {}): string {
+  public pgn(options: { newline?: string; width?: number } = {}): string {
     return getPgn(this._tree, this.header, options)
   }
 
@@ -870,9 +861,9 @@ export class Chess {
    * `{ from: 'h7', to: 'h8' }`
    */
   public isPromotion(move: string | PartialMove): boolean {
-    const validMove = validateMove(
-      this.boardState, move, { matchPromotion: false }
-    )
+    const validMove = validateMove(this.boardState, move, {
+      matchPromotion: false,
+    })
     if (!validMove) {
       return false
     }
@@ -928,7 +919,7 @@ export class Chess {
    * Redo all mainline moves.
    */
   public redoAll(): Move[] {
-    while(this._currentNode.children.length) {
+    while (this._currentNode.children.length) {
       this._currentNode = this._currentNode.children[0]
     }
     return this.path.map(nodeMove).filter(isDefined)
@@ -997,13 +988,15 @@ export class Chess {
   public history(options: { verbose?: boolean } = {}): string[] | Move[] {
     const { verbose = false } = options
 
-    const nodes = this.path.map((node) => {
-      if (!node.parent || !node.model.move) return
-      return {
-        prevState: node.parent.model.boardState,
-        move: node.model.move,
-      }
-    }).filter(isDefined)
+    const nodes = this.path
+      .map((node) => {
+        if (!node.parent || !node.model.move) return
+        return {
+          prevState: node.parent.model.boardState,
+          move: node.model.move,
+        }
+      })
+      .filter(isDefined)
 
     if (verbose) {
       return nodes.map(({ prevState, move }) => hexToMove(prevState, move))
@@ -1181,10 +1174,11 @@ export class Chess {
   public clone(): Chess {
     const clone = new Chess()
     clone._tree = this._tree.clone()
-    clone._currentNode = clone._tree.breadth(
-      ({ model }) => model.fen === this._currentNode.model.fen
-    ) || clone._tree
-    clone.header = {...this.header}
+    clone._currentNode =
+      clone._tree.breadth(
+        ({ model }) => model.fen === this._currentNode.model.fen
+      ) || clone._tree
+    clone.header = { ...this.header }
     return clone
   }
 

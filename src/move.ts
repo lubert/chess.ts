@@ -56,7 +56,11 @@ import { TreeNode } from 'treenode.ts'
 import { isMainline } from './pgn'
 
 /* this function is used to uniquely identify ambiguous moves */
-export function getDisambiguator(state: Readonly<BoardState>, move: Readonly<HexMove>, sloppy: boolean): string {
+export function getDisambiguator(
+  state: Readonly<BoardState>,
+  move: Readonly<HexMove>,
+  sloppy: boolean
+): string {
   const moves = generateMoves(state, { legal: !sloppy })
 
   const from = move.from
@@ -124,7 +128,8 @@ export function getFen(state: Readonly<BoardState>): string {
       const color = piece.color
       const piece_type = piece.type
 
-      fen += color === WHITE ? piece_type.toUpperCase() : piece_type.toLowerCase()
+      fen +=
+        color === WHITE ? piece_type.toUpperCase() : piece_type.toLowerCase()
     }
 
     if ((i + 1) & 0x88) {
@@ -159,7 +164,14 @@ export function getFen(state: Readonly<BoardState>): string {
   cflags = cflags || '-'
   const epflags = state.ep_square === EMPTY ? '-' : algebraic(state.ep_square)
 
-  return [fen, state.turn, cflags, epflags, state.half_moves, state.move_number].join(' ')
+  return [
+    fen,
+    state.turn,
+    cflags,
+    epflags,
+    state.half_moves,
+    state.move_number,
+  ].join(' ')
 }
 
 export function loadFen(fen: string): BoardState | null {
@@ -217,7 +229,10 @@ export function loadFen(fen: string): BoardState | null {
   return state
 }
 
-export function getPiece(state: Readonly<BoardState>, square?: string): Piece | null {
+export function getPiece(
+  state: Readonly<BoardState>,
+  square?: string
+): Piece | null {
   if (!square) return null
   square = square.toLowerCase()
   if (!isSquare(square)) return null
@@ -251,7 +266,8 @@ export function clonePiece(piece: Readonly<Piece>): Piece {
 
 export function putPiece(
   prevState: Readonly<BoardState>,
-  piece: { type?: string, color?: string }, square?: string
+  piece: { type?: string; color?: string },
+  square?: string
 ): BoardState | null {
   let { type, color } = piece
 
@@ -272,9 +288,11 @@ export function putPiece(
   const state = prevState.clone()
   /* don't let the user place more than one king */
   const sq = SQUARES[square]
-  if (type === KING &&
+  if (
+    type === KING &&
     state.kings[color] !== EMPTY &&
-    state.kings[color] !== sq) {
+    state.kings[color] !== sq
+  ) {
     return null
   }
 
@@ -286,7 +304,10 @@ export function putPiece(
   return state
 }
 
-export function removePiece(prevState: Readonly<BoardState>, square?: string): BoardState | null {
+export function removePiece(
+  prevState: Readonly<BoardState>,
+  square?: string
+): BoardState | null {
   if (!square) return null
 
   square = square.toLowerCase()
@@ -307,16 +328,22 @@ export function removePiece(prevState: Readonly<BoardState>, square?: string): B
 
 export function generateMoves(
   state: Readonly<BoardState>,
-  options: { legal?: boolean, square?: string } = {}
+  options: { legal?: boolean; square?: string } = {}
 ): HexMove[] {
   const { legal = true } = options
-  const add_move = (board: Board, moves: HexMove[], from: number, to: number, flags: number) => {
+  const add_move = (
+    board: Board,
+    moves: HexMove[],
+    from: number,
+    to: number,
+    flags: number
+  ) => {
     /* if pawn promotion */
     const piece = board[from]
     if (
       piece &&
-        piece.type === PAWN &&
-        (rank(to) === RANK_8 || rank(to) === RANK_1)
+      piece.type === PAWN &&
+      (rank(to) === RANK_8 || rank(to) === RANK_1)
     ) {
       const pieces = [QUEEN, ROOK, BISHOP, KNIGHT]
       pieces.forEach((piece) => {
@@ -417,12 +444,18 @@ export function generateMoves(
 
       if (
         !state.board[castling_from + 1] &&
-          !state.board[castling_to] &&
-          !isAttacked(state, them, state.kings[us]) &&
-          !isAttacked(state, them, castling_from + 1) &&
-          !isAttacked(state, them, castling_to)
+        !state.board[castling_to] &&
+        !isAttacked(state, them, state.kings[us]) &&
+        !isAttacked(state, them, castling_from + 1) &&
+        !isAttacked(state, them, castling_to)
       ) {
-        add_move(state.board, moves, state.kings[us], castling_to, BITS.KSIDE_CASTLE)
+        add_move(
+          state.board,
+          moves,
+          state.kings[us],
+          castling_to,
+          BITS.KSIDE_CASTLE
+        )
       }
     }
 
@@ -433,13 +466,19 @@ export function generateMoves(
 
       if (
         !state.board[castling_from - 1] &&
-          !state.board[castling_from - 2] &&
-          !state.board[castling_from - 3] &&
-          !isAttacked(state, them, state.kings[us]) &&
-          !isAttacked(state, them, castling_from - 1) &&
-          !isAttacked(state, them, castling_to)
+        !state.board[castling_from - 2] &&
+        !state.board[castling_from - 3] &&
+        !isAttacked(state, them, state.kings[us]) &&
+        !isAttacked(state, them, castling_from - 1) &&
+        !isAttacked(state, them, castling_to)
       ) {
-        add_move(state.board, moves, state.kings[us], castling_to, BITS.QSIDE_CASTLE)
+        add_move(
+          state.board,
+          moves,
+          state.kings[us],
+          castling_to,
+          BITS.QSIDE_CASTLE
+        )
       }
     }
   }
@@ -476,7 +515,7 @@ export function generateMoves(
 export function moveToSan(
   state: Readonly<BoardState>,
   move: Readonly<HexMove>,
-  options: { sloppy?: boolean, addCheck?: boolean, addPromotion?: boolean } = {}
+  options: { sloppy?: boolean; addCheck?: boolean; addPromotion?: boolean } = {}
 ): string {
   const { sloppy = false, addCheck = true, addPromotion = true } = options
   let output = ''
@@ -525,8 +564,10 @@ export function extractMove(move: string): ParsedMove {
   return {
     san: matches[0]?.replace(/=([qrbn])/, (c) => c.toUpperCase()),
     piece: toPieceSymbol(matches[1]),
-    disambiguator: matches[2] && matches[2].length === 1 ? matches[2] : undefined,
-    from: matches[2] && matches[2].length === 2 ? toSquare(matches[2]) : undefined,
+    disambiguator:
+      matches[2] && matches[2].length === 1 ? matches[2] : undefined,
+    from:
+      matches[2] && matches[2].length === 2 ? toSquare(matches[2]) : undefined,
     to: toSquare(matches[3]),
     promotion: matches[4] ? toPieceSymbol(matches[4]) : undefined,
     check: matches[5],
@@ -536,7 +577,7 @@ export function extractMove(move: string): ParsedMove {
 export function sanToMove(
   state: Readonly<BoardState>,
   moveStr: string,
-  options: { matchCheck?: boolean, matchPromotion?: boolean } = {}
+  options: { matchCheck?: boolean; matchPromotion?: boolean } = {}
 ): HexMove | null {
   const { matchCheck = true, matchPromotion = true } = options
 
@@ -552,8 +593,11 @@ export function sanToMove(
     if (san === strictSan) {
       return moves[i]
     }
-    if (from && SQUARES[from] === moves[i].from &&
-      to && SQUARES[to] === moves[i].to &&
+    if (
+      from &&
+      SQUARES[from] === moves[i].from &&
+      to &&
+      SQUARES[to] === moves[i].to &&
       (!piece || piece === moves[i].piece) &&
       (!matchPromotion || !promotion || promotion === moves[i].promotion)
     ) {
@@ -562,13 +606,19 @@ export function sanToMove(
   }
   // Sloppy
   for (let i = 0, len = moves.length; i < len; i++) {
-    const sloppySan = moveToSan(state, moves[i], { ...strictOptions, sloppy: true })
+    const sloppySan = moveToSan(state, moves[i], {
+      ...strictOptions,
+      sloppy: true,
+    })
     if (san === sloppySan) return moves[i]
   }
   return null
 }
 
-export function hexToMove(state: Readonly<BoardState>, hexMove: Readonly<HexMove>): Move {
+export function hexToMove(
+  state: Readonly<BoardState>,
+  hexMove: Readonly<HexMove>
+): Move {
   let flags = ''
   for (const flag in BITS) {
     if (isFlagKey(flag) && BITS[flag] & hexMove.flags) {
@@ -588,7 +638,11 @@ export function hexToMove(state: Readonly<BoardState>, hexMove: Readonly<HexMove
   }
 }
 
-export function isAttacked(state: Readonly<BoardState>, color: string, square: number): boolean {
+export function isAttacked(
+  state: Readonly<BoardState>,
+  color: string,
+  square: number
+): boolean {
   for (let i = SQUARES.a8; i <= SQUARES.h1; i++) {
     /* did we run off the end of the board */
     if (i & 0x88) {
@@ -635,7 +689,10 @@ export function isAttacked(state: Readonly<BoardState>, color: string, square: n
   return false
 }
 
-export function isKingAttacked(state: Readonly<BoardState>, color: Color): boolean {
+export function isKingAttacked(
+  state: Readonly<BoardState>,
+  color: Color
+): boolean {
   return isAttacked(state, swapColor(color), state.kings[color])
 }
 
@@ -652,7 +709,7 @@ export function inStalemate(state: Readonly<BoardState>): boolean {
 }
 
 export function insufficientMaterial(state: Readonly<BoardState>): boolean {
-  const pieces: {[key: string]: number} = {}
+  const pieces: { [key: string]: number } = {}
   const bishops = []
   let num_pieces = 0
   let sq_color = 0
@@ -680,7 +737,7 @@ export function insufficientMaterial(state: Readonly<BoardState>): boolean {
   } else if (
     /* k vs. kn .... or .... k vs. kb */
     num_pieces === 3 &&
-      (pieces[BISHOP] === 1 || pieces[KNIGHT] === 1)
+    (pieces[BISHOP] === 1 || pieces[KNIGHT] === 1)
   ) {
     return true
   } else if (num_pieces === pieces[BISHOP] + 2) {
@@ -698,7 +755,10 @@ export function insufficientMaterial(state: Readonly<BoardState>): boolean {
   return false
 }
 
-export function makeMove(prevState: Readonly<BoardState>, move: Readonly<HexMove>): BoardState {
+export function makeMove(
+  prevState: Readonly<BoardState>,
+  move: Readonly<HexMove>
+): BoardState {
   const state = prevState.clone()
   const us = state.turn
   const them = swapColor(us)
@@ -717,7 +777,11 @@ export function makeMove(prevState: Readonly<BoardState>, move: Readonly<HexMove
   }
 
   /* if pawn promotion, replace with new piece */
-  if (move.flags & BITS.PROMOTION && move.promotion && isPieceSymbol(move.promotion)) {
+  if (
+    move.flags & BITS.PROMOTION &&
+    move.promotion &&
+    isPieceSymbol(move.promotion)
+  ) {
     state.board[move.to] = { type: move.promotion, color: us }
   }
 
@@ -748,7 +812,7 @@ export function makeMove(prevState: Readonly<BoardState>, move: Readonly<HexMove
     for (let i = 0, len = ROOKS[us].length; i < len; i++) {
       if (
         move.from === ROOKS[us][i].square &&
-          state.castling[us] & ROOKS[us][i].flag
+        state.castling[us] & ROOKS[us][i].flag
       ) {
         state.castling[us] ^= ROOKS[us][i].flag
         break
@@ -761,7 +825,7 @@ export function makeMove(prevState: Readonly<BoardState>, move: Readonly<HexMove
     for (let i = 0, len = ROOKS[them].length; i < len; i++) {
       if (
         move.to === ROOKS[them][i].square &&
-          state.castling[them] & ROOKS[them][i].flag
+        state.castling[them] & ROOKS[them][i].flag
       ) {
         state.castling[them] ^= ROOKS[them][i].flag
         break
@@ -796,7 +860,13 @@ export function makeMove(prevState: Readonly<BoardState>, move: Readonly<HexMove
   return state
 }
 
-export function buildMove(state: Readonly<BoardState>, from: number, to: number, flags: number, promotion?: string): HexMove | null {
+export function buildMove(
+  state: Readonly<BoardState>,
+  from: number,
+  to: number,
+  flags: number,
+  promotion?: string
+): HexMove | null {
   const piece = state.board[from]
   if (!piece) return null
 
@@ -805,7 +875,7 @@ export function buildMove(state: Readonly<BoardState>, from: number, to: number,
     from: from,
     to: to,
     flags: flags,
-    piece: (state.board[from] as Piece).type
+    piece: (state.board[from] as Piece).type,
   }
 
   if (promotion && isPieceSymbol(promotion)) {
@@ -822,7 +892,7 @@ export function buildMove(state: Readonly<BoardState>, from: number, to: number,
 }
 
 export function ascii(board: Readonly<Board>, eol = '\n'): string {
-  const pieces = RANKS.map(rank => {
+  const pieces = RANKS.map((rank) => {
     const rankPieces = board.slice(rank * 16, rank * 16 + 8)
     // Use a loop because `map` skips empty indexes
     const row: string[] = []
@@ -875,15 +945,16 @@ export function validateMove(
   if (typeof move === 'string') {
     return sanToMove(state, move, options)
   } else if (typeof move === 'object') {
-    const square = isSquare(move.from)? move.from : undefined
+    const square = isSquare(move.from) ? move.from : undefined
     const moves = generateMoves(state, { square })
     // Find a matching move
     for (const moveObj of moves) {
       if (
         move.from === algebraic(moveObj.from) &&
-          move.to === algebraic(moveObj.to) &&
-          (!matchPromotion || !('promotion' in moveObj) ||
-            move.promotion === moveObj.promotion)
+        move.to === algebraic(moveObj.to) &&
+        (!matchPromotion ||
+          !('promotion' in moveObj) ||
+          move.promotion === moveObj.promotion)
       ) {
         return moveObj
       }
