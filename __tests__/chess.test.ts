@@ -26,7 +26,9 @@ for (let i = SQUARES.a8; i <= SQUARES.h1; i++) {
 }
 
 function readPgn(filename: string): string {
-  return readFileSync(join(__dirname, 'fixtures/pgn', filename)).toString().trim()
+  return readFileSync(join(__dirname, 'fixtures/pgn', filename))
+    .toString()
+    .trim()
 }
 
 describe('gameTree', () => {
@@ -47,32 +49,32 @@ describe('gameTree', () => {
             fen: 'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1',
             comment: 'tactical',
             move: {
-              to: "e4",
-              from: "e2",
-              color: "w",
-              flags: "b",
-              piece: "p",
-              san: "e4"
+              to: 'e4',
+              from: 'e2',
+              color: 'w',
+              flags: 'b',
+              piece: 'p',
+              san: 'e4',
             },
           },
-          children: []
+          children: [],
         },
         {
           model: {
-            fen: "rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b KQkq d3 0 1",
-            comment: "positional",
+            fen: 'rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b KQkq d3 0 1',
+            comment: 'positional',
             move: {
-              to: "d4",
-              from: "d2",
-              color: "w",
-              flags: "b",
-              piece: "p",
-              san: "d4"
+              to: 'd4',
+              from: 'd2',
+              color: 'w',
+              flags: 'b',
+              piece: 'p',
+              san: 'd4',
             },
           },
-          children: []
-        }
-      ]
+          children: [],
+        },
+      ],
     }
     expect(chess.tree.toObject()).toEqual(expected)
   })
@@ -408,8 +410,7 @@ describe('.moves', () => {
         ],
       },
       {
-        fen:
-        'r3k2r/p2pqpb1/1n2pnp1/2pPN3/1p2P3/2N2Q1p/PPPB1PPP/R3K2R w KQkq c6 0 2',
+        fen: 'r3k2r/p2pqpb1/1n2pnp1/2pPN3/1p2P3/2N2Q1p/PPPB1PPP/R3K2R w KQkq c6 0 2',
         moves: [
           'gxh3',
           'Qxf6',
@@ -602,12 +603,12 @@ describe('.inThreefoldRepetition', () => {
 
 describe('.move', () => {
   interface MoveExample {
-    name: string;
-    fen: string;
-    expect: boolean;
-    move: string;
-    next?: string;
-    captured?: string;
+    name: string
+    fen: string
+    expect: boolean
+    move: string
+    next?: string
+    captured?: string
   }
 
   const examples: MoveExample[] = [
@@ -683,12 +684,7 @@ describe('.move', () => {
     const fen = '8/2P2k2/8/8/8/5K2/8/8 w - - 0 1'
     const san = 'c8'
     const move: PartialMove = { from: 'c7', to: 'c8' }
-    const pieces: PieceSymbol[] = [
-      'q',
-      'r',
-      'b',
-      'n'
-    ]
+    const pieces: PieceSymbol[] = ['q', 'r', 'b', 'n']
 
     describe(`${fen} (${move.from} ${move.to})`, () => {
       it('returns null when missing a promotion', () => {
@@ -704,7 +700,7 @@ describe('.move', () => {
           const move = chess.move(`${san}=${piece.toUpperCase()}`)
           expect(move).toBeDefined()
           expect(move!.promotion).toEqual(piece)
-        });
+        })
       })
 
       it('works when improperly formatted', () => {
@@ -830,14 +826,16 @@ describe('.getPiece, .putPiece, .removePiece', () => {
       expect(chess.removePiece('h2')).toEqual(pieces.h2)
       expect(chess.getPieces()).toEqual({})
     })
-  });
+  })
 
   describe('invalid', () => {
     it('bad piece', () => {
       const chess = new Chess()
       chess.clear()
 
-      expect(chess.putPiece({ type: 'z' as PieceSymbol, color: BLACK }, 'a7')).toBe(false)
+      expect(
+        chess.putPiece({ type: 'z' as PieceSymbol, color: BLACK }, 'a7')
+      ).toBe(false)
       expect(chess.removePiece('a7')).toBeNull()
       expect(chess.getPieces()).toEqual({})
     })
@@ -902,7 +900,7 @@ describe('.fen, .load', () => {
       'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
       'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1',
       '1nbqkbn1/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/1NBQKBN1 b - - 1 2',
-    ];
+    ]
 
     examples.forEach((example) => {
       it(example, () => {
@@ -924,7 +922,9 @@ describe('.fen, .load', () => {
 
     examples.forEach((example) => {
       it(example, () => {
-        expect(() => { new Chess(example) }).toThrowError()
+        expect(() => {
+          new Chess(example)
+        }).toThrowError()
       })
     })
   })
@@ -1132,34 +1132,34 @@ describe('.pgn', () => {
         BlackElo: '?',
         PlyCount: '81',
       },
-      pgn:
-        '[Event "Reykjavik WCh"]\n[Site "Reykjavik WCh"]\n[Date "1972.01.07"]\n[EventDate "?"]\n[Round "6"]\n[Result "1-0"]\n[White "Robert James Fischer"]\n[Black "Boris Spassky"]\n[ECO "D59"]\n[WhiteElo "?"]\n[BlackElo "?"]\n[PlyCount "81"]\n\n1. c4 e6 2. Nf3 d5 3. d4 Nf6 4. Nc3 Be7 5. Bg5 O-O 6. e3 h6 7. Bh4 b6 8. cxd5 Nxd5 9. Bxe7 Qxe7 10. Nxd5 exd5 11. Rc1 Be6 12. Qa4 c5 13. Qa3 Rc8 14. Bb5 a6 15. dxc5 bxc5 16. O-O Ra7 17. Be2 Nd7 18. Nd4 Qf8 19. Nxe6 fxe6 20. e4 d4 21. f4 Qe7 22. e5 Rb8 23. Bc4 Kh8 24. Qh3 Nf8 25. b3 a5 26. f5 exf5 27. Rxf5 Nh7 28. Rcf1 Qd8 29. Qg3 Re7 30. h4 Rbb7 31. e6 Rbc7 32. Qe5 Qe8 33. a4 Qd8 34. R1f2 Qe8 35. R2f3 Qd8 36. Bd3 Qe8 37. Qe4 Nf6 38. Rxf6 gxf6 39. Rxf6 Kg8 40. Bc4 Kh8 41. Qf4 1-0',
+      pgn: '[Event "Reykjavik WCh"]\n[Site "Reykjavik WCh"]\n[Date "1972.01.07"]\n[EventDate "?"]\n[Round "6"]\n[Result "1-0"]\n[White "Robert James Fischer"]\n[Black "Boris Spassky"]\n[ECO "D59"]\n[WhiteElo "?"]\n[BlackElo "?"]\n[PlyCount "81"]\n\n1. c4 e6 2. Nf3 d5 3. d4 Nf6 4. Nc3 Be7 5. Bg5 O-O 6. e3 h6 7. Bh4 b6 8. cxd5 Nxd5 9. Bxe7 Qxe7 10. Nxd5 exd5 11. Rc1 Be6 12. Qa4 c5 13. Qa3 Rc8 14. Bb5 a6 15. dxc5 bxc5 16. O-O Ra7 17. Be2 Nd7 18. Nd4 Qf8 19. Nxe6 fxe6 20. e4 d4 21. f4 Qe7 22. e5 Rb8 23. Bc4 Kh8 24. Qh3 Nf8 25. b3 a5 26. f5 exf5 27. Rxf5 Nh7 28. Rcf1 Qd8 29. Qg3 Re7 30. h4 Rbb7 31. e6 Rbc7 32. Qe5 Qe8 33. a4 Qd8 34. R1f2 Qe8 35. R2f3 Qd8 36. Bd3 Qe8 37. Qe4 Nf6 38. Rxf6 gxf6 39. Rxf6 Kg8 40. Bc4 Kh8 41. Qf4 1-0',
       fen: '4q2k/2r1r3/4PR1p/p1p5/P1Bp1Q1P/1P6/6P1/6K1 b - - 4 41',
     },
     {
       name: 'non-starting position',
       moves: ['Ba5', 'O-O', 'd6', 'd4'],
-      pgn:
-        '[SetUp "1"]\n[FEN "r1bqk1nr/pppp1ppp/2n5/4p3/1bB1P3/2P2N2/P2P1PPP/RNBQK2R b KQkq - 0 1"]\n\n1...Ba5 2. O-O d6 3. d4',
+      pgn: '[SetUp "1"]\n[FEN "r1bqk1nr/pppp1ppp/2n5/4p3/1bB1P3/2P2N2/P2P1PPP/RNBQK2R b KQkq - 0 1"]\n\n1...Ba5 2. O-O d6 3. d4',
       initial:
         'r1bqk1nr/pppp1ppp/2n5/4p3/1bB1P3/2P2N2/P2P1PPP/RNBQK2R b KQkq - 0 1',
       fen: 'r1bqk1nr/ppp2ppp/2np4/b3p3/2BPP3/2P2N2/P4PPP/RNBQ1RK1 b kq d3 0 3',
     },
   ]
 
-  examples.forEach(({ name, fen, moves, header, initial, newline, width, pgn }) => {
-    it(name, () => {
-      const chess = new Chess(initial)
+  examples.forEach(
+    ({ name, fen, moves, header, initial, newline, width, pgn }) => {
+      it(name, () => {
+        const chess = new Chess(initial)
 
-      moves.forEach((move) => {
-        expect(chess.move(move)).toBeDefined()
+        moves.forEach((move) => {
+          expect(chess.move(move)).toBeDefined()
+        })
+
+        if (header) chess.header = header
+        expect(chess.pgn({ newline, width })).toEqual(pgn)
+        expect(chess.fen()).toEqual(fen)
       })
-
-      if (header) chess.header = header
-      expect(chess.pgn({ newline, width })).toEqual(pgn)
-      expect(chess.fen()).toEqual(fen)
-    })
-  })
+    }
+  )
 })
 
 describe('.loadPgn', () => {
@@ -1211,7 +1211,8 @@ describe('.loadPgn', () => {
       {
         name: 'Nags with check, capture, promotion',
         pgn: '1.e4 e6 2.d4 d5 3.exd5 c6?? 4.dxe6 Nf6?! 5.exf7+!! Kd7!? 6.Nf3 Bd6 7.f8=N+!! Qxf8',
-        expectedPgn: '1. e4 e6 2. d4 d5 3. exd5 c6 $4 4. dxe6 Nf6 $6 5. exf7+ $3 Kd7 $5 6. Nf3 Bd6 7. f8=N+ $3 Qxf8',
+        expectedPgn:
+          '1. e4 e6 2. d4 d5 3. exd5 c6 $4 4. dxe6 Nf6 $6 5. exf7+ $3 Kd7 $5 6. Nf3 Bd6 7. f8=N+ $3 Qxf8',
       },
       {
         name: 'Bracket comments and shallow variation',
@@ -1241,7 +1242,8 @@ describe('.loadPgn', () => {
       {
         name: 'Correct disambiguation',
         pgn: '1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6 4.Ng5 d5 5.exd5 Nxd5 6.Nxf7 Kxf7 7.Qf3+ Ke6 8.Nc3 Nb4',
-        expectedPgn: '1. e4 e5 2. Nf3 Nc6 3. Bc4 Nf6 4. Ng5 d5 5. exd5 Nxd5 6. Nxf7 Kxf7 7. Qf3+ Ke6 8. Nc3 Nb4',
+        expectedPgn:
+          '1. e4 e5 2. Nf3 Nc6 3. Bc4 Nf6 4. Ng5 d5 5. exd5 Nxd5 6. Nxf7 Kxf7 7. Qf3+ Ke6 8. Nc3 Nb4',
       },
       {
         name: 'Lazy disambiguation (e.g. Rc1c4)',
@@ -1400,7 +1402,7 @@ describe('.loadPgn', () => {
       },
     ]
 
-    tests.forEach(({ name, input, output}) => {
+    tests.forEach(({ name, input, output }) => {
       it(name, () => {
         const chess = new Chess()
         chess.loadPgn(input)
@@ -1550,10 +1552,18 @@ describe('.getComment, .deleteComment', () => {
       fn(chess)
       expect(chess.getComments()).toEqual({})
     }
-    test((chess) => { chess.reset() })
-    test((chess) => { chess.clear() })
-    test((chess) => { chess.load(chess.fen()) })
-    test((chess) => { chess.loadPgn('1. e4') })
+    test((chess) => {
+      chess.reset()
+    })
+    test((chess) => {
+      chess.clear()
+    })
+    test((chess) => {
+      chess.load(chess.fen())
+    })
+    test((chess) => {
+      chess.loadPgn('1. e4')
+    })
   })
 })
 
@@ -2050,13 +2060,17 @@ describe('Regression Tests', () => {
   })
 
   it('Github Issue #98 (white) - Wrong movement number after setting a position via FEN', () => {
-    const chess = new Chess('4r3/8/2p2PPk/1p6/pP2p1R1/P1B5/2P2K2/3r4 w - - 1 45')
+    const chess = new Chess(
+      '4r3/8/2p2PPk/1p6/pP2p1R1/P1B5/2P2K2/3r4 w - - 1 45'
+    )
     chess.move('f7')
     expect(chess.pgn()).toContain('45. f7')
   })
 
   it('Github Issue #98 (black) - Wrong movement number after setting a position via FEN', () => {
-    const chess = new Chess('4r3/8/2p2PPk/1p6/pP2p1R1/P1B5/2P2K2/3r4 b - - 1 45')
+    const chess = new Chess(
+      '4r3/8/2p2PPk/1p6/pP2p1R1/P1B5/2P2K2/3r4 b - - 1 45'
+    )
     chess.move('Rf1+')
     expect(chess.pgn()).toContain('45...Rf1+')
   })
@@ -2133,54 +2147,67 @@ describe('Regression Tests', () => {
     ]
 
     // trailing comment - no end of game marker
-    const chess = new Chess();
-    chess.loadPgn("1. e4 e5 2. Nf3 Nc6 3. Bb5 d6 " +
-      "4. d4 Bd7 5. Nc3 Nf6 6. Bxc6 {comment}")
+    const chess = new Chess()
+    chess.loadPgn(
+      '1. e4 e5 2. Nf3 Nc6 3. Bb5 d6 ' +
+        '4. d4 Bd7 5. Nc3 Nf6 6. Bxc6 {comment}'
+    )
     expect(chess.history()).toEqual(history)
     expect(chess.header['Result']).toBeUndefined()
 
     // trailing comment - end of game marker after comment
-    chess.loadPgn("1. e4 e5 2. Nf3 Nc6 3. Bb5 d6 " +
-      "4. d4 Bd7 5. Nc3 Nf6 6. Bxc6 {comment} *")
+    chess.loadPgn(
+      '1. e4 e5 2. Nf3 Nc6 3. Bb5 d6 ' +
+        '4. d4 Bd7 5. Nc3 Nf6 6. Bxc6 {comment} *'
+    )
     expect(chess.history()).toEqual(history)
     expect(chess.header['Result']).toBe('*')
 
     // trailing comment - end of game marker before comment
-    chess.loadPgn("1. e4 e5 2. Nf3 Nc6 3. Bb5 d6 " +
-      "4. d4 Bd7 5. Nc3 Nf6 6. Bxc6 * {comment}")
+    chess.loadPgn(
+      '1. e4 e5 2. Nf3 Nc6 3. Bb5 d6 ' +
+        '4. d4 Bd7 5. Nc3 Nf6 6. Bxc6 * {comment}'
+    )
     expect(chess.history()).toEqual(history)
     expect(chess.header['Result']).toBe('*')
 
     // trailing comment with PGN header - no end of game marker
-    chess.loadPgn("[White \"name\"]\n\n" +
-      "1. e4 e5 2. Nf3 Nc6 " +
-      "3. Bb5 d6 " + "4. d4 Bd7 5. Nc3 Nf6 " +
-      "6. Bxc6 {comment}")
+    chess.loadPgn(
+      '[White "name"]\n\n' +
+        '1. e4 e5 2. Nf3 Nc6 ' +
+        '3. Bb5 d6 ' +
+        '4. d4 Bd7 5. Nc3 Nf6 ' +
+        '6. Bxc6 {comment}'
+    )
     expect(chess.history()).toEqual(history)
     expect(chess.header['Result']).toBeUndefined()
 
     // trailing comment with result header - end of game marker after comment
-    chess.loadPgn("[White \"name\"]\n\n" +
-      "1. e4 e5 2. Nf3 Nc6 3. Bb5 d6 " +
-      "4. d4 Bd7 5. Nc3 Nf6 6. Bxc6 {comment} *")
+    chess.loadPgn(
+      '[White "name"]\n\n' +
+        '1. e4 e5 2. Nf3 Nc6 3. Bb5 d6 ' +
+        '4. d4 Bd7 5. Nc3 Nf6 6. Bxc6 {comment} *'
+    )
     expect(chess.history()).toEqual(history)
     expect(chess.header['Result']).toBe('*')
 
     // trailing comment with result header - end of game marker before comment
-    chess.loadPgn("[White \"name\"]\n\n" +
-      "1. e4 e5 2. Nf3 Nc6 3. Bb5 d6 " +
-      "4. d4 Bd7 5. Nc3 Nf6 6. Bxc6 1/2-1/2 {comment}")
+    chess.loadPgn(
+      '[White "name"]\n\n' +
+        '1. e4 e5 2. Nf3 Nc6 3. Bb5 d6 ' +
+        '4. d4 Bd7 5. Nc3 Nf6 6. Bxc6 1/2-1/2 {comment}'
+    )
     expect(chess.history()).toEqual(history)
     expect(chess.header['Result']).toBe('1/2-1/2')
   })
 
-  it('Github Issue #282 - playing a move on an empty board throws an error', function() {
-    var chess = new Chess('8/8/8/8/8/8/8/8 w KQkq - 0 1');
+  it('Github Issue #282 - playing a move on an empty board throws an error', function () {
+    var chess = new Chess('8/8/8/8/8/8/8/8 w KQkq - 0 1')
     expect(chess.move('e4')).toBeNull()
   })
 
-  it('Github Issue #284 - sloppy settings allows illegal moves', function() {
-    var chess = new Chess('4k3/8/8/8/8/4p3/8/4K3 w - - 0 1');
+  it('Github Issue #284 - sloppy settings allows illegal moves', function () {
+    var chess = new Chess('4k3/8/8/8/8/4p3/8/4K3 w - - 0 1')
     expect(chess.move('e1f2')).toBeNull()
   })
 
