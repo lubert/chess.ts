@@ -88,9 +88,10 @@ export class Chess {
 
   /** @public */
   public setCurrentNode(newNode: TreeNode<GameState>): Move | null {
-    const jsonPath = JSON.stringify(newNode.path())
+    const jsonPath = JSON.stringify(newNode.path().map((n) => n.model))
     const node = this.tree.breadth(
-      (treeNode) => JSON.stringify(treeNode.path()) === jsonPath
+      (treeNode) =>
+        JSON.stringify(treeNode.path().map((n) => n.model)) === jsonPath
     )
     if (node) {
       const hexNode = this._tree.fetch(node.indices)
