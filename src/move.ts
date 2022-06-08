@@ -33,6 +33,7 @@ import {
   PartialMove,
   ParsedMove,
   HexState,
+  GameState,
 } from './interfaces/types'
 import {
   algebraic,
@@ -52,6 +53,7 @@ import { REGEXP_MOVE, REGEXP_NAG } from './regex'
 import { BoardState } from './models/BoardState'
 import { validateFen } from './fen'
 import { TreeNode } from 'treenode.ts'
+import { isMainline } from './pgn'
 
 /* this function is used to uniquely identify ambiguous moves */
 export function getDisambiguator(state: Readonly<BoardState>, move: Readonly<HexMove>, sloppy: boolean): string {
@@ -897,4 +899,17 @@ export function nodeMove(node: TreeNode<HexState>): Move | null {
     return hexToMove(node.parent.model.boardState, node.model.move)
   }
   return null
+}
+
+export function hexToGameState(
+  node: TreeNode<HexState>
+): Omit<GameState, 'isCurrent'> {
+  const move = nodeMove(node)
+  return {
+    fen: node.model.fen,
+    nags: node.model.nags,
+    comment: node.model.comment,
+    move: move || undefined,
+    isMainline: isMainline(node),
+  }
 }

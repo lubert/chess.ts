@@ -18,6 +18,7 @@ import {
   validateMove,
   getFen,
   nodeMove,
+  hexToGameState,
 } from './move'
 import {
   loadPgn,
@@ -91,26 +92,33 @@ export class Chess {
 
   /** @public */
   public get tree(): Readonly<TreeNode<GameState>> {
-    return this._tree.map((node) => {
-      const move = nodeMove(node)
-      const gameState: GameState = {
-        fen: node.model.fen,
-        nags: node.model.nags,
-        comment: node.model.comment,
-        move: move || undefined,
-        isMainline: isMainline(node),
-        isCurrent: node === this._currentNode,
-      }
-      return gameState
-    })
+    return this._tree.map((node) => ({
+      ...hexToGameState(node),
+      isCurrent: node === this._currentNode,
+    }))
   }
 
   /** @public */
-  public setMove(indices: number[]): Move | null {
-    let node = this._tree
-    indices.forEach((i) => node = node.children[i])
-    this._currentNode = node
-    return nodeMove(this._currentNode)
+  public setCurrentNode(newNode: TreeNode<GameState>): Move | null {
+    const processPath = (
+      node: TreeNode<GameState>
+    ): Omit<GameState, 'isCurrent'>[] =>
+      node.path().map((n) => {
+        const { isCurrent, ...omit } = n.model
+        return omit
+      })
+    const json = JSON.stringify(processPath(newNode))
+    const matchPath = (node: TreeNode<GameState>): boolean =>
+      JSON.stringify(processPath(node)) === json
+
+    const node = this.tree.breadth((treeNode) => matchPath(treeNode))
+    if (node) {
+      const hexNode = this._tree.fetch(node.indices)
+      if (!hexNode) return null
+      this._currentNode = hexNode
+      return nodeMove(this._currentNode)
+    }
+    return null
   }
 
   /** @internal */
