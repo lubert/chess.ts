@@ -981,6 +981,5 @@ export function hexToGameState(
     nags: node.model.nags,
     comment: node.model.comment,
     move: move || undefined,
-    isMainline: isMainline(node),
   }
 }

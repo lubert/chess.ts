@@ -78,26 +78,20 @@ export class Chess {
 
   /** @public */
   public get tree(): Readonly<TreeNode<GameState>> {
-    return this._tree.map((node) => ({
-      ...hexToGameState(node),
-      isCurrent: node === this._currentNode,
-    }))
+    return this._tree.map((node) => hexToGameState(node))
+  }
+
+  /** @public */
+  public get currentNode(): Readonly<TreeNode<GameState>> {
+    return this.tree.fetch(this._currentNode.indices)!
   }
 
   /** @public */
   public setCurrentNode(newNode: TreeNode<GameState>): Move | null {
-    const processPath = (
-      node: TreeNode<GameState>
-    ): Omit<GameState, 'isCurrent'>[] =>
-      node.path().map((n) => {
-        const { isCurrent, ...omit } = n.model
-        return omit
-      })
-    const json = JSON.stringify(processPath(newNode))
-    const matchPath = (node: TreeNode<GameState>): boolean =>
-      JSON.stringify(processPath(node)) === json
-
-    const node = this.tree.breadth((treeNode) => matchPath(treeNode))
+    const jsonPath = JSON.stringify(newNode.path())
+    const node = this.tree.breadth(
+      (treeNode) => JSON.stringify(treeNode.path()) === jsonPath
+    )
     if (node) {
       const hexNode = this._tree.fetch(node.indices)
       if (!hexNode) return null

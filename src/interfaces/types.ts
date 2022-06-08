@@ -8,12 +8,10 @@ export type CommentMap = Partial<Record<string, string>>
 
 /** @public */
 export type GameState = {
-  fen: string;
-  move?: Move;
-  nags?: number[];
-  comment?: string;
-  isMainline: boolean;
-  isCurrent: boolean;
+  fen: string
+  move?: Move
+  nags?: number[]
+  comment?: string
 }
 
 /**

@@ -39,15 +39,13 @@ describe('gameTree', () => {
     chess.setComment('positional')
     const expected = {
       model: {
-        fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-        isMainline: true,
-        isCurrent: false
+        fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
       },
       children: [
         {
           model: {
-            fen: "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1",
-            comment: "tactical",
+            fen: 'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1',
+            comment: 'tactical',
             move: {
               to: "e4",
               from: "e2",
@@ -56,8 +54,6 @@ describe('gameTree', () => {
               piece: "p",
               san: "e4"
             },
-            isMainline: true,
-            isCurrent: false
           },
           children: []
         },
@@ -73,8 +69,6 @@ describe('gameTree', () => {
               piece: "p",
               san: "d4"
             },
-            isMainline: false,
-            isCurrent: true
           },
           children: []
         }
