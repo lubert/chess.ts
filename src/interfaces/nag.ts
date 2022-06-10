@@ -67,11 +67,11 @@ export const NagMap: Partial<Record<Nag, string>> = {
   [Nag.BLACK_SEVERE_TIME_PRESSURE]: '⨁',
 }
 
-export function extractNags(move: string): number[] {
+export function extractNags(move: string): number[] | undefined {
   const nagMatches = move.match(REGEXP_NAG)
-  if (!nagMatches) return []
+  if (!nagMatches) return
   const nag = nagMatches[0]
-  switch(nag) {
+  switch (nag) {
     case '!':
       return [Nag.GOOD_MOVE]
     case '?':
@@ -85,6 +85,6 @@ export function extractNags(move: string): number[] {
     case '?!':
       return [Nag.DUBIOUS_MOVE]
     default:
-      return []
+      return
   }
 }

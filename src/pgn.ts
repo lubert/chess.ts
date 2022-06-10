@@ -243,7 +243,7 @@ export function loadPgn(pgn: string, options: { newline?: string, width?: number
       const nextState = makeMove(boardState, move)
       currentNode = currentNode.addModel({
         boardState: nextState,
-        fen: getFen(boardState),
+        fen: getFen(nextState),
         nags: extractNags(token),
         move,
       })

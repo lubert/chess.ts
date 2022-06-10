@@ -1163,6 +1163,111 @@ describe('.pgn', () => {
 })
 
 describe('.loadPgn', () => {
+  describe('tree', () => {
+    it('matches', () => {
+      const pgn = readPgn('tree01.pgn')
+      const chess = new Chess()
+      chess.loadPgn(pgn)
+      const expected = {
+        model: {
+          fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+        },
+        children: [
+          {
+            model: {
+              fen: 'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1',
+              move: {
+                to: 'e4',
+                from: 'e2',
+                color: 'w',
+                flags: 'b',
+                piece: 'p',
+                san: 'e4',
+              },
+            },
+            children: [
+              {
+                model: {
+                  fen: 'rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2',
+                  move: {
+                    to: 'e5',
+                    from: 'e7',
+                    color: 'b',
+                    flags: 'b',
+                    piece: 'p',
+                    san: 'e5',
+                  },
+                },
+                children: [
+                  {
+                    model: {
+                      fen: 'rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2',
+                      move: {
+                        to: 'f3',
+                        from: 'g1',
+                        color: 'w',
+                        flags: 'n',
+                        piece: 'n',
+                        san: 'Nf3',
+                      },
+                    },
+                    children: [
+                      {
+                        model: {
+                          fen: 'r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3',
+                          move: {
+                            to: 'c6',
+                            from: 'b8',
+                            color: 'b',
+                            flags: 'n',
+                            piece: 'n',
+                            san: 'Nc6',
+                          },
+                        },
+                        children: [
+                          {
+                            model: {
+                              fen: 'r1bqkbnr/pppp1ppp/2n5/4p3/4P3/2N2N2/PPPP1PPP/R1BQKB1R b KQkq - 3 3',
+                              move: {
+                                to: 'c3',
+                                from: 'b1',
+                                color: 'w',
+                                flags: 'n',
+                                piece: 'n',
+                                san: 'Nc3',
+                              },
+                            },
+                            children: [
+                              {
+                                model: {
+                                  fen: 'r1bqkb1r/pppp1ppp/2n2n2/4p3/4P3/2N2N2/PPPP1PPP/R1BQKB1R w KQkq - 4 4',
+                                  move: {
+                                    to: 'f6',
+                                    from: 'g8',
+                                    color: 'b',
+                                    flags: 'n',
+                                    piece: 'n',
+                                    san: 'Nf6',
+                                  },
+                                },
+                                children: [],
+                              },
+                            ],
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      }
+      expect(chess.tree.toObject()).toEqual(expected)
+    })
+  })
+
   describe('valid', () => {
     const examples = [
       {
