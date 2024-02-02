@@ -20,6 +20,9 @@ import {
   nodeMove,
   hexToGameState,
 } from './move'
+import {
+  Nag,
+} from './interfaces/nag'
 import { loadPgn, getPgn, isMainline } from './pgn'
 import {
   Color,
@@ -1145,6 +1148,27 @@ export class Chess {
       }
     })
     return comments
+  }
+
+  public addNag(nag: Nag, fen?: string): void {
+    let node: TreeNode<HexState> | undefined = this._currentNode
+    if (fen) {
+      node = this._currentNode.path().find((n) => n.model.fen === fen)
+      if (!node) return
+    }
+    node.model.nags = node.model.nags || []
+    if (!node.model.nags.includes(nag)) {
+      node.model.nags.push(nag)
+    }
+  }
+
+  public getNags(fen?: string): Nag[] {
+    let node: TreeNode<HexState> | undefined = this._currentNode
+    if (fen) {
+      node = this._currentNode.path().find((n) => n.model.fen === fen)
+      if (!node) return []
+    }
+    return node.model.nags || []
   }
 
   /**

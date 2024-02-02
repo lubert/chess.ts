@@ -30,6 +30,7 @@ export declare class Chess
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
+|  [addNag(nag, fen)](./chess.ts.chess.addnag.md) |  |  |
 |  [ascii(newline\_char)](./chess.ts.chess.ascii.md) |  | Returns a string containing an ASCII diagram of the current position. |
 |  [board()](./chess.ts.chess.board.md) |  | Returns an 2D array representation of the current position. Empty squares are represented by <code>null</code>. |
 |  [clear(keepHeaders)](./chess.ts.chess.clear.md) |  | Clears the board. |
@@ -39,6 +40,7 @@ export declare class Chess
 |  [gameOver()](./chess.ts.chess.gameover.md) |  | Returns true if the game has ended via checkmate, stalemate, draw, threefold repetition, or insufficient material. Otherwise, returns false. |
 |  [getComment(fen)](./chess.ts.chess.getcomment.md) |  | Retrieve the comment for a position, if it exists. |
 |  [getComments()](./chess.ts.chess.getcomments.md) |  | Retrieve comments for all positions. |
+|  [getNags(fen)](./chess.ts.chess.getnags.md) |  |  |
 |  [getPiece(square)](./chess.ts.chess.getpiece.md) |  | Returns the piece on the square. |
 |  [getPieces()](./chess.ts.chess.getpieces.md) |  | Returns a map of squares to pieces. |
 |  [history(options)](./chess.ts.chess.history.md) |  | Returns a list containing the moves of the current game. |
