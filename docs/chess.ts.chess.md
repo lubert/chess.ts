@@ -21,8 +21,10 @@ export declare class Chess
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
+|  [currentNode](./chess.ts.chess.currentnode.md) |  | Readonly&lt;TreeNode&lt;GameState&gt;&gt; |  |
 |  [header](./chess.ts.chess.header.md) |  | HeaderMap |  |
-|  [tree](./chess.ts.chess.tree.md) |  | Readonly&lt;GameNode&gt; |  |
+|  [state](./chess.ts.chess.state.md) |  | Readonly&lt;[BoardState](./chess.ts.boardstate.md)<!-- -->&gt; |  |
+|  [tree](./chess.ts.chess.tree.md) |  | Readonly&lt;TreeNode&lt;GameState&gt;&gt; |  |
 
 ## Methods
 
@@ -55,12 +57,16 @@ export declare class Chess
 |  [moves(options)](./chess.ts.chess.moves_1.md) |  | Returns a list of legal moves from the current position. The function takes an optional parameter which controls the single-square move generation and verbosity. |
 |  [pgn(options)](./chess.ts.chess.pgn.md) |  | Returns the game in PGN format. Options is an optional parameter which may include max width and/or a newline character settings. |
 |  [putPiece(piece, square)](./chess.ts.chess.putpiece.md) |  | Place a piece on the square where piece is an object with the form <code>{ type: ..., color: ... }</code>. Returns true if the piece was successfully placed, otherwise, the board remains unchanged and false is returned. <code>put()</code> will fail when passed an invalid piece or square, or when two or more kings of the same color are placed. |
+|  [redo()](./chess.ts.chess.redo.md) |  | Redo mainline move. |
+|  [redoAll()](./chess.ts.chess.redoall.md) |  | Redo all mainline moves. |
 |  [removePiece(square)](./chess.ts.chess.removepiece.md) |  | Remove and return the piece on <code>square</code>. |
 |  [reset()](./chess.ts.chess.reset.md) |  | Reset the board to the initial starting position. |
 |  [setComment(comment, fen)](./chess.ts.chess.setcomment.md) |  | Comment on a position. |
+|  [setCurrentNode(newNode)](./chess.ts.chess.setcurrentnode.md) |  |  |
 |  [squareColor(square)](./chess.ts.chess.squarecolor.md) |  | Returns the color of the square ('light' or 'dark'). |
 |  [turn()](./chess.ts.chess.turn.md) |  | Returns the current side to move. |
 |  [undo()](./chess.ts.chess.undo.md) |  | Takeback the last half-move, returning a move object if successful, otherwise null. |
+|  [undoAll()](./chess.ts.chess.undoall.md) |  | Undo all moves. |
 |  [validateFen(fen)](./chess.ts.chess.validatefen.md) |  | Returns a validation object specifying validity or the errors found within the FEN string. |
 |  [validateMoves(moves)](./chess.ts.chess.validatemoves.md) |  | Validates a sequence of moves, returning an array of move objects if the moves are all legal, otherwise null. |
 

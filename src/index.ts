@@ -11,6 +11,10 @@ export {
   Validation,
 } from './interfaces/types'
 export {
+  Nag,
+  NagMap,
+} from './interfaces/nag'
+export {
   WHITE,
   BLACK,
   PAWN,

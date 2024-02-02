@@ -11,6 +11,12 @@
 |  [BoardState](./chess.ts.boardstate.md) |  |
 |  [Chess](./chess.ts.chess.md) |  |
 
+## Enumerations
+
+|  Enumeration | Description |
+|  --- | --- |
+|  [Nag](./chess.ts.nag.md) | https://en.wikipedia.org/wiki/Numeric\_Annotation\_Glyphs |
+
 ## Functions
 
 |  Function | Description |
@@ -18,17 +24,9 @@
 |  [algebraic(i)](./chess.ts.algebraic.md) | Converts a 0x88 square to algebraic notation. |
 |  [file(i)](./chess.ts.file.md) | Extracts the zero-based file of an 0x88 square. |
 |  [isColor(color)](./chess.ts.iscolor.md) |  |
-|  [isDefined(value)](./chess.ts.isdefined.md) |  |
-|  [isDigit(c)](./chess.ts.isdigit.md) | Checks if a character is a numeric digit. |
-|  [isFlagKey(key)](./chess.ts.isflagkey.md) |  |
 |  [isPieceSymbol(symbol)](./chess.ts.ispiecesymbol.md) |  |
 |  [isSquare(sq)](./chess.ts.issquare.md) |  |
 |  [rank(i)](./chess.ts.rank.md) | Extracts the zero-based rank of an 0x88 square. |
-|  [splitStr(str, char)](./chess.ts.splitstr.md) |  |
-|  [swapColor(c)](./chess.ts.swapcolor.md) | Returns the opposite color. |
-|  [symbol({ type, color })](./chess.ts.symbol.md) | Returns the ASCII symbol for each piece. White pieces are in uppercase, black in lowercase. |
-|  [toPieceSymbol(obj)](./chess.ts.topiecesymbol.md) |  |
-|  [toSquare(obj)](./chess.ts.tosquare.md) |  |
 
 ## Variables
 
@@ -41,6 +39,7 @@
 |  [FLAGS](./chess.ts.flags.md) |  |
 |  [KING](./chess.ts.king.md) |  |
 |  [KNIGHT](./chess.ts.knight.md) |  |
+|  [NagMap](./chess.ts.nagmap.md) |  |
 |  [PAWN](./chess.ts.pawn.md) |  |
 |  [QUEEN](./chess.ts.queen.md) |  |
 |  [ROOK](./chess.ts.rook.md) |  |
@@ -52,9 +51,11 @@
 |  Type Alias | Description |
 |  --- | --- |
 |  [Color](./chess.ts.color.md) |  |
+|  [CommentMap](./chess.ts.commentmap.md) |  |
 |  [Move](./chess.ts.move.md) | Represents a chess move |
 |  [PartialMove](./chess.ts.partialmove.md) |  |
 |  [Piece](./chess.ts.piece.md) |  |
 |  [PieceSymbol](./chess.ts.piecesymbol.md) |  |
+|  [Square](./chess.ts.square.md) |  |
 |  [Validation](./chess.ts.validation.md) |  |
 

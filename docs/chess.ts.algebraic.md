@@ -20,5 +20,5 @@ export declare function algebraic(i: number): Square | undefined;
 
 <b>Returns:</b>
 
-Square \| undefined
+[Square](./chess.ts.square.md) \| undefined
 

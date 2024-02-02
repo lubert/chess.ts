@@ -13,7 +13,7 @@ getComments(): CommentMap;
 ```
 <b>Returns:</b>
 
-CommentMap
+[CommentMap](./chess.ts.commentmap.md)
 
 ## Example
 
