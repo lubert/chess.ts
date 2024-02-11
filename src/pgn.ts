@@ -97,7 +97,7 @@ export function getPgn(
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 export function loadPgn(pgn: string, options: { newline?: string, width?: number } = {}): { tree: TreeNode<HexState>, currentNode: TreeNode<HexState>, header: HeaderMap } {
-  const { newline = '\r?\n' } = options
+  const { newline = '\r\n|\n|\r' } = options
 
   // Split on newlines and read line by line
   const newlineRe = new RegExp(newline)
