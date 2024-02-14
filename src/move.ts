@@ -53,15 +53,14 @@ import { REGEXP_MOVE, REGEXP_NAG } from './regex'
 import { BoardState } from './models/BoardState'
 import { validateFen } from './fen'
 import { TreeNode } from 'treenode.ts'
-import { isMainline } from './pgn'
 
 /* this function is used to uniquely identify ambiguous moves */
 export function getDisambiguator(
   state: Readonly<BoardState>,
   move: Readonly<HexMove>,
-  sloppy: boolean
+  sloppy: boolean,
 ): string {
-  const moves = generateMoves(state, { legal: !sloppy })
+  const moves = state.generateMoves({ legal: !sloppy })
 
   const from = move.from
   const to = move.to
@@ -197,7 +196,7 @@ export function loadFen(fen: string): BoardState | null {
       const newState = putPiece(
         state,
         { type: piece.toLowerCase(), color: color },
-        algebraic(square)
+        algebraic(square),
       )
       if (!newState) {
         return null
@@ -231,7 +230,7 @@ export function loadFen(fen: string): BoardState | null {
 
 export function getPiece(
   state: Readonly<BoardState>,
-  square?: string
+  square?: string,
 ): Piece | null {
   if (!square) return null
   square = square.toLowerCase()
@@ -267,7 +266,7 @@ export function clonePiece(piece: Readonly<Piece>): Piece {
 export function putPiece(
   prevState: Readonly<BoardState>,
   piece: { type?: string; color?: string },
-  square?: string
+  square?: string,
 ): BoardState | null {
   let { type, color } = piece
 
@@ -306,7 +305,7 @@ export function putPiece(
 
 export function removePiece(
   prevState: Readonly<BoardState>,
-  square?: string
+  square?: string,
 ): BoardState | null {
   if (!square) return null
 
@@ -326,25 +325,16 @@ export function removePiece(
   return state
 }
 
-export function generateMoves(
-  state: Readonly<BoardState>,
-  options: { legal?: boolean; square?: string } = {}
-): HexMove[] {
-  const { legal = true } = options
-  const add_move = (
-    board: Board,
-    moves: HexMove[],
-    from: number,
-    to: number,
-    flags: number
-  ) => {
-    /* if pawn promotion */
+/**
+ * Return all pseudo-legal moves, which includes moves that allow the king to
+ * be captured. Legal moves or single square moves can be further filtered out.
+ */
+export function generateMoves(state: Readonly<BoardState>): HexMove[] {
+  const moves: HexMove[] = []
+  const addMove = (board: Board, from: number, to: number, flags: number) => {
+    // Pawn promotion
     const piece = board[from]
-    if (
-      piece &&
-      piece.type === PAWN &&
-      (rank(to) === RANK_8 || rank(to) === RANK_1)
-    ) {
+    if (piece?.type === PAWN && (rank(to) === RANK_8 || rank(to) === RANK_1)) {
       const pieces = [QUEEN, ROOK, BISHOP, KNIGHT]
       pieces.forEach((piece) => {
         const move = buildMove(state, from, to, flags, piece)
@@ -356,57 +346,44 @@ export function generateMoves(
     }
   }
 
-  const moves: HexMove[] = []
-  const us = state.turn
-  const them = swapColor(us)
+  const them = swapColor(state.turn)
   const second_rank: { [key: string]: number } = { b: RANK_7, w: RANK_2 }
 
-  let first_sq = SQUARES.a8
-  let last_sq = SQUARES.h1
-  let single_square = false
-
-  /* are we generating moves for a single square? */
-  const { square } = options
-  if (square) {
-    if (!isSquare(square)) return []
-    first_sq = last_sq = SQUARES[square]
-    single_square = true
-  }
+  const first_sq = SQUARES.a8
+  const last_sq = SQUARES.h1
 
   for (let i = first_sq; i <= last_sq; i++) {
-    /* did we run off the end of the board */
+    // Check if we ran off the end of the board
     if (i & 0x88) {
       i += 7
       continue
     }
 
     const piece = state.board[i]
-    if (!piece || piece.color !== us) {
-      continue
-    }
+    if (piece?.color !== state.turn) continue
 
     if (piece.type === PAWN) {
-      /* single square, non-capturing */
-      const square1 = i + PAWN_OFFSETS[us][0]
+      // Single square, non-capturing
+      const square1 = i + PAWN_OFFSETS[state.turn][0]
       if (!state.board[square1]) {
-        add_move(state.board, moves, i, square1, BITS.NORMAL)
+        addMove(state.board, i, square1, BITS.NORMAL)
 
-        /* double square */
-        const square2 = i + PAWN_OFFSETS[us][1]
-        if (second_rank[us] === rank(i) && !state.board[square2]) {
-          add_move(state.board, moves, i, square2, BITS.BIG_PAWN)
+        // Double square
+        const square2 = i + PAWN_OFFSETS[state.turn][1]
+        if (second_rank[state.turn] === rank(i) && !state.board[square2]) {
+          addMove(state.board, i, square2, BITS.BIG_PAWN)
         }
       }
 
-      /* pawn captures */
+      // Pawn captures
       for (let j = 2; j < 4; j++) {
-        const square = i + PAWN_OFFSETS[us][j]
+        const square = i + PAWN_OFFSETS[state.turn][j]
         if (square & 0x88) continue
 
         if (state.board[square] && state.board[square]?.color === them) {
-          add_move(state.board, moves, i, square, BITS.CAPTURE)
+          addMove(state.board, i, square, BITS.CAPTURE)
         } else if (square === state.ep_square) {
-          add_move(state.board, moves, i, state.ep_square, BITS.EP_CAPTURE)
+          addMove(state.board, i, state.ep_square, BITS.EP_CAPTURE)
         }
       }
     } else {
@@ -419,87 +396,68 @@ export function generateMoves(
           if (square & 0x88) break
 
           if (!state.board[square]) {
-            add_move(state.board, moves, i, square, BITS.NORMAL)
+            addMove(state.board, i, square, BITS.NORMAL)
           } else {
-            if (state.board[square]?.color === us) break
-            add_move(state.board, moves, i, square, BITS.CAPTURE)
+            if (state.board[square]?.color === state.turn) break
+            addMove(state.board, i, square, BITS.CAPTURE)
             break
           }
 
-          /* break, if knight or king */
+          // Break if knight or king
           if (piece.type === 'n' || piece.type === 'k') break
         }
       }
     }
   }
 
-  /* check for castling if: a) we're generating all moves, or b) we're doing
-   * single square move generation on the king's square
-   */
-  if (!single_square || last_sq === state.kings[us]) {
-    /* king-side castling */
-    if (state.castling[us] & BITS.KSIDE_CASTLE) {
-      const castling_from = state.kings[us]
-      const castling_to = castling_from + 2
-
-      if (
-        !state.board[castling_from + 1] &&
-        !state.board[castling_to] &&
-        !isAttacked(state, them, state.kings[us]) &&
-        !isAttacked(state, them, castling_from + 1) &&
-        !isAttacked(state, them, castling_to)
-      ) {
-        add_move(
-          state.board,
-          moves,
-          state.kings[us],
-          castling_to,
-          BITS.KSIDE_CASTLE
-        )
-      }
-    }
-
-    /* queen-side castling */
-    if (state.castling[us] & BITS.QSIDE_CASTLE) {
-      const castling_from = state.kings[us]
-      const castling_to = castling_from - 2
-
-      if (
-        !state.board[castling_from - 1] &&
-        !state.board[castling_from - 2] &&
-        !state.board[castling_from - 3] &&
-        !isAttacked(state, them, state.kings[us]) &&
-        !isAttacked(state, them, castling_from - 1) &&
-        !isAttacked(state, them, castling_to)
-      ) {
-        add_move(
-          state.board,
-          moves,
-          state.kings[us],
-          castling_to,
-          BITS.QSIDE_CASTLE
-        )
-      }
+  // King-side castling
+  if (state.castling[state.turn] & BITS.KSIDE_CASTLE) {
+    const castling_from = state.kings[state.turn]
+    const castling_to = castling_from + 2
+    if (
+      !state.board[castling_from + 1] &&
+      !state.board[castling_to] &&
+      !isAttacked(state, them, state.kings[state.turn]) &&
+      !isAttacked(state, them, castling_from + 1) &&
+      !isAttacked(state, them, castling_to)
+    ) {
+      addMove(
+        state.board,
+        state.kings[state.turn],
+        castling_to,
+        BITS.KSIDE_CASTLE,
+      )
     }
   }
 
-  /* return all pseudo-legal moves (this includes moves that allow the king
-   * to be captured)
-   */
-  if (!legal) {
-    return moves
-  }
+  // Queen-side castling
+  if (state.castling[state.turn] & BITS.QSIDE_CASTLE) {
+    const castling_from = state.kings[state.turn]
+    const castling_to = castling_from - 2
 
-  /* filter out illegal moves */
-  const legal_moves = []
-  for (let i = 0, len = moves.length; i < len; i++) {
-    const newState = makeMove(state, moves[i])
-    if (!isKingAttacked(newState, us)) {
-      legal_moves.push(moves[i])
+    if (
+      !state.board[castling_from - 1] &&
+      !state.board[castling_from - 2] &&
+      !state.board[castling_from - 3] &&
+      !isAttacked(state, them, state.kings[state.turn]) &&
+      !isAttacked(state, them, castling_from - 1) &&
+      !isAttacked(state, them, castling_to)
+    ) {
+      addMove(
+        state.board,
+        state.kings[state.turn],
+        castling_to,
+        BITS.QSIDE_CASTLE,
+      )
     }
   }
 
-  return legal_moves
+  return moves
+}
+
+export function isLegal(state: BoardState, move: HexMove): boolean {
+  const newState = makeMove(state, move)
+  return !isKingAttacked(newState, state.turn)
 }
 
 /* convert a move from 0x88 coordinates to Standard Algebraic Notation
@@ -515,7 +473,11 @@ export function generateMoves(
 export function moveToSan(
   state: Readonly<BoardState>,
   move: Readonly<HexMove>,
-  options: { sloppy?: boolean; addCheck?: boolean; addPromotion?: boolean } = {}
+  options: {
+    sloppy?: boolean
+    addCheck?: boolean
+    addPromotion?: boolean
+  } = {},
 ): string {
   const { sloppy = false, addCheck = true, addPromotion = true } = options
   let output = ''
@@ -577,7 +539,7 @@ export function extractMove(move: string): ParsedMove {
 export function sanToMove(
   state: Readonly<BoardState>,
   moveStr: string,
-  options: { matchCheck?: boolean; matchPromotion?: boolean } = {}
+  options: { matchCheck?: boolean; matchPromotion?: boolean } = {},
 ): HexMove | null {
   const { matchCheck = true, matchPromotion = true } = options
 
@@ -585,7 +547,7 @@ export function sanToMove(
   const { san, piece, from, to, promotion } = parsedMove
   if (!san) return null
 
-  const moves = generateMoves(state, { square: from })
+  const moves = state.generateMoves({ square: from })
   // Strict
   const strictOptions = { addCheck: matchCheck, addPromotion: matchPromotion }
   for (let i = 0, len = moves.length; i < len; i++) {
@@ -617,7 +579,7 @@ export function sanToMove(
 
 export function hexToMove(
   state: Readonly<BoardState>,
-  hexMove: Readonly<HexMove>
+  hexMove: Readonly<HexMove>,
 ): Move {
   let flags = ''
   for (const flag in BITS) {
@@ -641,7 +603,7 @@ export function hexToMove(
 export function isAttacked(
   state: Readonly<BoardState>,
   color: string,
-  square: number
+  square: number,
 ): boolean {
   for (let i = SQUARES.a8; i <= SQUARES.h1; i++) {
     /* did we run off the end of the board */
@@ -691,7 +653,7 @@ export function isAttacked(
 
 export function isKingAttacked(
   state: Readonly<BoardState>,
-  color: Color
+  color: Color,
 ): boolean {
   return isAttacked(state, swapColor(color), state.kings[color])
 }
@@ -701,11 +663,11 @@ export function inCheck(state: Readonly<BoardState>): boolean {
 }
 
 export function inCheckmate(state: Readonly<BoardState>): boolean {
-  return inCheck(state) && generateMoves(state).length === 0
+  return inCheck(state) && state.generateMoves().length === 0
 }
 
 export function inStalemate(state: Readonly<BoardState>): boolean {
-  return !inCheck(state) && generateMoves(state).length === 0
+  return !inCheck(state) && state.generateMoves().length === 0
 }
 
 export function insufficientMaterial(state: Readonly<BoardState>): boolean {
@@ -757,7 +719,7 @@ export function insufficientMaterial(state: Readonly<BoardState>): boolean {
 
 export function makeMove(
   prevState: Readonly<BoardState>,
-  move: Readonly<HexMove>
+  move: Readonly<HexMove>,
 ): BoardState {
   const state = prevState.clone()
   const us = state.turn
@@ -865,7 +827,7 @@ export function buildMove(
   from: number,
   to: number,
   flags: number,
-  promotion?: string
+  promotion?: string,
 ): HexMove | null {
   const piece = state.board[from]
   if (!piece) return null
@@ -936,7 +898,7 @@ export function getBoard(board: Readonly<Board>): (Piece | null)[][] {
 export function validateMove(
   state: Readonly<BoardState>,
   move: string | Readonly<PartialMove>,
-  options: { matchPromotion?: boolean } = {}
+  options: { matchPromotion?: boolean } = {},
 ): HexMove | null {
   // Allow the user to specify the sloppy move parser to work around over
   // disambiguation bugs in Fritz and Chessbase
@@ -946,7 +908,7 @@ export function validateMove(
     return sanToMove(state, move, options)
   } else if (typeof move === 'object') {
     const square = isSquare(move.from) ? move.from : undefined
-    const moves = generateMoves(state, { square })
+    const moves = state.generateMoves({ square })
     // Find a matching move
     for (const moveObj of moves) {
       if (
@@ -973,7 +935,7 @@ export function nodeMove(node: TreeNode<HexState>): Move | null {
 }
 
 export function hexToGameState(
-  node: TreeNode<HexState>
+  node: TreeNode<HexState>,
 ): Omit<GameState, 'isCurrent'> {
   const move = nodeMove(node)
   return {

@@ -20,10 +20,8 @@ import {
   nodeMove,
   hexToGameState,
 } from './move'
-import {
-  Nag,
-} from './interfaces/nag'
-import { loadPgn, getPgn, isMainline } from './pgn'
+import { Nag } from './interfaces/nag'
+import { loadPgn, getPgn } from './pgn'
 import {
   Color,
   HexState,
@@ -94,7 +92,7 @@ export class Chess {
     const jsonPath = JSON.stringify(newNode.path().map((n) => n.model))
     const node = this.tree.breadth(
       (treeNode) =>
-        JSON.stringify(treeNode.path().map((n) => n.model)) === jsonPath
+        JSON.stringify(treeNode.path().map((n) => n.model)) === jsonPath,
     )
     if (node) {
       const hexNode = this._tree.fetch(node.indices)
@@ -255,7 +253,7 @@ export class Chess {
    */
   public putPiece(
     piece: { type: string; color: string },
-    square: string
+    square: string,
   ): boolean {
     const newState = putPiece(this.boardState, piece, square)
     if (newState) {
@@ -343,14 +341,14 @@ export class Chess {
   public moves(options: { square?: string; verbose: true }): Move[]
 
   public moves(
-    options: { square?: string; verbose?: boolean } = {}
+    options: { square?: string; verbose?: boolean } = {},
   ): string[] | Move[] {
     // The internal representation of a chess move is in 0x88 format, and
     // not meant to be human-readable.  The code below converts the 0x88
     // square coordinates to algebraic coordinates.  It also prunes an
     // unnecessary move keys resulting from a verbose call.
     const { square, verbose = false } = options
-    const uglyMoves = generateMoves(this.boardState, { square })
+    const uglyMoves = this.boardState.generateMoves({ square })
 
     if (verbose) {
       return uglyMoves.map((uglyMove) => hexToMove(this.boardState, uglyMove))
@@ -792,7 +790,7 @@ export class Chess {
    */
   public move(
     move: string | PartialMove,
-    options: { dry_run?: boolean } = {}
+    options: { dry_run?: boolean } = {},
   ): Move | null {
     const validMove = validateMove(this.boardState, move)
     if (!validMove) {
@@ -1195,7 +1193,7 @@ export class Chess {
     clone._tree = this._tree.clone()
     clone._currentNode =
       clone._tree.breadth(
-        ({ model }) => model.fen === this._currentNode.model.fen
+        ({ model }) => model.fen === this._currentNode.model.fen,
       ) || clone._tree
     clone.header = { ...this.header }
     return clone
@@ -1203,7 +1201,7 @@ export class Chess {
 
   /** @internal */
   public perft(depth: number): number {
-    const moves = generateMoves(this.boardState, { legal: false })
+    const moves = this.boardState.generateMoves({ legal: false })
     let nodes = 0
     const color = this.boardState.turn
 
