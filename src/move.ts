@@ -602,7 +602,7 @@ export function hexToMove(
 
 export function isAttacked(
   state: Readonly<BoardState>,
-  color: string,
+  color: Color,
   square: number,
 ): boolean {
   for (let i = SQUARES.a8; i <= SQUARES.h1; i++) {
@@ -613,7 +613,8 @@ export function isAttacked(
     }
 
     // if empty square or wrong color
-    if (state.board[i] == null || state.board[i]?.color !== color) continue
+    if (state.board[i] === undefined || state.board[i]?.color !== color)
+      continue
 
     const piece = state.board[i]
     const difference = i - square

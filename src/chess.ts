@@ -1,6 +1,5 @@
 import { TreeNode } from 'treenode.ts'
 import {
-  generateMoves,
   isAttacked,
   makeMove,
   moveToSan,
@@ -1243,7 +1242,7 @@ export class Chess {
   }
 
   /** @internal */
-  protected attacked(color: string, square: number): boolean {
+  protected attacked(color: Color, square: number): boolean {
     return isAttacked(this.boardState, color, square)
   }
 
