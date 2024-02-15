@@ -34,6 +34,7 @@ import {
   ParsedMove,
   HexState,
   GameState,
+  PieceSymbol,
 } from './interfaces/types'
 import {
   algebraic,
@@ -60,7 +61,7 @@ export function getDisambiguator(
   move: Readonly<HexMove>,
   sloppy: boolean,
 ): string {
-  const moves = state.generateMoves({ legal: !sloppy })
+  const moves = generateMoves(state, { legal: !sloppy })
 
   const from = move.from
   const to = move.to
@@ -325,139 +326,174 @@ export function removePiece(
   return state
 }
 
+export function isLegal(state: BoardState, move: HexMove): boolean {
+  const newState = makeMove(state, move)
+  return !isKingAttacked(newState, state.turn)
+}
+
 /**
  * Return all pseudo-legal moves, which includes moves that allow the king to
  * be captured. Legal moves or single square moves can be further filtered out.
  */
-export function generateMoves(state: Readonly<BoardState>): HexMove[] {
+export function generateMoves(
+  state: Readonly<BoardState>,
+  options: { legal?: boolean; piece?: PieceSymbol; square?: Square } = {},
+): HexMove[] {
+  const { legal = true, piece: forPiece, square: forSquare } = options
+
   const moves: HexMove[] = []
-  const addMove = (board: Board, from: number, to: number, flags: number) => {
+
+  const addMove = (
+    piece: PieceSymbol,
+    from: number,
+    to: number,
+    flags: number,
+    captured?: PieceSymbol,
+  ) => {
     // Pawn promotion
-    const piece = board[from]
-    if (piece?.type === PAWN && (rank(to) === RANK_8 || rank(to) === RANK_1)) {
-      const pieces = [QUEEN, ROOK, BISHOP, KNIGHT]
-      pieces.forEach((piece) => {
-        const move = buildMove(state, from, to, flags, piece)
-        if (move) moves.push(move)
+    const r = rank(to)
+    if (piece === PAWN && (r === RANK_8 || r === RANK_1)) {
+      const promotions = [QUEEN, ROOK, BISHOP, KNIGHT]
+      promotions.forEach((promotion) => {
+        moves.push({
+          piece,
+          color: state.turn,
+          from,
+          to,
+          captured,
+          promotion,
+          flags: flags | BITS.PROMOTION,
+        })
       })
     } else {
-      const move = buildMove(state, from, to, flags)
-      if (move) moves.push(move)
+      moves.push({
+        piece,
+        color: state.turn,
+        from,
+        to,
+        captured,
+        flags,
+      })
     }
   }
 
   const them = swapColor(state.turn)
   const second_rank: { [key: string]: number } = { b: RANK_7, w: RANK_2 }
 
-  const first_sq = SQUARES.a8
-  const last_sq = SQUARES.h1
+  let firstSq = SQUARES.a8
+  let lastSq = SQUARES.h1
 
-  for (let i = first_sq; i <= last_sq; i++) {
+  // Single square move generation
+  if (forSquare) {
+    // Invalid square
+    if (!(forSquare in SQUARES)) return []
+    firstSq = lastSq = SQUARES[forSquare]
+  }
+
+  for (let fromSq = firstSq; fromSq <= lastSq; fromSq++) {
     // Check if we ran off the end of the board
-    if (i & 0x88) {
-      i += 7
+    if (fromSq & 0x88) {
+      fromSq += 7
       continue
     }
 
-    const piece = state.board[i]
+    const piece = state.board[fromSq]
     if (piece?.color !== state.turn) continue
 
-    if (piece.type === PAWN) {
+    const symbol = piece.type
+    if (forPiece && forPiece !== symbol) continue
+
+    let toSq: number
+    if (symbol === PAWN) {
       // Single square, non-capturing
-      const square1 = i + PAWN_OFFSETS[state.turn][0]
-      if (!state.board[square1]) {
-        addMove(state.board, i, square1, BITS.NORMAL)
+      toSq = fromSq + PAWN_OFFSETS[state.turn][0]
+      if (!state.board[toSq]) {
+        addMove(PAWN, fromSq, toSq, BITS.NORMAL)
 
         // Double square
-        const square2 = i + PAWN_OFFSETS[state.turn][1]
-        if (second_rank[state.turn] === rank(i) && !state.board[square2]) {
-          addMove(state.board, i, square2, BITS.BIG_PAWN)
+        toSq = fromSq + PAWN_OFFSETS[state.turn][1]
+        if (second_rank[state.turn] === rank(fromSq) && !state.board[toSq]) {
+          addMove(PAWN, fromSq, toSq, BITS.BIG_PAWN)
         }
       }
 
       // Pawn captures
       for (let j = 2; j < 4; j++) {
-        const square = i + PAWN_OFFSETS[state.turn][j]
-        if (square & 0x88) continue
+        toSq = fromSq + PAWN_OFFSETS[state.turn][j]
+        if (toSq & 0x88) continue
 
-        if (state.board[square] && state.board[square]?.color === them) {
-          addMove(state.board, i, square, BITS.CAPTURE)
-        } else if (square === state.ep_square) {
-          addMove(state.board, i, state.ep_square, BITS.EP_CAPTURE)
+        const p = state.board[toSq]
+        if (p && p.color === them) {
+          addMove(PAWN, fromSq, toSq, BITS.CAPTURE, p.type)
+        } else if (toSq === state.ep_square) {
+          addMove(PAWN, fromSq, state.ep_square, BITS.EP_CAPTURE, PAWN)
         }
       }
     } else {
-      for (let j = 0, len = PIECE_OFFSETS[piece.type].length; j < len; j++) {
-        const offset = PIECE_OFFSETS[piece.type][j]
-        let square = i
+      for (let j = 0, len = PIECE_OFFSETS[symbol].length; j < len; j++) {
+        const offset = PIECE_OFFSETS[symbol][j]
+        toSq = fromSq
 
         while (true) {
-          square += offset
-          if (square & 0x88) break
+          toSq += offset
+          if (toSq & 0x88) break
 
-          if (!state.board[square]) {
-            addMove(state.board, i, square, BITS.NORMAL)
+          const p = state.board[toSq]
+          if (!p) {
+            addMove(symbol, fromSq, toSq, BITS.NORMAL)
           } else {
-            if (state.board[square]?.color === state.turn) break
-            addMove(state.board, i, square, BITS.CAPTURE)
+            if (p.color === state.turn) break
+
+            addMove(symbol, fromSq, toSq, BITS.CAPTURE, p.type)
             break
           }
 
           // Break if knight or king
-          if (piece.type === 'n' || piece.type === 'k') break
+          if (symbol === KNIGHT || symbol === KING) break
         }
       }
     }
   }
 
-  // King-side castling
-  if (state.castling[state.turn] & BITS.KSIDE_CASTLE) {
-    const castling_from = state.kings[state.turn]
-    const castling_to = castling_from + 2
-    if (
-      !state.board[castling_from + 1] &&
-      !state.board[castling_to] &&
-      !isAttacked(state, them, state.kings[state.turn]) &&
-      !isAttacked(state, them, castling_from + 1) &&
-      !isAttacked(state, them, castling_to)
-    ) {
-      addMove(
-        state.board,
-        state.kings[state.turn],
-        castling_to,
-        BITS.KSIDE_CASTLE,
-      )
+  if (forPiece === undefined || forPiece === KING) {
+    if (!forSquare || lastSq === state.kings[state.turn]) {
+      // King-side castling
+      if (state.castling[state.turn] & BITS.KSIDE_CASTLE) {
+        const castlingFrom = state.kings[state.turn]
+        const castlingTo = castlingFrom + 2
+
+        if (
+          !state.board[castlingFrom + 1] &&
+          !state.board[castlingTo] &&
+          !isAttacked(state, them, state.kings[state.turn]) &&
+          !isAttacked(state, them, castlingFrom + 1) &&
+          !isAttacked(state, them, castlingTo)
+        ) {
+          addMove(KING, state.kings[state.turn], castlingTo, BITS.KSIDE_CASTLE)
+        }
+      }
+
+      // Queen-side castling
+      if (state.castling[state.turn] & BITS.QSIDE_CASTLE) {
+        const castlingFrom = state.kings[state.turn]
+        const castlingTo = castlingFrom - 2
+
+        if (
+          !state.board[castlingFrom - 1] &&
+          !state.board[castlingFrom - 2] &&
+          !state.board[castlingFrom - 3] &&
+          !isAttacked(state, them, state.kings[state.turn]) &&
+          !isAttacked(state, them, castlingFrom - 1) &&
+          !isAttacked(state, them, castlingTo)
+        ) {
+          addMove(KING, state.kings[state.turn], castlingTo, BITS.QSIDE_CASTLE)
+        }
+      }
     }
   }
 
-  // Queen-side castling
-  if (state.castling[state.turn] & BITS.QSIDE_CASTLE) {
-    const castling_from = state.kings[state.turn]
-    const castling_to = castling_from - 2
-
-    if (
-      !state.board[castling_from - 1] &&
-      !state.board[castling_from - 2] &&
-      !state.board[castling_from - 3] &&
-      !isAttacked(state, them, state.kings[state.turn]) &&
-      !isAttacked(state, them, castling_from - 1) &&
-      !isAttacked(state, them, castling_to)
-    ) {
-      addMove(
-        state.board,
-        state.kings[state.turn],
-        castling_to,
-        BITS.QSIDE_CASTLE,
-      )
-    }
-  }
-
+  if (legal) return moves.filter((m) => isLegal(state, m))
   return moves
-}
-
-export function isLegal(state: BoardState, move: HexMove): boolean {
-  const newState = makeMove(state, move)
-  return !isKingAttacked(newState, state.turn)
 }
 
 /* convert a move from 0x88 coordinates to Standard Algebraic Notation
@@ -547,7 +583,7 @@ export function sanToMove(
   const { san, piece, from, to, promotion } = parsedMove
   if (!san) return null
 
-  const moves = state.generateMoves({ square: from })
+  const moves = generateMoves(state, { square: from })
   // Strict
   const strictOptions = { addCheck: matchCheck, addPromotion: matchPromotion }
   for (let i = 0, len = moves.length; i < len; i++) {
@@ -668,11 +704,11 @@ export function inCheck(state: Readonly<BoardState>): boolean {
 }
 
 export function inCheckmate(state: Readonly<BoardState>): boolean {
-  return inCheck(state) && state.generateMoves().length === 0
+  return inCheck(state) && generateMoves(state).length === 0
 }
 
 export function inStalemate(state: Readonly<BoardState>): boolean {
-  return !inCheck(state) && state.generateMoves().length === 0
+  return !inCheck(state) && generateMoves(state).length === 0
 }
 
 export function insufficientMaterial(state: Readonly<BoardState>): boolean {
@@ -908,7 +944,7 @@ export function validateMove(
     return sanToMove(state, move, options)
   } else if (typeof move === 'object') {
     const square = isSquare(move.from) ? move.from : undefined
-    const moves = state.generateMoves({ square })
+    const moves = generateMoves(state, { square })
     // Find a matching move
     for (const moveObj of moves) {
       if (

@@ -7,6 +7,7 @@ import {
   loadFen,
   hexToMove,
   getPiece,
+  generateMoves,
   removePiece,
   inCheck,
   inCheckmate,
@@ -316,7 +317,7 @@ export class Chess {
    * // -> []
    * ```
    */
-  public moves(options?: { square?: string; verbose?: false }): string[]
+  public moves(options?: { square?: Square; verbose?: false }): string[]
 
   /**
    * Returns a list of legal moves from the current position. The function
@@ -337,17 +338,17 @@ export class Chess {
    * ```
    * {@link Move}
    */
-  public moves(options: { square?: string; verbose: true }): Move[]
+  public moves(options: { square?: Square; verbose: true }): Move[]
 
   public moves(
-    options: { square?: string; verbose?: boolean } = {},
+    options: { square?: Square; verbose?: boolean } = {},
   ): string[] | Move[] {
     // The internal representation of a chess move is in 0x88 format, and
     // not meant to be human-readable.  The code below converts the 0x88
     // square coordinates to algebraic coordinates.  It also prunes an
     // unnecessary move keys resulting from a verbose call.
     const { square, verbose = false } = options
-    const uglyMoves = this.boardState.generateMoves({ square })
+    const uglyMoves = generateMoves(this.boardState, { square })
 
     if (verbose) {
       return uglyMoves.map((uglyMove) => hexToMove(this.boardState, uglyMove))
@@ -1200,7 +1201,7 @@ export class Chess {
 
   /** @internal */
   public perft(depth: number): number {
-    const moves = this.boardState.generateMoves({ legal: false })
+    const moves = generateMoves(this.boardState, { legal: false })
     let nodes = 0
     const color = this.boardState.turn
 
