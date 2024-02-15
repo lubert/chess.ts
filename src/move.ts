@@ -57,37 +57,32 @@ import { TreeNode } from 'treenode.ts'
 
 /* this function is used to uniquely identify ambiguous moves */
 export function getDisambiguator(
-  state: Readonly<BoardState>,
   move: Readonly<HexMove>,
-  sloppy: boolean,
+  moves: HexMove[],
 ): string {
-  const moves = generateMoves(state, { legal: !sloppy })
-
-  const from = move.from
-  const to = move.to
-  const piece = move.piece
+  const { from, to, piece } = move
 
   let ambiguities = 0
-  let same_rank = 0
-  let same_file = 0
+  let sameRank = 0
+  let sameFile = 0
 
   for (let i = 0, len = moves.length; i < len; i++) {
-    const ambig_from = moves[i].from
-    const ambig_to = moves[i].to
-    const ambig_piece = moves[i].piece
+    const ambigFrom = moves[i].from
+    const ambigTo = moves[i].to
+    const ambigPiece = moves[i].piece
 
     /* if a move of the same piece type ends on the same to square, we'll
      * need to add a disambiguator to the algebraic notation
      */
-    if (piece === ambig_piece && from !== ambig_from && to === ambig_to) {
+    if (piece === ambigPiece && from !== ambigFrom && to === ambigTo) {
       ambiguities++
 
-      if (rank(from) === rank(ambig_from)) {
-        same_rank++
+      if (rank(from) === rank(ambigFrom)) {
+        sameRank++
       }
 
-      if (file(from) === file(ambig_from)) {
-        same_file++
+      if (file(from) === file(ambigFrom)) {
+        sameFile++
       }
     }
   }
@@ -96,9 +91,9 @@ export function getDisambiguator(
     /* if there exists a similar moving piece on the same rank and file as
      * the move in question, use the square as the disambiguator
      */
-    if (same_rank > 0 && same_file > 0) {
+    if (sameRank > 0 && sameFile > 0) {
       return algebraic(from) || ''
-    } else if (same_file > 0) {
+    } else if (sameFile > 0) {
       /* if the moving piece rests on the same file, use the rank symbol as the
        * disambiguator
        */
@@ -509,13 +504,8 @@ export function generateMoves(
 export function moveToSan(
   state: Readonly<BoardState>,
   move: Readonly<HexMove>,
-  options: {
-    sloppy?: boolean
-    addCheck?: boolean
-    addPromotion?: boolean
-  } = {},
+  moves: HexMove[],
 ): string {
-  const { sloppy = false, addCheck = true, addPromotion = true } = options
   let output = ''
 
   if (move.flags & BITS.KSIDE_CASTLE) {
@@ -523,10 +513,8 @@ export function moveToSan(
   } else if (move.flags & BITS.QSIDE_CASTLE) {
     output = 'O-O-O'
   } else {
-    const disambiguator = getDisambiguator(state, move, sloppy)
-
     if (move.piece !== PAWN) {
-      output += move.piece.toUpperCase() + disambiguator
+      output += move.piece.toUpperCase() + getDisambiguator(move, moves)
     }
 
     if (move.flags & (BITS.CAPTURE | BITS.EP_CAPTURE)) {
@@ -538,13 +526,13 @@ export function moveToSan(
 
     output += algebraic(move.to)
 
-    if (addPromotion && move.flags & BITS.PROMOTION) {
-      output += '=' + move.promotion?.toUpperCase()
+    if (move.promotion) {
+      output += '=' + move.promotion.toUpperCase()
     }
   }
 
   const newState = makeMove(state, move)
-  if (addCheck && inCheck(newState)) {
+  if (inCheck(newState)) {
     if (inCheckmate(newState)) {
       output += '#'
     } else {
