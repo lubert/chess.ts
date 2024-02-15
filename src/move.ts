@@ -10,6 +10,7 @@ import {
   PAWN,
   PAWN_OFFSETS,
   PIECE_OFFSETS,
+  PIECE_MASKS,
   QUEEN,
   RANK_1,
   RANK_2,
@@ -19,7 +20,6 @@ import {
   RAYS,
   ROOK,
   ROOKS,
-  SHIFTS,
   SQUARES,
   WHITE,
 } from './constants'
@@ -606,20 +606,24 @@ export function isAttacked(
   square: number,
 ): boolean {
   for (let i = SQUARES.a8; i <= SQUARES.h1; i++) {
-    /* did we run off the end of the board */
+    // did we run off the end of the board
     if (i & 0x88) {
       i += 7
       continue
     }
 
-    /* if empty square or wrong color */
+    // if empty square or wrong color
     if (state.board[i] == null || state.board[i]?.color !== color) continue
 
     const piece = state.board[i]
     const difference = i - square
+
+    // skip if to/from square are the same
+    if (difference === 0) continue
+
     const index = difference + 119
 
-    if (piece && ATTACKS[index] & (1 << SHIFTS[piece.type])) {
+    if (piece && ATTACKS[index] & PIECE_MASKS[piece.type]) {
       if (piece.type === PAWN) {
         if (difference > 0) {
           if (piece.color === WHITE) return true
@@ -629,7 +633,7 @@ export function isAttacked(
         continue
       }
 
-      /* if the piece is a knight or a king */
+      // if the piece is a knight or a king
       if (piece.type === 'n' || piece.type === 'k') return true
 
       const offset = RAYS[index]
@@ -724,12 +728,11 @@ export function makeMove(
   const state = prevState.clone()
   const us = state.turn
   const them = swapColor(us)
-  // this.push(move)
 
   state.board[move.to] = state.board[move.from]
   delete state.board[move.from]
 
-  /* if ep capture, remove the captured pawn */
+  // if ep capture, remove the captured pawn
   if (move.flags & BITS.EP_CAPTURE) {
     if (state.turn === BLACK) {
       delete state.board[move.to - 16]
@@ -738,21 +741,17 @@ export function makeMove(
     }
   }
 
-  /* if pawn promotion, replace with new piece */
-  if (
-    move.flags & BITS.PROMOTION &&
-    move.promotion &&
-    isPieceSymbol(move.promotion)
-  ) {
+  // if pawn promotion, replace with new piece
+  if (move.promotion) {
     state.board[move.to] = { type: move.promotion, color: us }
   }
 
-  /* if we moved the king */
+  // if we moved the king
   const piece = state.board[move.to]
-  if (piece && piece.type === KING) {
+  if (piece?.type === KING) {
     state.kings[piece.color] = move.to
 
-    /* if we castled, move the rook next to the king */
+    // if we castled, move the rook next to the king
     if (move.flags & BITS.KSIDE_CASTLE) {
       const castling_to = move.to - 1
       const castling_from = move.to + 1
@@ -765,11 +764,11 @@ export function makeMove(
       delete state.board[castling_from]
     }
 
-    /* turn off castling */
+    // turn off castling
     state.castling[us] = 0
   }
 
-  /* turn off castling if we move a rook */
+  // turn off castling if we move a rook
   if (state.castling[us]) {
     for (let i = 0, len = ROOKS[us].length; i < len; i++) {
       if (
@@ -782,7 +781,7 @@ export function makeMove(
     }
   }
 
-  /* turn off castling if we capture a rook */
+  // turn off castling if we capture a rook
   if (state.castling[them]) {
     for (let i = 0, len = ROOKS[them].length; i < len; i++) {
       if (
@@ -795,7 +794,7 @@ export function makeMove(
     }
   }
 
-  /* if big pawn move, update the en passant square */
+  // if big pawn move, update the en passant square
   if (move.flags & BITS.BIG_PAWN) {
     if (state.turn === 'b') {
       state.ep_square = move.to - 16
@@ -806,7 +805,7 @@ export function makeMove(
     state.ep_square = EMPTY
   }
 
-  /* reset the 50 move counter if a pawn is moved or a piece is captured */
+  // reset the 50 move counter if a pawn is moved or a piece is captured
   if (move.piece === PAWN) {
     state.half_moves = 0
   } else if (move.flags & (BITS.CAPTURE | BITS.EP_CAPTURE)) {

@@ -1,9 +1,4 @@
-import {
-  Color,
-  FlagKey,
-  PieceSymbol,
-  Square,
-} from './interfaces/types'
+import { Color, FlagKey, PieceSymbol, Square } from './interfaces/types'
 
 /** @public */
 export const WHITE: Color = 'w'
@@ -24,20 +19,28 @@ export const KING: PieceSymbol = 'k'
 /** @public */
 export const EMPTY = -1
 
-export const NULL_MOVES: string[] = ['...', '--', 'Z0', 'pass', 'null', '@@@@', '0000']
+export const NULL_MOVES: string[] = [
+  '...',
+  '--',
+  'Z0',
+  'pass',
+  'null',
+  '@@@@',
+  '0000',
+]
 
 export const CASTLING_MOVES: string[] = ['O-O', 'O-O-O', '0-0', '0-0-0']
 
 export const SYMBOLS = 'pnbrqkPNBRQK'
 
 export const DEFAULT_POSITION =
-    'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+  'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 
 export const POSSIBLE_RESULTS: string[] = ['1-0', '0-1', '1/2-1/2', '*']
 
 export const PAWN_OFFSETS: Record<Color, number[]> = {
   b: [16, 32, 17, 15],
-  w: [-16, -32, -17, -15]
+  w: [-16, -32, -17, -15],
 }
 
 export const PIECE_OFFSETS: Record<PieceSymbol, number[]> = {
@@ -46,7 +49,7 @@ export const PIECE_OFFSETS: Record<PieceSymbol, number[]> = {
   b: [-17, -15, 17, 15],
   r: [-16, 1, 16, -1],
   q: [-17, -16, -15, 1, 17, 16, 15, -1],
-  k: [-17, -16, -15, 1, 17, 16, 15, -1]
+  k: [-17, -16, -15, 1, 17, 16, 15, -1],
 }
 
 // prettier-ignore
@@ -87,7 +90,14 @@ export const RAYS: number[] = [
   -15,  0,  0,  0,  0,  0,  0,-16,  0,  0,  0,  0,  0,  0,-17
 ]
 
-export const SHIFTS: Record<PieceSymbol, number> = { p: 0, n: 1, b: 2, r: 3, q: 4, k: 5 }
+export const PIECE_MASKS: Record<PieceSymbol, number> = {
+  p: 0x1,
+  n: 0x2,
+  b: 0x4,
+  r: 0x8,
+  q: 0x10,
+  k: 0x20,
+}
 
 /** @public */
 export const FLAGS: Record<FlagKey, string> = {
@@ -97,7 +107,7 @@ export const FLAGS: Record<FlagKey, string> = {
   EP_CAPTURE: 'e',
   PROMOTION: 'p',
   KSIDE_CASTLE: 'k',
-  QSIDE_CASTLE: 'q'
+  QSIDE_CASTLE: 'q',
 }
 
 /** @public */
@@ -108,7 +118,7 @@ export const BITS: Record<FlagKey, number> = {
   EP_CAPTURE: 8,
   PROMOTION: 16,
   KSIDE_CASTLE: 32,
-  QSIDE_CASTLE: 64
+  QSIDE_CASTLE: 64,
 }
 
 export const RANK_1 = 7
@@ -120,7 +130,16 @@ export const RANK_6 = 2
 export const RANK_7 = 1
 export const RANK_8 = 0
 
-export const RANKS = [RANK_8, RANK_7, RANK_6, RANK_5, RANK_4, RANK_3, RANK_2, RANK_1]
+export const RANKS = [
+  RANK_8,
+  RANK_7,
+  RANK_6,
+  RANK_5,
+  RANK_4,
+  RANK_3,
+  RANK_2,
+  RANK_1,
+]
 
 // prettier-ignore
 /** @public */
@@ -135,13 +154,13 @@ export const SQUARES: Record<Square, number> = {
   a1: 112, b1: 113, c1: 114, d1: 115, e1: 116, f1: 117, g1: 118, h1: 119
 }
 
-export const ROOKS: Record<Color, { square: number, flag: number }[]> = {
+export const ROOKS: Record<Color, { square: number; flag: number }[]> = {
   w: [
     { square: SQUARES.a1, flag: BITS.QSIDE_CASTLE },
-    { square: SQUARES.h1, flag: BITS.KSIDE_CASTLE }
+    { square: SQUARES.h1, flag: BITS.KSIDE_CASTLE },
   ],
   b: [
     { square: SQUARES.a8, flag: BITS.QSIDE_CASTLE },
-    { square: SQUARES.h8, flag: BITS.KSIDE_CASTLE }
-  ]
+    { square: SQUARES.h8, flag: BITS.KSIDE_CASTLE },
+  ],
 }
