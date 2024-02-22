@@ -353,9 +353,7 @@ export class Chess {
     if (verbose) {
       return uglyMoves.map((uglyMove) => hexToMove(this.boardState, uglyMove))
     }
-    return uglyMoves.map((uglyMove) =>
-      moveToSan(this.boardState, uglyMove, uglyMoves),
-    )
+    return uglyMoves.map((uglyMove) => moveToSan(this.boardState, uglyMove))
   }
 
   /**
@@ -999,9 +997,7 @@ export class Chess {
     if (verbose) {
       return nodes.map(({ prevState, move }) => hexToMove(prevState, move))
     }
-    return nodes.map(({ prevState, move }) =>
-      moveToSan(prevState, move, generateMoves(prevState)),
-    )
+    return nodes.map(({ prevState, move }) => moveToSan(prevState, move))
   }
 
   /**

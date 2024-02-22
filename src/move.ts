@@ -491,20 +491,13 @@ export function generateMoves(
   return moves
 }
 
-/* convert a move from 0x88 coordinates to Standard Algebraic Notation
- * (SAN)
- *
- * @param {boolean} sloppy Use the sloppy SAN generator to work around over
- * disambiguation bugs in Fritz and Chessbase.  See below:
- *
- * r1bqkbnr/ppp2ppp/2n5/1B1pP3/4P3/8/PPPP2PP/RNBQK1NR b KQkq - 2 4
- * 4. ... Nge7 is overly disambiguated because the knight on c6 is pinned
- * 4. ... Ne7 is technically the valid SAN
+/*
+ * Convert a move from 0x88 coordinates to Standard Algebraic Notation (SAN)
  */
 export function moveToSan(
   state: Readonly<BoardState>,
   move: Readonly<HexMove>,
-  moves: HexMove[],
+  moves: HexMove[] = generateMoves(state, { piece: move.piece }),
   options: { addPromotion?: boolean } = {},
 ): string {
   const { addPromotion = true } = options
@@ -740,7 +733,7 @@ export function hexToMove(
     color: move.color,
     flags,
     piece: move.piece,
-    san: moveToSan(state, move, generateMoves(state)),
+    san: moveToSan(state, move, generateMoves(state, { piece: move.piece })),
     captured: move.captured,
     promotion: move.promotion,
   }

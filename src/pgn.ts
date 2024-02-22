@@ -62,11 +62,7 @@ export function pgnMoves(node: TreeNode<HexState>): string[] {
     const { move, comment, nags } = state
     if (move) {
       const isFirstMove = !node.model.move
-      const san = moveToSan(
-        boardState,
-        move,
-        generateMoves(boardState, { piece: move.piece }),
-      )
+      const san = moveToSan(boardState, move)
       const nagStr =
         nags && nags.length ? ' ' + nags.map((nag) => `$${nag}`).join(' ') : ''
       // Move
