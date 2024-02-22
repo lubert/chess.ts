@@ -4,8 +4,8 @@ import { ParsedMove } from '../src/interfaces/types'
 describe('move', () => {
   describe('extractMove', () => {
     interface ExtractMoveExample {
-      token: string;
-      parsedMove: ParsedMove;
+      token: string
+      parsedMove: ParsedMove
     }
     const examples: ExtractMoveExample[] = [
       {
@@ -13,14 +13,14 @@ describe('move', () => {
         parsedMove: {
           san: 'e4',
           to: 'e4',
-        }
+        },
       },
       {
         token: '1.e4',
         parsedMove: {
           san: 'e4',
           to: 'e4',
-        }
+        },
       },
       {
         token: 'b2-b4',
@@ -28,7 +28,7 @@ describe('move', () => {
           san: 'b2-b4',
           from: 'b2',
           to: 'b4',
-        }
+        },
       },
       {
         token: 'Bb7',
@@ -36,7 +36,7 @@ describe('move', () => {
           piece: 'b',
           san: 'Bb7',
           to: 'b7',
-        }
+        },
       },
       {
         token: 'Qxd7',
@@ -44,7 +44,7 @@ describe('move', () => {
           piece: 'q',
           san: 'Qxd7',
           to: 'd7',
-        }
+        },
       },
       {
         token: 'e8=Q',
@@ -52,7 +52,7 @@ describe('move', () => {
           san: 'e8=Q',
           to: 'e8',
           promotion: 'q',
-        }
+        },
       },
       {
         token: 'a8=N+',
@@ -61,7 +61,7 @@ describe('move', () => {
           to: 'a8',
           promotion: 'n',
           check: '+',
-        }
+        },
       },
       {
         token: 'Nge7',
@@ -70,32 +70,32 @@ describe('move', () => {
           san: 'Nge7',
           to: 'e7',
           disambiguator: 'g',
-        }
+        },
       },
       {
         token: 'O-O',
         parsedMove: {
-          san: 'O-O'
-        }
+          san: 'O-O',
+        },
       },
       {
         token: 'O-O+',
         parsedMove: {
           san: 'O-O+',
           check: '+',
-        }
+        },
       },
       {
         token: 'O-O-O',
         parsedMove: {
-          san: 'O-O-O'
-        }
+          san: 'O-O-O',
+        },
       },
       {
         token: 'O-O-O!',
         parsedMove: {
           san: 'O-O-O',
-        }
+        },
       },
       {
         token: 'b7b8N',
@@ -104,7 +104,7 @@ describe('move', () => {
           from: 'b7',
           to: 'b8',
           promotion: 'n',
-        }
+        },
       },
     ]
 

@@ -18,7 +18,7 @@ export function validateFen(fen: string): Validation {
     8: '1st field (piece positions) is invalid [consecutive numbers].',
     9: '1st field (piece positions) is invalid [invalid piece].',
     10: '1st field (piece positions) is invalid [row too large].',
-    11: 'Illegal en-passant square'
+    11: 'Illegal en-passant square',
   }
 
   /* 1st criterion: 6 space-seperated fields? */
@@ -89,7 +89,7 @@ export function validateFen(fen: string): Validation {
 
   if (
     (tokens[3][1] == '3' && tokens[1] == 'w') ||
-      (tokens[3][1] == '6' && tokens[1] == 'b')
+    (tokens[3][1] == '6' && tokens[1] == 'b')
   ) {
     return { valid: false, error_number: 11, error: errors[11] }
   }

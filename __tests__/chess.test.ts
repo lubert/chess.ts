@@ -837,7 +837,7 @@ describe('.getPiece, .putPiece, .removePiece', () => {
       chess.clear()
 
       expect(
-        chess.putPiece({ type: 'z' as PieceSymbol, color: BLACK }, 'a7')
+        chess.putPiece({ type: 'z' as PieceSymbol, color: BLACK }, 'a7'),
       ).toBe(false)
       expect(chess.removePiece('a7')).toBeNull()
       expect(chess.getPieces()).toEqual({})
@@ -1161,7 +1161,7 @@ describe('.pgn', () => {
         expect(chess.pgn({ newline, width })).toEqual(pgn)
         expect(chess.fen()).toEqual(fen)
       })
-    }
+    },
   )
 })
 
@@ -1607,7 +1607,7 @@ describe('.getComment, .deleteComment', () => {
       [e6]: 'dubious move',
     })
     expect(chess.pgn()).toEqual(
-      '{starting position} 1. e4 {good move} e6 {dubious move}'
+      '{starting position} 1. e4 {good move} e6 {dubious move}',
     )
   })
 
@@ -2125,11 +2125,11 @@ describe('.board', () => {
 describe('Regression Tests', () => {
   it('Github Issue #32 - castling flag reappearing', () => {
     const chess = new Chess(
-      'b3k2r/5p2/4p3/1p5p/6p1/2PR2P1/BP3qNP/6QK b k - 2 28'
+      'b3k2r/5p2/4p3/1p5p/6p1/2PR2P1/BP3qNP/6QK b k - 2 28',
     )
     chess.move({ from: 'a8', to: 'g2' })
     expect(
-      chess.fen() == '4k2r/5p2/4p3/1p5p/6p1/2PR2P1/BP3qbP/6QK w k - 0 29'
+      chess.fen() == '4k2r/5p2/4p3/1p5p/6p1/2PR2P1/BP3qbP/6QK w k - 0 29',
     ).toBe(true)
   })
 
@@ -2163,13 +2163,13 @@ describe('Regression Tests', () => {
     ]
     chess.loadPgn(pgn.join('\n'))
     expect(chess.fen()).toBe(
-      'r4r1k/1p4b1/3p3p/2q3p1/1RP5/6P1/3NP3/2Q2RKB w KQkq - 1 2'
+      'r4r1k/1p4b1/3p3p/2q3p1/1RP5/6P1/3NP3/2Q2RKB w KQkq - 1 2',
     )
   })
 
   it('Github Issue #98 (white) - Wrong movement number after setting a position via FEN', () => {
     const chess = new Chess(
-      '4r3/8/2p2PPk/1p6/pP2p1R1/P1B5/2P2K2/3r4 w - - 1 45'
+      '4r3/8/2p2PPk/1p6/pP2p1R1/P1B5/2P2K2/3r4 w - - 1 45',
     )
     chess.move('f7')
     expect(chess.pgn()).toContain('45. f7')
@@ -2177,7 +2177,7 @@ describe('Regression Tests', () => {
 
   it('Github Issue #98 (black) - Wrong movement number after setting a position via FEN', () => {
     const chess = new Chess(
-      '4r3/8/2p2PPk/1p6/pP2p1R1/P1B5/2P2K2/3r4 b - - 1 45'
+      '4r3/8/2p2PPk/1p6/pP2p1R1/P1B5/2P2K2/3r4 b - - 1 45',
     )
     chess.move('Rf1+')
     expect(chess.pgn()).toContain('45...Rf1+')
@@ -2258,7 +2258,7 @@ describe('Regression Tests', () => {
     const chess = new Chess()
     chess.loadPgn(
       '1. e4 e5 2. Nf3 Nc6 3. Bb5 d6 ' +
-        '4. d4 Bd7 5. Nc3 Nf6 6. Bxc6 {comment}'
+        '4. d4 Bd7 5. Nc3 Nf6 6. Bxc6 {comment}',
     )
     expect(chess.history()).toEqual(history)
     expect(chess.header['Result']).toBeUndefined()
@@ -2266,7 +2266,7 @@ describe('Regression Tests', () => {
     // trailing comment - end of game marker after comment
     chess.loadPgn(
       '1. e4 e5 2. Nf3 Nc6 3. Bb5 d6 ' +
-        '4. d4 Bd7 5. Nc3 Nf6 6. Bxc6 {comment} *'
+        '4. d4 Bd7 5. Nc3 Nf6 6. Bxc6 {comment} *',
     )
     expect(chess.history()).toEqual(history)
     expect(chess.header['Result']).toBe('*')
@@ -2274,7 +2274,7 @@ describe('Regression Tests', () => {
     // trailing comment - end of game marker before comment
     chess.loadPgn(
       '1. e4 e5 2. Nf3 Nc6 3. Bb5 d6 ' +
-        '4. d4 Bd7 5. Nc3 Nf6 6. Bxc6 * {comment}'
+        '4. d4 Bd7 5. Nc3 Nf6 6. Bxc6 * {comment}',
     )
     expect(chess.history()).toEqual(history)
     expect(chess.header['Result']).toBe('*')
@@ -2285,7 +2285,7 @@ describe('Regression Tests', () => {
         '1. e4 e5 2. Nf3 Nc6 ' +
         '3. Bb5 d6 ' +
         '4. d4 Bd7 5. Nc3 Nf6 ' +
-        '6. Bxc6 {comment}'
+        '6. Bxc6 {comment}',
     )
     expect(chess.history()).toEqual(history)
     expect(chess.header['Result']).toBeUndefined()
@@ -2294,7 +2294,7 @@ describe('Regression Tests', () => {
     chess.loadPgn(
       '[White "name"]\n\n' +
         '1. e4 e5 2. Nf3 Nc6 3. Bb5 d6 ' +
-        '4. d4 Bd7 5. Nc3 Nf6 6. Bxc6 {comment} *'
+        '4. d4 Bd7 5. Nc3 Nf6 6. Bxc6 {comment} *',
     )
     expect(chess.history()).toEqual(history)
     expect(chess.header['Result']).toBe('*')
@@ -2303,7 +2303,7 @@ describe('Regression Tests', () => {
     chess.loadPgn(
       '[White "name"]\n\n' +
         '1. e4 e5 2. Nf3 Nc6 3. Bb5 d6 ' +
-        '4. d4 Bd7 5. Nc3 Nf6 6. Bxc6 1/2-1/2 {comment}'
+        '4. d4 Bd7 5. Nc3 Nf6 6. Bxc6 1/2-1/2 {comment}',
     )
     expect(chess.history()).toEqual(history)
     expect(chess.header['Result']).toBe('1/2-1/2')
@@ -2382,7 +2382,7 @@ describe('.ascii', () => {
         '2 | P  P  P  P  P  P  P  P |\n' +
         '1 | R  N  B  Q  K  B  N  R |\n' +
         '  +------------------------+\n' +
-        '    a  b  c  d  e  f  g  h'
+        '    a  b  c  d  e  f  g  h',
     )
   })
 })

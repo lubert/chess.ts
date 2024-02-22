@@ -8,14 +8,7 @@ import {
   NULL_MOVES,
   CASTLING_MOVES,
 } from './constants'
-import {
-  moveToSan,
-  loadFen,
-  sanToMove,
-  makeMove,
-  getFen,
-  generateMoves,
-} from './move'
+import { moveToSan, loadFen, sanToMove, makeMove, getFen } from './move'
 import {
   REGEXP_HEADER_KEY,
   REGEXP_HEADER_VAL,

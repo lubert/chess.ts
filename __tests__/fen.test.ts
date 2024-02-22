@@ -116,23 +116,19 @@ describe('validateFen', () => {
       error_number: 0,
     },
     {
-      fen:
-        'r1bqkb1r/1ppp1ppp/p1n2n2/4p3/B3P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 2 5',
+      fen: 'r1bqkb1r/1ppp1ppp/p1n2n2/4p3/B3P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 2 5',
       error_number: 0,
     },
     {
-      fen:
-        'r1b2rk1/4bppp/p1np4/q3p1P1/1p2P2P/4BP2/PPP1N1Q1/1K1R1B1R w - - 0 17',
+      fen: 'r1b2rk1/4bppp/p1np4/q3p1P1/1p2P2P/4BP2/PPP1N1Q1/1K1R1B1R w - - 0 17',
       error_number: 0,
     },
     {
-      fen:
-        'r2q1rk1/ppp1bppp/2np1nb1/4p3/P1B1P1P1/3P1N1P/1PP2P2/RNBQR1K1 w - - 1 10',
+      fen: 'r2q1rk1/ppp1bppp/2np1nb1/4p3/P1B1P1P1/3P1N1P/1PP2P2/RNBQR1K1 w - - 1 10',
       error_number: 0,
     },
     {
-      fen:
-        'r2qkb1r/pb1n1p2/4pP2/1ppP2B1/2p5/2N3P1/PP3P1P/R2QKB1R b KQkq - 0 13',
+      fen: 'r2qkb1r/pb1n1p2/4pP2/1ppP2B1/2p5/2N3P1/PP3P1P/R2QKB1R b KQkq - 0 13',
       error_number: 0,
     },
     {
@@ -140,13 +136,11 @@ describe('validateFen', () => {
       error_number: 0,
     },
     {
-      fen:
-        'rnbq1rk1/1pp1ppbp/p2p1np1/8/2PPP3/2N1BP2/PP2N1PP/R2QKB1R b KQ - 1 7',
+      fen: 'rnbq1rk1/1pp1ppbp/p2p1np1/8/2PPP3/2N1BP2/PP2N1PP/R2QKB1R b KQ - 1 7',
       error_number: 0,
     },
     {
-      fen:
-        'rn1qkb1r/pb1p1ppp/1p2pn2/4P3/2Pp4/5NP1/PP1N1PBP/R1BQK2R b KQkq - 0 8',
+      fen: 'rn1qkb1r/pb1p1ppp/1p2pn2/4P3/2Pp4/5NP1/PP1N1PBP/R1BQK2R b KQkq - 0 8',
       error_number: 0,
     },
     {
@@ -166,8 +160,7 @@ describe('validateFen', () => {
       error_number: 0,
     },
     {
-      fen:
-        'r1bqkb1r/pppp1ppp/2n2n2/4p3/2PP4/2N2N2/PP2PPPP/R1BQKB1R b KQkq d3 0 4',
+      fen: 'r1bqkb1r/pppp1ppp/2n2n2/4p3/2PP4/2N2N2/PP2PPPP/R1BQKB1R b KQkq d3 0 4',
       error_number: 0,
     },
     {
@@ -227,8 +220,7 @@ describe('validateFen', () => {
       error_number: 0,
     },
     {
-      fen:
-        'r2qkb1r/1p1bpppp/p1np4/6B1/B3P1n1/2PQ1N2/PP3PPP/RN2R1K1 b kq - 0 10',
+      fen: 'r2qkb1r/1p1bpppp/p1np4/6B1/B3P1n1/2PQ1N2/PP3PPP/RN2R1K1 b kq - 0 10',
       error_number: 0,
     },
     {
@@ -236,8 +228,7 @@ describe('validateFen', () => {
       error_number: 0,
     },
     {
-      fen:
-        'r3r1k1/pbq1bppp/4pnn1/2p1B1N1/2P2P2/1P1B2N1/P3Q1PP/4RRK1 b - - 4 17',
+      fen: 'r3r1k1/pbq1bppp/4pnn1/2p1B1N1/2P2P2/1P1B2N1/P3Q1PP/4RRK1 b - - 4 17',
       error_number: 0,
     },
     {
@@ -257,8 +248,7 @@ describe('validateFen', () => {
       error_number: 0,
     },
     {
-      fen:
-        'rn2kb1r/2qp1ppp/b3pn2/2pP2B1/1pN1P3/5P2/PP4PP/R2QKBNR w KQkq - 4 11',
+      fen: 'rn2kb1r/2qp1ppp/b3pn2/2pP2B1/1pN1P3/5P2/PP4PP/R2QKBNR w KQkq - 4 11',
       error_number: 0,
     },
     {
@@ -270,8 +260,7 @@ describe('validateFen', () => {
       error_number: 0,
     },
     {
-      fen:
-        'r1bqk2r/pp1nbppp/2p2n2/3p2B1/3P4/2N1PN2/PP3PPP/R2QKB1R w KQkq - 1 8',
+      fen: 'r1bqk2r/pp1nbppp/2p2n2/3p2B1/3P4/2N1PN2/PP3PPP/R2QKB1R w KQkq - 1 8',
       error_number: 0,
     },
     {
@@ -283,8 +272,7 @@ describe('validateFen', () => {
       error_number: 0,
     },
     {
-      fen:
-        'r1b1kb1r/p2p1ppp/1qp1p3/3nP3/2P1NP2/8/PP4PP/R1BQKB1R b KQkq c3 0 10',
+      fen: 'r1b1kb1r/p2p1ppp/1qp1p3/3nP3/2P1NP2/8/PP4PP/R1BQKB1R b KQkq c3 0 10',
       error_number: 0,
     },
     { fen: '8/R7/2b5/3k2K1/P1p1r3/2B5/1P6/8 b - - 8 74', error_number: 0 },
@@ -309,8 +297,7 @@ describe('validateFen', () => {
       error_number: 0,
     },
     {
-      fen:
-        'rnbqk2r/ppp1bppp/4pn2/3p2B1/2PP4/2N2N2/PP2PPPP/R2QKB1R b KQkq - 3 5',
+      fen: 'rnbqk2r/ppp1bppp/4pn2/3p2B1/2PP4/2N2N2/PP2PPPP/R2QKB1R b KQkq - 3 5',
       error_number: 0,
     },
     {
@@ -385,8 +372,7 @@ describe('validateFen', () => {
       error_number: 0,
     },
     {
-      fen:
-        'r1bq1rk1/pp2n1bp/2pp1np1/3PppN1/1PP1P3/2N2B2/P4PPP/R1BQR1K1 w - - 0 13',
+      fen: 'r1bq1rk1/pp2n1bp/2pp1np1/3PppN1/1PP1P3/2N2B2/P4PPP/R1BQR1K1 w - - 0 13',
       error_number: 0,
     },
     {
@@ -398,8 +384,7 @@ describe('validateFen', () => {
       error_number: 0,
     },
     {
-      fen:
-        'R2qk2r/2p2ppp/1bnp1n2/1p2p3/3PP1b1/1BP2N2/1P3PPP/1NBQ1RK1 b k - 0 11',
+      fen: 'R2qk2r/2p2ppp/1bnp1n2/1p2p3/3PP1b1/1BP2N2/1P3PPP/1NBQ1RK1 b k - 0 11',
       error_number: 0,
     },
     {
@@ -416,8 +401,7 @@ describe('validateFen', () => {
       error_number: 0,
     },
     {
-      fen:
-        '1rbqk2r/2pp1ppp/2n2n2/1pb1p3/4P3/1BP2N2/1P1P1PPP/RNBQ1RK1 b k - 0 9',
+      fen: '1rbqk2r/2pp1ppp/2n2n2/1pb1p3/4P3/1BP2N2/1P1P1PPP/RNBQ1RK1 b k - 0 9',
       error_number: 0,
     },
     {
@@ -437,8 +421,7 @@ describe('validateFen', () => {
       error_number: 0,
     },
     {
-      fen:
-        'r2q1rk1/pb1p2pp/1p1bpnn1/5p2/2PP4/PPN1BP1P/2B1N1P1/1R1Q1R1K b - - 2 16',
+      fen: 'r2q1rk1/pb1p2pp/1p1bpnn1/5p2/2PP4/PPN1BP1P/2B1N1P1/1R1Q1R1K b - - 2 16',
       error_number: 0,
     },
     {
@@ -497,11 +480,9 @@ describe('validateFen', () => {
   ]
 
   positions.forEach(({ fen, error_number }) => {
-    it(fen + ' (valid: ' + (error_number == 0) + ')',
-      () => {
-        const result = validateFen(fen)
-        expect(result.error_number).toBe(error_number)
-      }
-    )
+    it(fen + ' (valid: ' + (error_number == 0) + ')', () => {
+      const result = validateFen(fen)
+      expect(result.error_number).toBe(error_number)
+    })
   })
 })

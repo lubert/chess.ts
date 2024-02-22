@@ -1,14 +1,5 @@
-import {
-  BLACK,
-  WHITE,
-} from './constants'
-import {
-  Color,
-  FlagKey,
-  Piece,
-  PieceSymbol,
-  Square,
-} from "./interfaces/types"
+import { BLACK, WHITE } from './constants'
+import { Color, FlagKey, Piece, PieceSymbol, Square } from './interfaces/types'
 
 /**
  * Extracts the zero-based rank of an 0x88 square.
@@ -33,7 +24,9 @@ export function file(i: number): number {
 export function algebraic(i: number): Square | undefined {
   const f = file(i)
   const r = rank(i)
-  return toSquare('abcdefgh'.substring(f, f + 1) + '87654321'.substring(r, r + 1))
+  return toSquare(
+    'abcdefgh'.substring(f, f + 1) + '87654321'.substring(r, r + 1),
+  )
 }
 
 /**
@@ -87,7 +80,15 @@ export function toSquare(obj: unknown): Square | undefined {
 }
 
 export function isFlagKey(key: string): key is FlagKey {
-  const keys = ['NORMAL', 'CAPTURE', 'BIG_PAWN', 'EP_CAPTURE', 'PROMOTION', 'KSIDE_CASTLE', 'QSIDE_CASTLE']
+  const keys = [
+    'NORMAL',
+    'CAPTURE',
+    'BIG_PAWN',
+    'EP_CAPTURE',
+    'PROMOTION',
+    'KSIDE_CASTLE',
+    'QSIDE_CASTLE',
+  ]
   return keys.indexOf(key) !== -1
 }
 
