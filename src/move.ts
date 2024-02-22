@@ -759,19 +759,17 @@ export function isAttacked(
       continue
     }
 
-    // if empty square or wrong color
-    if (state.board[i] === undefined || state.board[i]?.color !== color)
-      continue
-
+    // Skip if empty square or wrong color
     const piece = state.board[i]
-    const difference = i - square
+    if (!piece || piece.color !== color) continue
 
-    // skip if to/from square are the same
+    // Skip if to/from square are the same
+    const difference = i - square
     if (difference === 0) continue
 
     const index = difference + 119
 
-    if (piece && ATTACKS[index] & PIECE_MASKS[piece.type]) {
+    if (ATTACKS[index] & PIECE_MASKS[piece.type]) {
       if (piece.type === PAWN) {
         if (difference > 0) {
           if (piece.color === WHITE) return true
