@@ -6,7 +6,7 @@
 
 Returns a string containing an ASCII diagram of the current position.
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 ascii(newline_char?: string): string;
@@ -16,9 +16,9 @@ ascii(newline_char?: string): string;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  newline\_char | string |  |
+|  newline\_char | string | _(Optional)_ |
 
-<b>Returns:</b>
+**Returns:**
 
 string
 
@@ -45,6 +45,5 @@ chess.ascii()
 //      1 | R  N  B  Q  K  B  N  R |
 //        +------------------------+
 //          a  b  c  d  e  f  g  h'
-
 ```
 

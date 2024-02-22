@@ -5,7 +5,7 @@
 ## FLAGS variable
 
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 FLAGS: Record<FlagKey, string>

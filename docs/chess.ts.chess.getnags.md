@@ -4,7 +4,7 @@
 
 ## Chess.getNags() method
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 getNags(fen?: string): Nag[];
@@ -14,9 +14,9 @@ getNags(fen?: string): Nag[];
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  fen | string |  |
+|  fen | string | _(Optional)_ |
 
-<b>Returns:</b>
+**Returns:**
 
 [Nag](./chess.ts.nag.md)<!-- -->\[\]
 

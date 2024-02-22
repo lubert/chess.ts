@@ -4,7 +4,7 @@
 
 ## isPieceSymbol() function
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 export declare function isPieceSymbol(symbol: string): symbol is PieceSymbol;
@@ -16,7 +16,7 @@ export declare function isPieceSymbol(symbol: string): symbol is PieceSymbol;
 |  --- | --- | --- |
 |  symbol | string |  |
 
-<b>Returns:</b>
+**Returns:**
 
 symbol is [PieceSymbol](./chess.ts.piecesymbol.md)
 

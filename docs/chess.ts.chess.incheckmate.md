@@ -6,12 +6,12 @@
 
 Returns true or false if the side to move has been checkmated.
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 inCheckmate(): boolean;
 ```
-<b>Returns:</b>
+**Returns:**
 
 boolean
 
@@ -24,6 +24,5 @@ const chess = new Chess(
 )
 chess.inCheckmate()
 // -> true
-
 ```
 

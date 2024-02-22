@@ -6,7 +6,7 @@
 
 Returns a validation object specifying validity or the errors found within the FEN string.
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 validateFen(fen: string): Validation;
@@ -18,7 +18,7 @@ validateFen(fen: string): Validation;
 |  --- | --- | --- |
 |  fen | string |  |
 
-<b>Returns:</b>
+**Returns:**
 
 [Validation](./chess.ts.validation.md)
 
@@ -32,6 +32,5 @@ chess.validateFen('2n1r3/p1k2pp1/B1p3b1/P7/5bP1/2N1B3/1P2KP2/2R5 b - - 4 25')
 chess.validateFen('4r3/8/X12XPk/1p6/pP2p1R1/P1B5/2P2K2/3r4 w - - 1 45')
 // -> { valid: false, error_number: 9,
 //     error: '1st field (piece positions) is invalid [invalid piece].' }
-
 ```
 

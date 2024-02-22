@@ -6,12 +6,12 @@
 
 Returns the current side to move.
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 turn(): Color;
 ```
-<b>Returns:</b>
+**Returns:**
 
 [Color](./chess.ts.color.md)
 
@@ -22,6 +22,5 @@ turn(): Color;
 chess.load('rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1')
 chess.turn()
 // -> 'b'
-
 ```
 

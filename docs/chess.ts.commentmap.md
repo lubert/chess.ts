@@ -5,8 +5,8 @@
 ## CommentMap type
 
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
-export declare type CommentMap = Partial<Record<string, string>>;
+export type CommentMap = Partial<Record<string, string>>;
 ```

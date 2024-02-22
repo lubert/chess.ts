@@ -6,7 +6,7 @@
 
 Clears the board and loads the Forsyth–Edwards Notation (FEN) string.
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 load(fen: string): boolean;
@@ -18,7 +18,7 @@ load(fen: string): boolean;
 |  --- | --- | --- |
 |  fen | string | FEN string |
 
-<b>Returns:</b>
+**Returns:**
 
 boolean
 

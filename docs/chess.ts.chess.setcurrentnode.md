@@ -5,7 +5,7 @@
 ## Chess.setCurrentNode() method
 
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 setCurrentNode(newNode: TreeNode<GameState>): Move | null;
@@ -17,7 +17,7 @@ setCurrentNode(newNode: TreeNode<GameState>): Move | null;
 |  --- | --- | --- |
 |  newNode | TreeNode&lt;GameState&gt; |  |
 
-<b>Returns:</b>
+**Returns:**
 
 [Move](./chess.ts.move.md) \| null
 

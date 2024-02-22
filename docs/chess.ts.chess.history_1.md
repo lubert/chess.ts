@@ -6,7 +6,7 @@
 
 Returns a list containing the moves of the current game.
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 history(options: {
@@ -20,7 +20,7 @@ history(options: {
 |  --- | --- | --- |
 |  options | { verbose: true; } |  |
 
-<b>Returns:</b>
+**Returns:**
 
 [Move](./chess.ts.move.md)<!-- -->\[\]
 
@@ -39,6 +39,5 @@ chess.history({ verbose: true })
 //     { color: 'b', from: 'e7', to: 'e5', flags: 'b', piece: 'p', san: 'e5' },
 //     { color: 'w', from: 'f2', to: 'f4', flags: 'b', piece: 'p', san: 'f4' },
 //     { color: 'b', from: 'e5', to: 'f4', flags: 'c', piece: 'p', captured: 'p', san: 'exf4' }]
-
 ```
 

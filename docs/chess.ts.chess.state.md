@@ -5,7 +5,7 @@
 ## Chess.state property
 
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 get state(): Readonly<BoardState>;

@@ -6,7 +6,7 @@
 
 Clears the board.
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 clear(keepHeaders?: boolean): void;
@@ -16,9 +16,9 @@ clear(keepHeaders?: boolean): void;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  keepHeaders | boolean |  |
+|  keepHeaders | boolean | _(Optional)_ |
 
-<b>Returns:</b>
+**Returns:**
 
 void
 
@@ -29,6 +29,5 @@ void
 chess.clear()
 chess.fen()
 // -> '8/8/8/8/8/8/8/8 w - - 0 1' <- empty board
-
 ```
 

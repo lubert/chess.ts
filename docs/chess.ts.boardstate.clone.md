@@ -4,12 +4,12 @@
 
 ## BoardState.clone() method
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 clone(): BoardState;
 ```
-<b>Returns:</b>
+**Returns:**
 
 [BoardState](./chess.ts.boardstate.md)
 

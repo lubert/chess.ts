@@ -6,7 +6,7 @@
 
 Remove and return the piece on `square`<!-- -->.
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 removePiece(square: string): Piece | null;
@@ -18,7 +18,7 @@ removePiece(square: string): Piece | null;
 |  --- | --- | --- |
 |  square | string | e.g. 'e4' |
 
-<b>Returns:</b>
+**Returns:**
 
 [Piece](./chess.ts.piece.md) \| null
 
@@ -38,6 +38,5 @@ chess.remove('h1')
 // -> { type: 'k', color: 'w' },
 chess.remove('e1')
 // -> null
-
 ```
 

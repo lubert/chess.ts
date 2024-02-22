@@ -4,7 +4,7 @@
 
 ## isColor() function
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 export declare function isColor(color: string): color is Color;
@@ -16,7 +16,7 @@ export declare function isColor(color: string): color is Color;
 |  --- | --- | --- |
 |  color | string |  |
 
-<b>Returns:</b>
+**Returns:**
 
 color is [Color](./chess.ts.color.md)
 

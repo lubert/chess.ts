@@ -5,7 +5,7 @@
 ## ROOK variable
 
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 ROOK: PieceSymbol

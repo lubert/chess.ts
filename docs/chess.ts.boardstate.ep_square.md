@@ -4,7 +4,7 @@
 
 ## BoardState.ep\_square property
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 ep_square: number;

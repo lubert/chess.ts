@@ -4,7 +4,7 @@
 
 ## BoardState.kings property
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 kings: ColorState;

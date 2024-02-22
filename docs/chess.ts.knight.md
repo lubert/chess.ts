@@ -5,7 +5,7 @@
 ## KNIGHT variable
 
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 KNIGHT: PieceSymbol

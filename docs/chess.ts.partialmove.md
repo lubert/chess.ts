@@ -5,12 +5,14 @@
 ## PartialMove type
 
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
-export declare type PartialMove = {
+export type PartialMove = {
     to: Square;
     from: Square;
     promotion?: PieceSymbol;
 };
 ```
+**References:** [Square](./chess.ts.square.md)<!-- -->, [PieceSymbol](./chess.ts.piecesymbol.md)
+

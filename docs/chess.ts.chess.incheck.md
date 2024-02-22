@@ -6,12 +6,12 @@
 
 Returns true or false if the side to move is in check.
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 inCheck(): boolean;
 ```
-<b>Returns:</b>
+**Returns:**
 
 boolean
 
@@ -24,6 +24,5 @@ const chess = new Chess(
 )
 chess.inCheck()
 // -> true
-
 ```
 

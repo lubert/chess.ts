@@ -6,7 +6,7 @@
 
 Comment on a position.
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 setComment(comment: string, fen?: string): void;
@@ -17,9 +17,9 @@ setComment(comment: string, fen?: string): void;
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  comment | string |  |
-|  fen | string | Defaults to the current position |
+|  fen | string | _(Optional)_ Defaults to the current position |
 
-<b>Returns:</b>
+**Returns:**
 
 void
 
@@ -34,6 +34,5 @@ chess.setComment("king's pawn opening")
 
 chess.pgn()
 // -> "1. e4 {king's pawn opening}"
-
 ```
 

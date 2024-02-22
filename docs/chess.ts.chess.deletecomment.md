@@ -6,7 +6,7 @@
 
 Delete and return the comment for a position in the current branch, it exists.
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 deleteComment(fen?: string): string | undefined;
@@ -16,9 +16,9 @@ deleteComment(fen?: string): string | undefined;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  fen | string | Defaults to the current position |
+|  fen | string | _(Optional)_ Defaults to the current position |
 
-<b>Returns:</b>
+**Returns:**
 
 string \| undefined
 
@@ -38,6 +38,5 @@ chess.deleteComments()
 
 chess.getComment()
 // -> undefined
-
 ```
 

@@ -5,7 +5,7 @@
 ## SQUARES variable
 
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 SQUARES: Record<Square, number>

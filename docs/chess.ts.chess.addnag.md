@@ -4,7 +4,7 @@
 
 ## Chess.addNag() method
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 addNag(nag: Nag, fen?: string): void;
@@ -15,9 +15,9 @@ addNag(nag: Nag, fen?: string): void;
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  nag | [Nag](./chess.ts.nag.md) |  |
-|  fen | string |  |
+|  fen | string | _(Optional)_ |
 
-<b>Returns:</b>
+**Returns:**
 
 void
 

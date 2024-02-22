@@ -6,12 +6,12 @@
 
 Redo all mainline moves.
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 redoAll(): Move[];
 ```
-<b>Returns:</b>
+**Returns:**
 
 [Move](./chess.ts.move.md)<!-- -->\[\]
 

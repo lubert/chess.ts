@@ -4,7 +4,7 @@
 
 ## BoardState.move\_number property
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 move_number: number;

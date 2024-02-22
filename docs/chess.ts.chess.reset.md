@@ -6,12 +6,12 @@
 
 Reset the board to the initial starting position.
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 reset(): void;
 ```
-<b>Returns:</b>
+**Returns:**
 
 void
 

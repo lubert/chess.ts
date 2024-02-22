@@ -5,7 +5,7 @@
 ## WHITE variable
 
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 WHITE: Color

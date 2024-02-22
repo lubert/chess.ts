@@ -5,7 +5,7 @@
 ## Chess.header property
 
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 header: HeaderMap;

@@ -4,7 +4,7 @@
 
 ## NagMap variable
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 NagMap: Partial<Record<Nag, string>>

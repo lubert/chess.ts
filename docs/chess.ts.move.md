@@ -6,10 +6,10 @@
 
 Represents a chess move
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
-export declare type Move = PartialMove & {
+export type Move = PartialMove & {
     color: Color;
     flags: string;
     piece: PieceSymbol;
@@ -17,6 +17,7 @@ export declare type Move = PartialMove & {
     captured?: PieceSymbol;
 };
 ```
+**References:** [PartialMove](./chess.ts.partialmove.md)<!-- -->, [Color](./chess.ts.color.md)<!-- -->, [PieceSymbol](./chess.ts.piecesymbol.md)
 
 ## Remarks
 

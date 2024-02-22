@@ -5,7 +5,7 @@
 ## BISHOP variable
 
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 BISHOP: PieceSymbol

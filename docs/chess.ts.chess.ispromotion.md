@@ -6,7 +6,7 @@
 
 Checks if a move results in a promotion.
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 isPromotion(move: string | PartialMove): boolean;
@@ -18,7 +18,7 @@ isPromotion(move: string | PartialMove): boolean;
 |  --- | --- | --- |
 |  move | string \| [PartialMove](./chess.ts.partialmove.md) | Case-sensitive SAN string or object, e.g. <code>'Nxb7'</code> or <code>{ from: 'h7', to: 'h8' }</code> |
 
-<b>Returns:</b>
+**Returns:**
 
 boolean
 
@@ -34,6 +34,5 @@ chess.isPromotion('e4')
 chess.load('8/2P2k2/8/8/8/5K2/8/8 w - - 0 1')
 chess.isPromotion('c8')
 // -> true
-
 ```
 

@@ -5,7 +5,7 @@
 ## EMPTY variable
 
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 EMPTY = -1

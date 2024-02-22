@@ -5,7 +5,7 @@
 ## KING variable
 
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 KING: PieceSymbol

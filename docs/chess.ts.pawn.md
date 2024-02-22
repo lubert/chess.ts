@@ -5,7 +5,7 @@
 ## PAWN variable
 
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 PAWN: PieceSymbol

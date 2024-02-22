@@ -5,7 +5,7 @@
 ## Chess.tree property
 
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 get tree(): Readonly<TreeNode<GameState>>;

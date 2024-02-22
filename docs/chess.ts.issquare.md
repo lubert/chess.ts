@@ -4,7 +4,7 @@
 
 ## isSquare() function
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 export declare function isSquare(sq: string): sq is Square;
@@ -16,7 +16,7 @@ export declare function isSquare(sq: string): sq is Square;
 |  --- | --- | --- |
 |  sq | string |  |
 
-<b>Returns:</b>
+**Returns:**
 
 sq is [Square](./chess.ts.square.md)
 

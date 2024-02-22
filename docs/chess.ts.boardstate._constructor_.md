@@ -6,7 +6,7 @@
 
 Constructs a new instance of the `BoardState` class
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 constructor(board?: Board, kings?: ColorState, turn?: Color, castling?: ColorState, ep_square?: number, half_moves?: number, move_number?: number);
@@ -16,11 +16,11 @@ constructor(board?: Board, kings?: ColorState, turn?: Color, castling?: ColorSta
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  board | Board |  |
-|  kings | ColorState |  |
-|  turn | [Color](./chess.ts.color.md) |  |
-|  castling | ColorState |  |
-|  ep\_square | number |  |
-|  half\_moves | number |  |
-|  move\_number | number |  |
+|  board | Board | _(Optional)_ |
+|  kings | ColorState | _(Optional)_ |
+|  turn | [Color](./chess.ts.color.md) | _(Optional)_ |
+|  castling | ColorState | _(Optional)_ |
+|  ep\_square | number | _(Optional)_ |
+|  half\_moves | number | _(Optional)_ |
+|  move\_number | number | _(Optional)_ |
 

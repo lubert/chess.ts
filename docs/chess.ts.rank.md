@@ -6,7 +6,7 @@
 
 Extracts the zero-based rank of an 0x88 square.
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 export declare function rank(i: number): number;
@@ -18,7 +18,7 @@ export declare function rank(i: number): number;
 |  --- | --- | --- |
 |  i | number |  |
 
-<b>Returns:</b>
+**Returns:**
 
 number
 

@@ -5,7 +5,7 @@
 ## BITS variable
 
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 BITS: Record<FlagKey, number>

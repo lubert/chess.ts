@@ -6,7 +6,7 @@
 
 Converts a 0x88 square to algebraic notation.
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 export declare function algebraic(i: number): Square | undefined;
@@ -18,7 +18,7 @@ export declare function algebraic(i: number): Square | undefined;
 |  --- | --- | --- |
 |  i | number |  |
 
-<b>Returns:</b>
+**Returns:**
 
 [Square](./chess.ts.square.md) \| undefined
 

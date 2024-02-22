@@ -5,7 +5,7 @@
 ## QUEEN variable
 
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 QUEEN: PieceSymbol

@@ -4,7 +4,7 @@
 
 ## BoardState.fen property
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 get fen(): string;

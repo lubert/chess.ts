@@ -4,7 +4,7 @@
 
 ## BoardState.turn property
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 turn: Color;

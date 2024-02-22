@@ -6,12 +6,12 @@
 
 Returns true or false if the current board position has occurred three or more times.
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 inThreefoldRepetition(): boolean;
 ```
-<b>Returns:</b>
+**Returns:**
 
 boolean
 
@@ -34,6 +34,5 @@ chess.move('Nf3') chess.move('Nf6') chess.move('Ng1') chess.move('Ng8')
 // rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq occurs 3rd time
 chess.inThreefoldRepetition()
 // -> true
-
 ```
 

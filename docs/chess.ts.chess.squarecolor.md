@@ -6,7 +6,7 @@
 
 Returns the color of the square ('light' or 'dark').
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 squareColor(square: string): 'light' | 'dark' | null;
@@ -18,7 +18,7 @@ squareColor(square: string): 'light' | 'dark' | null;
 |  --- | --- | --- |
 |  square | string |  |
 
-<b>Returns:</b>
+**Returns:**
 
 'light' \| 'dark' \| null
 
@@ -33,6 +33,5 @@ chess.squareColor('a7')
 // -> 'dark'
 chess.squareColor('bogus square')
 // -> null
-
 ```
 

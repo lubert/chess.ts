@@ -6,7 +6,7 @@
 
 Validates a sequence of moves, returning an array of move objects if the moves are all legal, otherwise null.
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 validateMoves(moves: string[] | PartialMove[]): Move[] | null;
@@ -18,7 +18,7 @@ validateMoves(moves: string[] | PartialMove[]): Move[] | null;
 |  --- | --- | --- |
 |  moves | string\[\] \| [PartialMove](./chess.ts.partialmove.md)<!-- -->\[\] | Array of case-sensitive SAN strings or objects, e.g. <code>'Nxb7'</code> or <code>{ from: 'h7', to: 'h8', promotion: 'q' }</code> |
 
-<b>Returns:</b>
+**Returns:**
 
 [Move](./chess.ts.move.md)<!-- -->\[\] \| null
 
@@ -34,6 +34,5 @@ chess.validateMoves(['e4', 'Nf6'])
 
 chess.validateMoves(['e4, 'nf6']) // SAN is case sensitive!!
 // -> null
-
 ```
 

@@ -6,12 +6,12 @@
 
 Undo all moves.
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 undoAll(): Move[];
 ```
-<b>Returns:</b>
+**Returns:**
 
 [Move](./chess.ts.move.md)<!-- -->\[\]
 

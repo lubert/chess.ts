@@ -6,11 +6,12 @@
 
 Attempts to make a move on the board, returning a move object if the move was legal, otherwise null. The .move function can be called two ways, by passing a string in Standard Algebraic Notation (SAN):
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 move(move: string | PartialMove, options?: {
         dry_run?: boolean;
+        strict?: boolean;
     }): Move | null;
 ```
 
@@ -19,9 +20,9 @@ move(move: string | PartialMove, options?: {
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  move | string \| [PartialMove](./chess.ts.partialmove.md) | Case-sensitive SAN string or object, e.g. <code>'Nxb7'</code> or <code>{ from: 'h7', to: 'h8', promotion: 'q' }</code> |
-|  options | { dry\_run?: boolean; } | Options to enable parsing of a variety of non-standard move notations |
+|  options | { dry\_run?: boolean; strict?: boolean; } | _(Optional)_ Options to enable parsing of a variety of non-standard move notations |
 
-<b>Returns:</b>
+**Returns:**
 
 [Move](./chess.ts.move.md) \| null
 
@@ -39,7 +40,6 @@ chess.move('nf6') // SAN is case sensitive!!
 
 chess.move('Nf6')
 // -> { color: 'b', from: 'g8', to: 'f6', flags: 'n', piece: 'n', san: 'Nf6' }
-
 ```
 Or by passing .move() a move object (only the 'to', 'from', and when necessary 'promotion', fields are needed):
 
@@ -51,7 +51,6 @@ const chess = new Chess()
 
 chess.move({ from: 'g2', to: 'g3' })
 // -> { color: 'w', from: 'g2', to: 'g3', flags: 'n', piece: 'p', san: 'g3' }
-
 ```
 An optional sloppy flag can be used to parse a variety of non-standard move notations:
 
@@ -81,6 +80,5 @@ chess.move('Nge7') // Ne7 is unambiguous because the knight on c6 is pinned
 
 chess.move('Nge7', { sloppy: true })
 // -> { color: 'b', from: 'g8', to: 'e7', flags: 'n', piece: 'n', san: 'Ne7' }
-
 ```
 

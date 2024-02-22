@@ -6,12 +6,12 @@
 
 Delete and return comments for all positions in the current branch.
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 deleteComments(): CommentMap;
 ```
-<b>Returns:</b>
+**Returns:**
 
 [CommentMap](./chess.ts.commentmap.md)
 
@@ -37,6 +37,5 @@ chess.deleteComments()
 
 chess.getComments()
 // -> []
-
 ```
 

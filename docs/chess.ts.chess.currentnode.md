@@ -5,7 +5,7 @@
 ## Chess.currentNode property
 
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 get currentNode(): Readonly<TreeNode<GameState>>;

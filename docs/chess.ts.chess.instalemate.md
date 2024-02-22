@@ -6,12 +6,12 @@
 
 Returns true or false if the side to move has been stalemated.
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 inStalemate(): boolean;
 ```
-<b>Returns:</b>
+**Returns:**
 
 boolean
 
@@ -22,6 +22,5 @@ boolean
 const chess = new Chess('4k3/4P3/4K3/8/8/8/8/8 b - - 0 78')
 chess.inStalemate()
 // -> true
-
 ```
 

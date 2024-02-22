@@ -5,11 +5,13 @@
 ## Piece type
 
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
-export declare type Piece = {
+export type Piece = {
     color: Color;
     type: PieceSymbol;
 };
 ```
+**References:** [Color](./chess.ts.color.md)<!-- -->, [PieceSymbol](./chess.ts.piecesymbol.md)
+

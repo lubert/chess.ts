@@ -6,12 +6,12 @@
 
 Returns a map of squares to pieces.
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 getPieces(): Record<string, Piece>;
 ```
-<b>Returns:</b>
+**Returns:**
 
 Record&lt;string, [Piece](./chess.ts.piece.md)<!-- -->&gt;
 
@@ -28,6 +28,5 @@ chess.get('a5')
 // -> { type: 'p', color: 'b' },
 chess.get('a6')
 // -> null
-
 ```
 

@@ -6,7 +6,7 @@
 
 https://en.wikipedia.org/wiki/Numeric\_Annotation\_Glyphs
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 export declare enum Nag 

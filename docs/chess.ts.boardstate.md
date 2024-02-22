@@ -5,7 +5,7 @@
 ## BoardState class
 
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 export declare class BoardState 
@@ -24,7 +24,7 @@ export declare class BoardState
 |  [board](./chess.ts.boardstate.board.md) |  | Board |  |
 |  [castling](./chess.ts.boardstate.castling.md) |  | ColorState |  |
 |  [ep\_square](./chess.ts.boardstate.ep_square.md) |  | number |  |
-|  [fen](./chess.ts.boardstate.fen.md) |  | string |  |
+|  [fen](./chess.ts.boardstate.fen.md) | <code>readonly</code> | string |  |
 |  [half\_moves](./chess.ts.boardstate.half_moves.md) |  | number |  |
 |  [kings](./chess.ts.boardstate.kings.md) |  | ColorState |  |
 |  [move\_number](./chess.ts.boardstate.move_number.md) |  | number |  |

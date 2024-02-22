@@ -10,7 +10,7 @@ The `newline` is a string representation of a valid RegExp fragment and is used 
 
 The method will throw an error if the PGN was not parsed successfully.
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 loadPgn(pgn: string, options?: {
@@ -23,9 +23,9 @@ loadPgn(pgn: string, options?: {
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  pgn | string |  |
-|  options | { newline?: string; } |  |
+|  options | { newline?: string; } | _(Optional)_ |
 
-<b>Returns:</b>
+**Returns:**
 
 void
 
@@ -105,6 +105,5 @@ chess.loadPgn(sloppyPgn, options)
 
 chess.fen()
 // -> 'r1bqk2r/pppp1ppp/2P5/8/1b6/1Q3pP1/PP1PPP1P/R1B1KB1R b KQkq - 1 8'
-
 ```
 

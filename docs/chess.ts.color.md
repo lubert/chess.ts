@@ -5,8 +5,8 @@
 ## Color type
 
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
-export declare type Color = 'w' | 'b';
+export type Color = 'w' | 'b';
 ```

@@ -6,12 +6,12 @@
 
 Returns the FEN string for the current position.
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 fen(): string;
 ```
-<b>Returns:</b>
+**Returns:**
 
 string
 
@@ -28,6 +28,5 @@ chess.move('f4')
 
 chess.fen()
 // -> 'rnbqkbnr/pppp1ppp/8/4p3/4PP2/8/PPPP2PP/RNBQKBNR b KQkq f3 0 2'
-
 ```
 

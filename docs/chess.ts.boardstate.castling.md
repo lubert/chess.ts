@@ -4,7 +4,7 @@
 
 ## BoardState.castling property
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 castling: ColorState;

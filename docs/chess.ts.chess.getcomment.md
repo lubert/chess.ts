@@ -6,7 +6,7 @@
 
 Retrieve the comment for a position, if it exists.
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 getComment(fen?: string): string | undefined;
@@ -16,9 +16,9 @@ getComment(fen?: string): string | undefined;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  fen | string | Defaults to the current position |
+|  fen | string | _(Optional)_ Defaults to the current position |
 
-<b>Returns:</b>
+**Returns:**
 
 string \| undefined
 
@@ -32,6 +32,5 @@ chess.loadPgn("1. e4 e5 2. Nf3 Nc6 3. Bc4 Bc5 {giuoco piano} *")
 
 chess.getComment()
 // -> "giuoco piano"
-
 ```
 

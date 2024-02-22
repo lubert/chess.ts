@@ -4,7 +4,7 @@
 
 ## BoardState.half\_moves property
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 half_moves: number;

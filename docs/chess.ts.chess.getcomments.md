@@ -6,12 +6,12 @@
 
 Retrieve comments for all positions.
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 getComments(): CommentMap;
 ```
-<b>Returns:</b>
+**Returns:**
 
 [CommentMap](./chess.ts.commentmap.md)
 
@@ -28,6 +28,5 @@ chess.getComments()
 //      "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2": "king's pawn opening",
 //      "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3": "giuoco piano"
 //    }
-
 ```
 

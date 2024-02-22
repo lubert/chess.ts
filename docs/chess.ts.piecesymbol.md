@@ -5,8 +5,8 @@
 ## PieceSymbol type
 
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
-export declare type PieceSymbol = 'p' | 'n' | 'b' | 'r' | 'q' | 'k';
+export type PieceSymbol = 'p' | 'n' | 'b' | 'r' | 'q' | 'k';
 ```

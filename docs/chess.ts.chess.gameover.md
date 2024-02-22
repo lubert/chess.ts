@@ -6,12 +6,12 @@
 
 Returns true if the game has ended via checkmate, stalemate, draw, threefold repetition, or insufficient material. Otherwise, returns false.
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 gameOver(): boolean;
 ```
-<b>Returns:</b>
+**Returns:**
 
 boolean
 
@@ -32,6 +32,5 @@ chess.gameOver()
 chess.load('rnb1kbnr/pppp1ppp/8/4p3/5PPq/8/PPPPP2P/RNBQKBNR w KQkq - 1 3')
 chess.gameOver()
 // -> true
-
 ```
 

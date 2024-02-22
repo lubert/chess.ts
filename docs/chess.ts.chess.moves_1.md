@@ -6,11 +6,11 @@
 
 Returns a list of legal moves from the current position. The function takes an optional parameter which controls the single-square move generation and verbosity.
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 moves(options: {
-        square?: string;
+        square?: Square;
         verbose: true;
     }): Move[];
 ```
@@ -19,9 +19,9 @@ moves(options: {
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | { square?: string; verbose: true; } |  |
+|  options | { square?: [Square](./chess.ts.square.md)<!-- -->; verbose: true; } |  |
 
-<b>Returns:</b>
+**Returns:**
 
 [Move](./chess.ts.move.md)<!-- -->\[\]
 
@@ -38,7 +38,6 @@ chess.moves({ verbose: true })
 //     },
 //     ...
 //     ]
-
 ```
 [Move](./chess.ts.move.md)
 

@@ -6,7 +6,7 @@
 
 Returns the piece on the square.
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 getPiece(square: string): Piece | null;
@@ -18,7 +18,7 @@ getPiece(square: string): Piece | null;
 |  --- | --- | --- |
 |  square | string | e.g. 'e4' |
 
-<b>Returns:</b>
+**Returns:**
 
 [Piece](./chess.ts.piece.md) \| null
 
@@ -35,6 +35,5 @@ chess.get('a5')
 // -> { type: 'p', color: 'b' },
 chess.get('a6')
 // -> null
-
 ```
 

@@ -6,7 +6,7 @@
 
 The Chess() constructor takes an optional parameter which specifies the board configuration in \[Forsyth-Edwards Notation\](http://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards\_Notation).
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 constructor(fen?: string);
@@ -16,7 +16,7 @@ constructor(fen?: string);
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  fen | string |  |
+|  fen | string | _(Optional)_ |
 
 ## Example
 
@@ -29,6 +29,5 @@ const chess = new Chess()
 const chess = new Chess(
     'r1k4r/p2nb1p1/2b4p/1p1n1p2/2PP4/3Q1NB1/1P3PPP/R5K1 b - c3 0 19'
 )
-
 ```
 

@@ -5,7 +5,7 @@
 ## Chess class
 
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 export declare class Chess 
@@ -21,10 +21,10 @@ export declare class Chess
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [currentNode](./chess.ts.chess.currentnode.md) |  | Readonly&lt;TreeNode&lt;GameState&gt;&gt; |  |
+|  [currentNode](./chess.ts.chess.currentnode.md) | <code>readonly</code> | Readonly&lt;TreeNode&lt;GameState&gt;&gt; |  |
 |  [header](./chess.ts.chess.header.md) |  | HeaderMap |  |
-|  [state](./chess.ts.chess.state.md) |  | Readonly&lt;[BoardState](./chess.ts.boardstate.md)<!-- -->&gt; |  |
-|  [tree](./chess.ts.chess.tree.md) |  | Readonly&lt;TreeNode&lt;GameState&gt;&gt; |  |
+|  [state](./chess.ts.chess.state.md) | <code>readonly</code> | Readonly&lt;[BoardState](./chess.ts.boardstate.md)<!-- -->&gt; |  |
+|  [tree](./chess.ts.chess.tree.md) | <code>readonly</code> | Readonly&lt;TreeNode&lt;GameState&gt;&gt; |  |
 
 ## Methods
 
@@ -53,7 +53,7 @@ export declare class Chess
 |  [inThreefoldRepetition()](./chess.ts.chess.inthreefoldrepetition.md) |  | Returns true or false if the current board position has occurred three or more times. |
 |  [isPromotion(move)](./chess.ts.chess.ispromotion.md) |  | Checks if a move results in a promotion. |
 |  [load(fen)](./chess.ts.chess.load.md) |  | Clears the board and loads the Forsyth–Edwards Notation (FEN) string. |
-|  [loadPgn(pgn, options)](./chess.ts.chess.loadpgn.md) |  | Load the moves of a game stored in \[Portable Game Notation\](http://en.wikipedia.org/wiki/Portable\_Game\_Notation). <code>pgn</code> should be a string. Options is an optional <code>object</code> which may contain a string <code>newline</code>.<!-- -->The <code>newline</code> is a string representation of a valid RegExp fragment and is used to process the PGN. It defaults to <code>\r?\n</code>. Special characters should not be pre-escaped, but any literal special characters should be escaped as is normal for a RegExp. Keep in mind that backslashes in JavaScript strings must themselves be escaped. Avoid using a <code>newline</code> that may occur elsewhere in a PGN, such as <code>.</code> or <code>x</code>, as this will result in behavior.<!-- -->The method will throw an error if the PGN was not parsed successfully. |
+|  [loadPgn(pgn, options)](./chess.ts.chess.loadpgn.md) |  | <p>Load the moves of a game stored in \[Portable Game Notation\](http://en.wikipedia.org/wiki/Portable\_Game\_Notation). <code>pgn</code> should be a string. Options is an optional <code>object</code> which may contain a string <code>newline</code>.</p><p>The <code>newline</code> is a string representation of a valid RegExp fragment and is used to process the PGN. It defaults to <code>\r?\n</code>. Special characters should not be pre-escaped, but any literal special characters should be escaped as is normal for a RegExp. Keep in mind that backslashes in JavaScript strings must themselves be escaped. Avoid using a <code>newline</code> that may occur elsewhere in a PGN, such as <code>.</code> or <code>x</code>, as this will result in behavior.</p><p>The method will throw an error if the PGN was not parsed successfully.</p> |
 |  [move(move, options)](./chess.ts.chess.move.md) |  | Attempts to make a move on the board, returning a move object if the move was legal, otherwise null. The .move function can be called two ways, by passing a string in Standard Algebraic Notation (SAN): |
 |  [moves(options)](./chess.ts.chess.moves.md) |  | Returns a list of legal moves from the current position. The function takes an optional parameter which controls the single-square move generation and verbosity. |
 |  [moves(options)](./chess.ts.chess.moves_1.md) |  | Returns a list of legal moves from the current position. The function takes an optional parameter which controls the single-square move generation and verbosity. |

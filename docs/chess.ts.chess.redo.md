@@ -6,12 +6,12 @@
 
 Redo mainline move.
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 redo(): Move | null;
 ```
-<b>Returns:</b>
+**Returns:**
 
 [Move](./chess.ts.move.md) \| null
 

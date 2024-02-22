@@ -6,12 +6,12 @@
 
 Takeback the last half-move, returning a move object if successful, otherwise null.
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 undo(): Move | null;
 ```
-<b>Returns:</b>
+**Returns:**
 
 [Move](./chess.ts.move.md) \| null
 
@@ -33,6 +33,5 @@ chess.fen()
 // -> 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 chess.undo()
 // -> null
-
 ```
 

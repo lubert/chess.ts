@@ -4,7 +4,7 @@
 
 ## BoardState.board property
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 board: Board;

@@ -5,10 +5,10 @@
 ## Validation type
 
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
-export declare type Validation = {
+export type Validation = {
     valid: boolean;
     error_number: number;
     error: string;
