@@ -942,7 +942,7 @@ export function makeMove(
 
   // if big pawn move, update the en passant square
   if (move.flags & BITS.BIG_PAWN) {
-    if (state.turn === 'b') {
+    if (state.turn === BLACK) {
       state.ep_square = move.to - 16
     } else {
       state.ep_square = move.to + 16
