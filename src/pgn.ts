@@ -43,9 +43,7 @@ export function isMainline(node: TreeNode<HexState>): boolean {
 }
 
 export function pgnHeader(header: HeaderMap): string[] {
-  return Object.entries(header).map(([key, val]) => (
-    `[${key} "${val}"]`
-  ))
+  return Object.entries(header).map(([key, val]) => `[${key} "${val}"]`)
 }
 
 export function pgnMoves(node: TreeNode<HexState>): string[] {
@@ -96,7 +94,7 @@ export function pgnMoves(node: TreeNode<HexState>): string[] {
 export function getPgn(
   tree: TreeNode<HexState>,
   header: HeaderMap,
-  options: { newline?: string } = {}
+  options: { newline?: string } = {},
 ): string {
   const { newline = '\n' } = options
   let pgn = ''
@@ -112,7 +110,14 @@ export function getPgn(
 }
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-export function loadPgn(pgn: string, options: { newline?: string, width?: number } = {}): { tree: TreeNode<HexState>, currentNode: TreeNode<HexState>, header: HeaderMap } {
+export function loadPgn(
+  pgn: string,
+  options: { newline?: string; width?: number } = {},
+): {
+  tree: TreeNode<HexState>
+  currentNode: TreeNode<HexState>
+  header: HeaderMap
+} {
   const { newline = '\r\n|\n|\r' } = options
 
   // Split on newlines and read line by line
