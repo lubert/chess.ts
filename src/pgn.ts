@@ -1,9 +1,26 @@
 import { TreeNode } from 'treenode.ts'
 import { HexState, HeaderMap } from './interfaces/types'
 import { Nag, extractNags } from './interfaces/nag'
-import { WHITE, DEFAULT_POSITION, POSSIBLE_RESULTS, NULL_MOVES, CASTLING_MOVES } from './constants'
-import { moveToSan, loadFen, sanToMove, makeMove, getFen } from './move'
-import { REGEXP_HEADER_KEY, REGEXP_HEADER_VAL, REGEXP_MOVE_NUMBER } from './regex'
+import {
+  WHITE,
+  DEFAULT_POSITION,
+  POSSIBLE_RESULTS,
+  NULL_MOVES,
+  CASTLING_MOVES,
+} from './constants'
+import {
+  moveToSan,
+  loadFen,
+  sanToMove,
+  makeMove,
+  getFen,
+  generateMoves,
+} from './move'
+import {
+  REGEXP_HEADER_KEY,
+  REGEXP_HEADER_VAL,
+  REGEXP_MOVE_NUMBER,
+} from './regex'
 import { splitStr } from './utils'
 
 export function addNag(node: TreeNode<HexState>, nag: number): void {
@@ -41,14 +58,13 @@ export function pgnMoves(node: TreeNode<HexState>): string[] {
     tokens.push(`{${node.model.comment}}`)
   }
 
-  const formatMove = (state: HexState, isVariation=false) => {
+  const formatMove = (state: HexState, isVariation = false) => {
     const { move, comment, nags } = state
     if (move) {
       const isFirstMove = !node.model.move
-      const san = moveToSan(boardState, move)
-      const nagStr = nags && nags.length
-        ? ' ' + nags.map((nag) => `$${nag}`).join(' ')
-        : ''
+      const san = moveToSan(boardState, move, generateMoves(boardState))
+      const nagStr =
+        nags && nags.length ? ' ' + nags.map((nag) => `$${nag}`).join(' ') : ''
       // Move
       if (move.color === WHITE) {
         tokens.push(`${boardState.move_number}. ${san}${nagStr}`)
