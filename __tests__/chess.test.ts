@@ -15,6 +15,7 @@ import {
 } from '../src/constants'
 import { algebraic } from '../src/utils'
 import { PieceSymbol, Move, PartialMove } from '../src/interfaces/types'
+import { Square } from '../dist/interfaces/types'
 
 const SQUARES_LIST: string[] = []
 for (let i = SQUARES.a8; i <= SQUARES.h1; i++) {
@@ -173,7 +174,7 @@ describe('.moves', () => {
     examples.forEach(({ name, fen, square, moves }) => {
       it(name, () => {
         const chess = new Chess(fen)
-        expect(chess.moves({ square: square })).toEqual(moves)
+        expect(chess.moves({ square: square as Square })).toEqual(moves)
       })
     })
   })
@@ -234,7 +235,9 @@ describe('.moves', () => {
     positions.forEach(({ name, fen, square, moves }) => {
       it(name, () => {
         const chess = new Chess(fen)
-        expect(moves).toEqual(chess.moves({ square, verbose: true }))
+        expect(moves).toEqual(
+          chess.moves({ square: square as Square, verbose: true }),
+        )
       })
     })
   })

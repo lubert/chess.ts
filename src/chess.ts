@@ -84,7 +84,7 @@ export class Chess {
 
   /** @public */
   public get currentNode(): Readonly<TreeNode<GameState>> {
-    return this.tree.fetch(this._currentNode.indices)!
+    return this.tree.fetch(this._currentNode.indices) as TreeNode<GameState>
   }
 
   /** @public */
@@ -353,7 +353,9 @@ export class Chess {
     if (verbose) {
       return uglyMoves.map((uglyMove) => hexToMove(this.boardState, uglyMove))
     }
-    return uglyMoves.map((uglyMove) => moveToSan(this.boardState, uglyMove))
+    return uglyMoves.map((uglyMove) =>
+      moveToSan(this.boardState, uglyMove, uglyMoves),
+    )
   }
 
   /**
@@ -790,9 +792,9 @@ export class Chess {
    */
   public move(
     move: string | PartialMove,
-    options: { dry_run?: boolean } = {},
+    options: { dry_run?: boolean; strict?: boolean } = {},
   ): Move | null {
-    const validMove = validateMove(this.boardState, move)
+    const validMove = validateMove(this.boardState, move, options)
     if (!validMove) {
       return null
     }
@@ -997,7 +999,9 @@ export class Chess {
     if (verbose) {
       return nodes.map(({ prevState, move }) => hexToMove(prevState, move))
     }
-    return nodes.map(({ prevState, move }) => moveToSan(prevState, move))
+    return nodes.map(({ prevState, move }) =>
+      moveToSan(prevState, move, generateMoves(prevState)),
+    )
   }
 
   /**

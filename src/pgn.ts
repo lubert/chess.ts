@@ -236,6 +236,8 @@ export function loadPgn(pgn: string, options: { newline?: string, width?: number
       if (CASTLING_MOVES.includes(token)) {
         token = token.replace(/0/g, 'O')
       }
+      // Remove move number
+      token = token.replace(/\d+\.(\.\.)?/g, '')
       const move = sanToMove(boardState, token)
       if (!move) {
         throw new Error(`Invalid move token: "${token}"`)

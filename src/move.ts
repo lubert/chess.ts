@@ -505,7 +505,10 @@ export function moveToSan(
   state: Readonly<BoardState>,
   move: Readonly<HexMove>,
   moves: HexMove[],
+  options: { addPromotion?: boolean } = {},
 ): string {
+  const { addPromotion = true } = options
+
   let output = ''
 
   if (move.flags & BITS.KSIDE_CASTLE) {
@@ -526,7 +529,7 @@ export function moveToSan(
 
     output += algebraic(move.to)
 
-    if (move.promotion) {
+    if (move.promotion && addPromotion) {
       output += '=' + move.promotion.toUpperCase()
     }
   }
@@ -560,67 +563,186 @@ export function extractMove(move: string): ParsedMove {
   }
 }
 
+function inferPieceType(san: string) {
+  let pieceType = san.charAt(0)
+  if (pieceType >= 'a' && pieceType <= 'h') {
+    const matches = san.match(/[a-h]\d.*[a-h]\d/)
+    if (matches) {
+      return undefined
+    }
+    return PAWN
+  }
+  pieceType = pieceType.toLowerCase()
+  if (pieceType === 'o') {
+    return KING
+  }
+  return pieceType as PieceSymbol
+}
+
+function strippedSan(move: string) {
+  return move.replace(/=/, '').replace(/[+#]?[?!]*$/, '')
+}
+
 export function sanToMove(
   state: Readonly<BoardState>,
-  moveStr: string,
-  options: { matchCheck?: boolean; matchPromotion?: boolean } = {},
+  move: string,
+  options: { strict?: boolean; matchPromotion?: boolean } = {},
 ): HexMove | null {
-  const { matchCheck = true, matchPromotion = true } = options
+  const { strict, matchPromotion = true } = options
+  // strip off any move decorations: e.g Nf3+?! becomes Nf3
+  const cleanMove = strippedSan(move)
+  let pieceType = inferPieceType(cleanMove)
+  let moves = generateMoves(state, { piece: pieceType })
 
-  const parsedMove = extractMove(moveStr)
-  const { san, piece, from, to, promotion } = parsedMove
-  if (!san) return null
-
-  const moves = generateMoves(state, { square: from })
-  // Strict
-  const strictOptions = { addCheck: matchCheck, addPromotion: matchPromotion }
+  // strict parser
+  const strippedMoves = []
   for (let i = 0, len = moves.length; i < len; i++) {
-    const strictSan = moveToSan(state, moves[i], strictOptions)
-    if (san === strictSan) {
+    const san = strippedSan(
+      moveToSan(state, moves[i], moves, { addPromotion: matchPromotion }),
+    )
+    if (cleanMove === san) {
       return moves[i]
     }
-    if (
-      from &&
-      SQUARES[from] === moves[i].from &&
-      to &&
-      SQUARES[to] === moves[i].to &&
-      (!piece || piece === moves[i].piece) &&
-      (!matchPromotion || !promotion || promotion === moves[i].promotion)
+    strippedMoves.push(san)
+  }
+
+  // the strict parser failed
+  if (strict) return null
+
+  let piece
+  let matches
+  let from: Square | undefined
+  let to: Square | undefined
+  let promotion
+
+  /*
+   * The default permissive (non-strict) parser allows the user to parse
+   * non-standard chess notations. This parser is only run after the strict
+   * Standard Algebraic Notation (SAN) parser has failed.
+   *
+   * When running the permissive parser, we'll run a regex to grab the piece, the
+   * to/from square, and an optional promotion piece. This regex will
+   * parse common non-standard notation like: Pe2-e4, Rc1c4, Qf3xf7,
+   * f7f8q, b1c3
+   *
+   * NOTE: Some positions and moves may be ambiguous when using the permissive
+   * parser. For example, in this position: 6k1/8/8/B7/8/8/8/BN4K1 w - - 0 1,
+   * the move b1c3 may be interpreted as Nc3 or B1c3 (a disambiguated bishop
+   * move). In these cases, the permissive parser will default to the most
+   * basic interpretation (which is b1c3 parsing to Nc3).
+   */
+
+  let overlyDisambiguated = false
+
+  matches = cleanMove.match(
+    /([pnbrqkPNBRQK])?([a-h][1-8])x?-?([a-h][1-8])([qrbnQRBN])?/,
+    //     piece         from              to       promotion
+  )
+
+  if (matches) {
+    piece = matches[1]
+    from = matches[2] as Square
+    to = matches[3] as Square
+    promotion = matches[4]
+
+    if (from.length == 1) {
+      overlyDisambiguated = true
+    }
+  } else {
+    /*
+     * The [a-h]?[1-8]? portion of the regex below handles moves that may be
+     * overly disambiguated (e.g. Nge7 is unnecessary and non-standard when
+     * there is one legal knight move to e7). In this case, the value of
+     * 'from' variable will be a rank or file, not a square.
+     */
+
+    matches = cleanMove.match(
+      /([pnbrqkPNBRQK])?([a-h]?[1-8]?)x?-?([a-h][1-8])([qrbnQRBN])?/,
+    )
+
+    if (matches) {
+      piece = matches[1]
+      from = matches[2] as Square
+      to = matches[3] as Square
+      promotion = matches[4]
+
+      if (from.length == 1) {
+        overlyDisambiguated = true
+      }
+    }
+  }
+
+  pieceType = inferPieceType(cleanMove)
+  moves = generateMoves(state, {
+    legal: true,
+    piece: piece ? (piece.toLowerCase() as PieceSymbol) : pieceType,
+  })
+
+  if (!to) {
+    return null
+  }
+
+  for (let i = 0, len = moves.length; i < len; i++) {
+    if (!from) {
+      // if there is no from square, it could be just 'x' missing from a capture
+      // or the wrong letter case with the piece or promotion
+      if (
+        cleanMove.toLowerCase() ===
+        strippedMoves[i].replace('x', '').toLowerCase()
+      ) {
+        return moves[i]
+      }
+      // hand-compare move properties with the results from our permissive regex
+    } else if (
+      (!piece || piece.toLowerCase() == moves[i].piece) &&
+      SQUARES[from] == moves[i].from &&
+      SQUARES[to] == moves[i].to &&
+      (!matchPromotion ||
+        !promotion ||
+        promotion.toLowerCase() == moves[i].promotion)
     ) {
       return moves[i]
+    } else if (overlyDisambiguated) {
+      /*
+       * SPECIAL CASE: we parsed a move string that may have an unneeded
+       * rank/file disambiguator (e.g. Nge7).  The 'from' variable will
+       */
+
+      const square = algebraic(moves[i].from)
+      if (
+        (!piece || piece.toLowerCase() == moves[i].piece) &&
+        SQUARES[to] == moves[i].to &&
+        (from == square?.[0] || from == square?.[1]) &&
+        (!promotion || promotion.toLowerCase() == moves[i].promotion)
+      ) {
+        return moves[i]
+      }
     }
   }
-  // Sloppy
-  for (let i = 0, len = moves.length; i < len; i++) {
-    const sloppySan = moveToSan(state, moves[i], {
-      ...strictOptions,
-      sloppy: true,
-    })
-    if (san === sloppySan) return moves[i]
-  }
+
   return null
 }
 
 export function hexToMove(
   state: Readonly<BoardState>,
-  hexMove: Readonly<HexMove>,
+  move: Readonly<HexMove>,
 ): Move {
   let flags = ''
   for (const flag in BITS) {
-    if (isFlagKey(flag) && BITS[flag] & hexMove.flags) {
+    if (isFlagKey(flag) && BITS[flag] & move.flags) {
       flags += FLAGS[flag]
     }
   }
 
   return {
-    to: algebraic(hexMove.to) as Square,
-    from: algebraic(hexMove.from) as Square,
-    color: hexMove.color,
+    to: algebraic(move.to) as Square,
+    from: algebraic(move.from) as Square,
+    color: move.color,
     flags,
-    piece: hexMove.piece,
-    san: moveToSan(state, hexMove),
-    captured: hexMove.captured,
-    promotion: hexMove.promotion,
+    piece: move.piece,
+    san: moveToSan(state, move, generateMoves(state)),
+    captured: move.captured,
+    promotion: move.promotion,
   }
 }
 
@@ -922,27 +1044,25 @@ export function getBoard(board: Readonly<Board>): (Piece | null)[][] {
 export function validateMove(
   state: Readonly<BoardState>,
   move: string | Readonly<PartialMove>,
-  options: { matchPromotion?: boolean } = {},
+  options: { strict?: boolean; matchPromotion?: boolean } = {},
 ): HexMove | null {
-  // Allow the user to specify the sloppy move parser to work around over
-  // disambiguation bugs in Fritz and Chessbase
   const { matchPromotion = true } = options
-
   if (typeof move === 'string') {
     return sanToMove(state, move, options)
   } else if (typeof move === 'object') {
     const square = isSquare(move.from) ? move.from : undefined
     const moves = generateMoves(state, { square })
     // Find a matching move
-    for (const moveObj of moves) {
+    for (let i = 0; i < moves.length; i++) {
+      const m = moves[i]
       if (
-        move.from === algebraic(moveObj.from) &&
-        move.to === algebraic(moveObj.to) &&
+        move.from === algebraic(m.from) &&
+        move.to === algebraic(m.to) &&
         (!matchPromotion ||
-          !('promotion' in moveObj) ||
-          move.promotion === moveObj.promotion)
+          !('promotion' in m) ||
+          move.promotion === m.promotion)
       ) {
-        return moveObj
+        return m
       }
     }
   }
