@@ -1,12 +1,12 @@
 {
- "semi": false,
- "singleQuote": true,
- "overrides": [
+  "semi": false,
+  "singleQuote": true,
+  "overrides": [
     {
-        "files": "**/*.js",
-        "options": {
-            "parser": "babel"
-        }
+      "files": "**/*.js",
+      "options": {
+        "parser": "babel"
+      }
     },
     {
       "files": "**/*.md",

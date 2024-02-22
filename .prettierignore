@@ -1,1 +1,6 @@
 test/
+docs/
+*.html
+*.md
+tsconfig.json
+api-extractor.json

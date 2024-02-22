@@ -1,15 +1,13 @@
 module.exports = {
   root: true,
   parser: '@typescript-eslint/parser',
-  plugins: [
-    '@typescript-eslint',
-  ],
+  plugins: ['@typescript-eslint'],
   extends: [
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended',
+    'prettier',
   ],
   rules: {
-    'no-constant-condition': ["error", { "checkLoops": false }],
-    'semi': ["error", "never"],
+    'no-constant-condition': ['error', { checkLoops: false }],
   },
-};
+}
