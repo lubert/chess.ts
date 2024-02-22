@@ -332,7 +332,11 @@ export function isLegal(state: BoardState, move: HexMove): boolean {
  */
 export function generateMoves(
   state: Readonly<BoardState>,
-  options: { legal?: boolean; piece?: PieceSymbol; square?: Square } = {},
+  options: {
+    legal?: boolean
+    piece?: PieceSymbol
+    square?: Square | number
+  } = {},
 ): HexMove[] {
   const { legal = true, piece: forPiece, square: forSquare } = options
 
@@ -380,9 +384,13 @@ export function generateMoves(
 
   // Single square move generation
   if (forSquare) {
-    // Invalid square
-    if (!(forSquare in SQUARES)) return []
-    firstSq = lastSq = SQUARES[forSquare]
+    if (typeof forSquare === 'number') {
+      if (forSquare & 0x88) return []
+      firstSq = lastSq = forSquare
+    } else {
+      if (!(forSquare in SQUARES)) return []
+      firstSq = lastSq = SQUARES[forSquare]
+    }
   }
 
   for (let fromSq = firstSq; fromSq <= lastSq; fromSq++) {
