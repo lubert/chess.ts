@@ -43,6 +43,15 @@ export const PAWN_OFFSETS: Record<Color, number[]> = {
   w: [-16, -32, -17, -15],
 }
 
+export const PAWN_ATTACK_OFFSETS: Record<Color, number[]> = {
+  b: [-17, -15],
+  w: [17, 15],
+}
+
+export const DIAG_OFFSETS: number[] = [-17, -15, 17, 15]
+
+export const HORIZ_OFFSETS: number[] = [-16, 1, 16, -1]
+
 export const PIECE_OFFSETS: Record<PieceSymbol, number[]> = {
   p: [],
   n: [-18, -33, -31, -14, 18, 33, 31, 14],

@@ -22,6 +22,9 @@ import {
   ROOKS,
   SQUARES,
   WHITE,
+  PAWN_ATTACK_OFFSETS,
+  HORIZ_OFFSETS,
+  DIAG_OFFSETS,
 } from './constants'
 import {
   Board,
@@ -752,50 +755,139 @@ export function isAttacked(
   color: Color,
   square: number,
 ): boolean {
-  for (let i = SQUARES.a8; i <= SQUARES.h1; i++) {
-    // did we run off the end of the board
-    if (i & 0x88) {
-      i += 7
-      continue
+  if (square & 0x88) return false
+
+  // Pawn
+  const pawnOffsets = PAWN_ATTACK_OFFSETS[color]
+  for (let i = 0; i < pawnOffsets.length; i++) {
+    const offset = pawnOffsets[i]
+    const p = state.board[square + offset]
+    if (p && p.color === color && p.type === PAWN) {
+      return true
     }
+  }
 
-    // Skip if empty square or wrong color
-    const piece = state.board[i]
-    if (!piece || piece.color !== color) continue
-
-    // Skip if to/from square are the same
-    const difference = i - square
-    if (difference === 0) continue
-
-    const index = difference + 119
-
-    if (ATTACKS[index] & PIECE_MASKS[piece.type]) {
-      if (piece.type === PAWN) {
-        if (difference > 0) {
-          if (piece.color === WHITE) return true
-        } else {
-          if (piece.color === BLACK) return true
-        }
-        continue
-      }
-
-      // if the piece is a knight or a king
-      if (piece.type === 'n' || piece.type === 'k') return true
-
-      const offset = RAYS[index]
-      let j = i + offset
-
-      let blocked = false
-      while (j !== square) {
-        if (state.board[j]) {
-          blocked = true
-          break
-        }
-        j += offset
-      }
-
-      if (!blocked) return true
+  // Horizontal
+  for (let i = 0; i < HORIZ_OFFSETS.length; i++) {
+    const offset = HORIZ_OFFSETS[i]
+    const p = state.board[square + offset]
+    if (p && p.color === color && [ROOK, QUEEN, KING].includes(p.type)) {
+      return true
     }
+  }
+
+  // Diagonal
+  for (let i = 0; i < DIAG_OFFSETS.length; i++) {
+    const offset = DIAG_OFFSETS[i]
+    const p = state.board[square + offset]
+    if (p && p.color === color && [BISHOP, QUEEN, KING].includes(p.type)) {
+      return true
+    }
+  }
+
+  // Knight
+  for (let i = 0; i < PIECE_OFFSETS[KNIGHT].length; i++) {
+    const offset = PIECE_OFFSETS[KNIGHT][i]
+    const p = state.board[square + offset]
+    if (p && p.color === color && p.type === KNIGHT) {
+      return true
+    }
+  }
+
+  // Up
+  let sq = square - 16
+  let p = null
+  while ((sq & 0x88) === 0) {
+    p = state.board[sq]
+    if (p) break
+    sq -= 16
+  }
+  if (p && p.color === color && [ROOK, QUEEN].includes(p.type)) {
+    return true
+  }
+
+  // Down
+  sq = square + 16
+  p = null
+  while ((sq & 0x88) === 0) {
+    p = state.board[sq]
+    if (p) break
+    sq += 16
+  }
+  if (p && p.color === color && [ROOK, QUEEN].includes(p.type)) {
+    return true
+  }
+
+  // Left
+  sq = square - 1
+  p = null
+  while ((sq & 0x88) === 0) {
+    p = state.board[sq]
+    if (p) break
+    sq--
+  }
+  if (p && p.color === color && [ROOK, QUEEN].includes(p.type)) {
+    return true
+  }
+
+  // Right
+  sq = square + 1
+  p = null
+  while ((sq & 0x88) === 0) {
+    p = state.board[sq]
+    if (p) break
+    sq++
+  }
+  if (p && p.color === color && [ROOK, QUEEN].includes(p.type)) {
+    return true
+  }
+
+  // Up-right
+  sq = square - 15
+  p = null
+  while ((sq & 0x88) === 0) {
+    p = state.board[sq]
+    if (p) break
+    sq -= 15
+  }
+  if (p && p.color === color && [BISHOP, QUEEN].includes(p.type)) {
+    return true
+  }
+
+  // Up-left
+  sq = square - 17
+  p = null
+  while ((sq & 0x88) === 0) {
+    p = state.board[sq]
+    if (p) break
+    sq -= 17
+  }
+  if (p && p.color === color && [BISHOP, QUEEN].includes(p.type)) {
+    return true
+  }
+
+  // Down-right
+  sq = square + 17
+  p = null
+  while ((sq & 0x88) === 0) {
+    p = state.board[sq]
+    if (p) break
+    sq += 17
+  }
+  if (p && p.color === color && [BISHOP, QUEEN].includes(p.type)) {
+    return true
+  }
+
+  // Down-left
+  sq = square + 15
+  p = null
+  while ((sq & 0x88) === 0) {
+    p = state.board[sq]
+    if (p) break
+    sq += 15
+  }
+  if (p && p.color === color && [BISHOP, QUEEN].includes(p.type)) {
+    return true
   }
 
   return false
