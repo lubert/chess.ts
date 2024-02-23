@@ -123,10 +123,9 @@ export function loadPgn(
   const parseHeader = (line: string) => {
     const key = line.replace(REGEXP_HEADER_KEY, '$1').trim()
     const val = line.replace(REGEXP_HEADER_VAL, '$1').trim()
-    if (!key.length || !val.length) {
-      throw new Error(`Could not parse header: ${line}`)
+    if (key.length && val.length) {
+      header[key] = val
     }
-    header[key] = val
   }
 
   const NULL_CHAR = '\0'
