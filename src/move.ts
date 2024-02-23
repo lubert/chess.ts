@@ -754,10 +754,6 @@ export function isAttacked(
 ): boolean {
   if (square & 0x88) return false
 
-  const isRookOrQueen = (type: PieceSymbol) => type === ROOK || type === QUEEN
-  const isBishopOrQueen = (type: PieceSymbol) =>
-    type === BISHOP || type === QUEEN
-
   // Pawn
   const pawnOffsets = PAWN_ATTACK_OFFSETS[color]
   for (let i = 0; i < pawnOffsets.length; i++) {
@@ -772,7 +768,11 @@ export function isAttacked(
   for (let i = 0; i < HORIZ_OFFSETS.length; i++) {
     const offset = HORIZ_OFFSETS[i]
     const p = state.board[square + offset]
-    if (p && p.color === color && [ROOK, QUEEN, KING].includes(p.type)) {
+    if (
+      p &&
+      p.color === color &&
+      (p.type === ROOK || p.type === QUEEN || p.type === KING)
+    ) {
       return true
     }
   }
@@ -781,7 +781,11 @@ export function isAttacked(
   for (let i = 0; i < DIAG_OFFSETS.length; i++) {
     const offset = DIAG_OFFSETS[i]
     const p = state.board[square + offset]
-    if (p && p.color === color && [BISHOP, QUEEN, KING].includes(p.type)) {
+    if (
+      p &&
+      p.color === color &&
+      (p.type === BISHOP || p.type === QUEEN || p.type === KING)
+    ) {
       return true
     }
   }
@@ -803,7 +807,7 @@ export function isAttacked(
     if (p) break
     sq -= 16
   }
-  if (p && p.color === color && isRookOrQueen(p.type)) {
+  if (p && p.color === color && (p.type === ROOK || p.type === QUEEN)) {
     return true
   }
 
@@ -815,7 +819,7 @@ export function isAttacked(
     if (p) break
     sq += 16
   }
-  if (p && p.color === color && isRookOrQueen(p.type)) {
+  if (p && p.color === color && (p.type === ROOK || p.type === QUEEN)) {
     return true
   }
 
@@ -827,7 +831,7 @@ export function isAttacked(
     if (p) break
     sq--
   }
-  if (p && p.color === color && isRookOrQueen(p.type)) {
+  if (p && p.color === color && (p.type === ROOK || p.type === QUEEN)) {
     return true
   }
 
@@ -839,7 +843,7 @@ export function isAttacked(
     if (p) break
     sq++
   }
-  if (p && p.color === color && isRookOrQueen(p.type)) {
+  if (p && p.color === color && (p.type === ROOK || p.type === QUEEN)) {
     return true
   }
 
@@ -851,7 +855,7 @@ export function isAttacked(
     if (p) break
     sq -= 15
   }
-  if (p && p.color === color && isBishopOrQueen(p.type)) {
+  if (p && p.color === color && (p.type === BISHOP || p.type === QUEEN)) {
     return true
   }
 
@@ -863,7 +867,7 @@ export function isAttacked(
     if (p) break
     sq -= 17
   }
-  if (p && p.color === color && isBishopOrQueen(p.type)) {
+  if (p && p.color === color && (p.type === BISHOP || p.type === QUEEN)) {
     return true
   }
 
@@ -875,7 +879,7 @@ export function isAttacked(
     if (p) break
     sq += 17
   }
-  if (p && p.color === color && isBishopOrQueen(p.type)) {
+  if (p && p.color === color && (p.type === BISHOP || p.type === QUEEN)) {
     return true
   }
 
@@ -887,7 +891,7 @@ export function isAttacked(
     if (p) break
     sq += 15
   }
-  if (p && p.color === color && isBishopOrQueen(p.type)) {
+  if (p && p.color === color && (p.type === BISHOP || p.type === QUEEN)) {
     return true
   }
 
