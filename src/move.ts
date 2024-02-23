@@ -20,8 +20,7 @@ import {
   SQUARES,
   WHITE,
   PAWN_ATTACK_OFFSETS,
-  HORIZ_OFFSETS,
-  DIAG_OFFSETS,
+  DIRECTIONS,
 } from './constants'
 import {
   Board,
@@ -764,29 +763,15 @@ export function isAttacked(
     }
   }
 
-  // Horizontal
-  for (let i = 0; i < HORIZ_OFFSETS.length; i++) {
-    const offset = HORIZ_OFFSETS[i]
+  // One square
+  for (let i = 0; i < DIRECTIONS.length; i++) {
+    const offset = DIRECTIONS[i]
     const p = state.board[square + offset]
-    if (
-      p &&
-      p.color === color &&
-      (p.type === ROOK || p.type === QUEEN || p.type === KING)
-    ) {
-      return true
-    }
-  }
-
-  // Diagonal
-  for (let i = 0; i < DIAG_OFFSETS.length; i++) {
-    const offset = DIAG_OFFSETS[i]
-    const p = state.board[square + offset]
-    if (
-      p &&
-      p.color === color &&
-      (p.type === BISHOP || p.type === QUEEN || p.type === KING)
-    ) {
-      return true
+    if (p && p.color === color) {
+      if (i < 4 && (p.type === ROOK || p.type === QUEEN || p.type === KING))
+        return true
+      if (i >= 4 && (p.type === BISHOP || p.type === QUEEN || p.type === KING))
+        return true
     }
   }
 
@@ -799,100 +784,21 @@ export function isAttacked(
     }
   }
 
-  // Up
-  let sq = square - 16
-  let p = null
-  while ((sq & 0x88) === 0) {
-    p = state.board[sq]
-    if (p) break
-    sq -= 16
-  }
-  if (p && p.color === color && (p.type === ROOK || p.type === QUEEN)) {
-    return true
-  }
-
-  // Down
-  sq = square + 16
-  p = null
-  while ((sq & 0x88) === 0) {
-    p = state.board[sq]
-    if (p) break
-    sq += 16
-  }
-  if (p && p.color === color && (p.type === ROOK || p.type === QUEEN)) {
-    return true
-  }
-
-  // Left
-  sq = square - 1
-  p = null
-  while ((sq & 0x88) === 0) {
-    p = state.board[sq]
-    if (p) break
-    sq--
-  }
-  if (p && p.color === color && (p.type === ROOK || p.type === QUEEN)) {
-    return true
-  }
-
-  // Right
-  sq = square + 1
-  p = null
-  while ((sq & 0x88) === 0) {
-    p = state.board[sq]
-    if (p) break
-    sq++
-  }
-  if (p && p.color === color && (p.type === ROOK || p.type === QUEEN)) {
-    return true
-  }
-
-  // Up-right
-  sq = square - 15
-  p = null
-  while ((sq & 0x88) === 0) {
-    p = state.board[sq]
-    if (p) break
-    sq -= 15
-  }
-  if (p && p.color === color && (p.type === BISHOP || p.type === QUEEN)) {
-    return true
-  }
-
-  // Up-left
-  sq = square - 17
-  p = null
-  while ((sq & 0x88) === 0) {
-    p = state.board[sq]
-    if (p) break
-    sq -= 17
-  }
-  if (p && p.color === color && (p.type === BISHOP || p.type === QUEEN)) {
-    return true
-  }
-
-  // Down-right
-  sq = square + 17
-  p = null
-  while ((sq & 0x88) === 0) {
-    p = state.board[sq]
-    if (p) break
-    sq += 17
-  }
-  if (p && p.color === color && (p.type === BISHOP || p.type === QUEEN)) {
-    return true
-  }
-
-  // Down-left
-  sq = square + 15
-  p = null
-  while ((sq & 0x88) === 0) {
-    p = state.board[sq]
-    if (p) break
-    sq += 15
-  }
-  if (p && p.color === color && (p.type === BISHOP || p.type === QUEEN)) {
-    return true
+  // Multi square
+  for (let i = 0; i < DIRECTIONS.length; i++) {
+    const offset = DIRECTIONS[i]
+    let sq = square + offset
+    while ((sq & 0x88) === 0) {
+      const p = state.board[sq]
+      if (p) {
+        if (p.color === color) {
+          if (i < 4 && (p.type === ROOK || p.type === QUEEN)) return true
+          if (i >= 4 && (p.type === BISHOP || p.type === QUEEN)) return true
+        }
+        break
+      }
+      sq += offset
+    }
   }
 
   return false
