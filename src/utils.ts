@@ -51,10 +51,12 @@ export function symbol({ type, color }: Piece): string {
   return color === WHITE ? type.toUpperCase() : type.toLowerCase()
 }
 
+/** @public */
 export function isColor(color: string): color is Color {
   return color === 'w' || color === 'b'
 }
 
+/** @public */
 export function isPieceSymbol(symbol: string): symbol is PieceSymbol {
   return /^[pnbrqk]$/.test(symbol)
 }
@@ -67,6 +69,7 @@ export function toPieceSymbol(obj: unknown): PieceSymbol | undefined {
   return
 }
 
+/** @public */
 export function isSquare(sq: string): sq is Square {
   return /^[a-h][1-8]$/.test(sq)
 }

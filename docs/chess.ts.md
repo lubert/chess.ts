@@ -34,6 +34,7 @@
 |  --- | --- |
 |  [BISHOP](./chess.ts.bishop.md) |  |
 |  [BITS](./chess.ts.bits.md) |  |
+|  [BITSQUARES](./chess.ts.bitsquares.md) |  |
 |  [BLACK](./chess.ts.black.md) |  |
 |  [EMPTY](./chess.ts.empty.md) |  |
 |  [FLAGS](./chess.ts.flags.md) |  |

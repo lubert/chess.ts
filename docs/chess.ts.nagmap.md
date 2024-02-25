@@ -4,6 +4,7 @@
 
 ## NagMap variable
 
+
 **Signature:**
 
 ```typescript

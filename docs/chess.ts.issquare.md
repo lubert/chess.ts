@@ -4,6 +4,7 @@
 
 ## isSquare() function
 
+
 **Signature:**
 
 ```typescript

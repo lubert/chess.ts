@@ -4,6 +4,7 @@
 
 ## isPieceSymbol() function
 
+
 **Signature:**
 
 ```typescript

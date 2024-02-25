@@ -16,7 +16,7 @@ setComment(comment: string, fen?: string): void;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  comment | string |  |
+|  comment | string | Comment |
 |  fen | string | _(Optional)_ Defaults to the current position |
 
 **Returns:**

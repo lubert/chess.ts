@@ -1,6 +1,7 @@
 import { REGEXP_NAG } from '../regex'
 
 /**
+ * @public
  * https://en.wikipedia.org/wiki/Numeric_Annotation_Glyphs
  */
 export enum Nag {
@@ -37,6 +38,7 @@ export enum Nag {
   BLACK_SEVERE_TIME_PRESSURE = 139, // ⨁
 }
 
+/** @public */
 export const NagMap: Partial<Record<Nag, string>> = {
   [Nag.GOOD_MOVE]: '!',
   [Nag.MISTAKE]: '?',

@@ -114,7 +114,6 @@ export class Chess {
     return this._currentNode.model.boardState
   }
 
-  /** @internal **/
   protected set boardState(state: Readonly<BoardState>) {
     this._currentNode.model.boardState = state
   }
@@ -1075,7 +1074,7 @@ export class Chess {
    * // -> "1. e4 {king's pawn opening}"
    * ```
    *
-   * @param comment
+   * @param comment - Comment
    * @param fen - Defaults to the current position
    */
   public setComment(comment: string, fen?: string): void {
