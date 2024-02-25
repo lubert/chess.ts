@@ -38,7 +38,6 @@ import {
 import {
   algebraic,
   file,
-  isColor,
   isDigit,
   isFlagKey,
   isPieceSymbol,
@@ -180,7 +179,7 @@ export function loadFen(fen: string): BoardState | null {
   let state = new BoardState()
 
   for (let i = 0; i < position.length; i++) {
-    const piece = position.charAt(i)
+    let piece = position.charAt(i)
 
     if (piece === '/') {
       square += 8
@@ -188,11 +187,13 @@ export function loadFen(fen: string): BoardState | null {
       square += parseInt(piece, 10)
     } else {
       const color = piece < 'a' ? WHITE : BLACK
-      const newState = putPiece(
-        state,
-        { type: piece.toLowerCase(), color: color },
-        algebraic(square),
-      )
+      piece = piece.toLowerCase()
+      if (!isPieceSymbol(piece)) return null
+
+      const sq = algebraic(square)
+      if (!sq) return null
+
+      const newState = putPiece(state, { type: piece, color: color }, sq)
       if (!newState) {
         return null
       }
@@ -256,24 +257,10 @@ export function clonePiece(piece: Readonly<Piece>): Piece {
 
 export function putPiece(
   prevState: Readonly<BoardState>,
-  piece: { type?: string; color?: string },
-  square?: string,
+  piece: Piece,
+  square: Square,
 ): BoardState | null {
-  let { type, color } = piece
-
-  /* check for presence */
-  if (!type || !color || !square) {
-    return null
-  }
-
-  type = type.toLowerCase()
-  color = color.toLowerCase()
-  square = square.toLowerCase()
-
-  /* check for valid params */
-  if (!isPieceSymbol(type) || !isColor(color) || !isSquare(square)) {
-    return null
-  }
+  const { type, color } = piece
 
   const state = prevState.clone()
   /* don't let the user place more than one king */

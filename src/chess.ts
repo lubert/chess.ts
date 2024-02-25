@@ -33,7 +33,15 @@ import {
   Square,
   GameState,
 } from './interfaces/types'
-import { file, isSquare, isDefined, rank, swapColor } from './utils'
+import {
+  file,
+  isColor,
+  isPieceSymbol,
+  isSquare,
+  isDefined,
+  rank,
+  swapColor,
+} from './utils'
 import { DEFAULT_POSITION, SQUARES, BITS } from './constants'
 import { BoardState } from './models/BoardState'
 import { validateFen } from './fen'
@@ -255,7 +263,11 @@ export class Chess {
     piece: { type: string; color: string },
     square: string,
   ): boolean {
-    const newState = putPiece(this.boardState, piece, square)
+    const { type, color } = piece
+    if (!isPieceSymbol(type) || !isColor(color) || !isSquare(square))
+      return false
+
+    const newState = putPiece(this.boardState, { type, color }, square)
     if (newState) {
       this.boardState = newState
       this.updateSetup()
