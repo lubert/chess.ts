@@ -22,6 +22,7 @@ export {
   KING,
   EMPTY,
   SQUARES,
+  BITSQUARES,
   FLAGS,
   BITS,
 } from './constants'
