@@ -35,4 +35,5 @@ export declare class BoardState
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
 |  [clone()](./chess.ts.boardstate.clone.md) |  |  |
+|  [generateMoves(options)](./chess.ts.boardstate.generatemoves.md) |  |  |
 
