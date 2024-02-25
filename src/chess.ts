@@ -184,6 +184,8 @@ export class Chess {
    * @returns Copy of the piece or null
    */
   public getPiece(square: string): Piece | null {
+    square = square.toLowerCase()
+    if (!isSquare(square)) return null
     return getPiece(this.boardState, square)
   }
 
@@ -283,15 +285,15 @@ export class Chess {
    * @returns Piece or null
    */
   public removePiece(square: string): Piece | null {
+    square = square.toLowerCase()
+    if (!isSquare(square)) return null
+
     const piece = getPiece(this.boardState, square)
-    if (!piece) {
-      return null
-    }
+    if (!piece) return null
 
     const newState = removePiece(this.boardState, square)
-    if (!newState) {
-      return null
-    }
+    if (!newState) return null
+
     this.boardState = newState
     return piece
   }

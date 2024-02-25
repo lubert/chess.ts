@@ -225,17 +225,13 @@ export function loadFen(fen: string): BoardState | null {
 
 export function getPiece(
   state: Readonly<BoardState>,
-  square?: string,
+  square: Square | number,
 ): Piece | null {
-  if (!square) return null
-  square = square.toLowerCase()
-  if (!isSquare(square)) return null
-
-  const sq = SQUARES[square]
-  const piece = state.board[sq]
-  if (piece) {
-    return clonePiece(piece)
+  if (typeof square === 'string') {
+    square = SQUARES[square]
   }
+  const piece = state.board[square]
+  if (piece) return clonePiece(piece)
   return null
 }
 
@@ -300,15 +296,12 @@ export function putPiece(
 
 export function removePiece(
   prevState: Readonly<BoardState>,
-  square?: string,
+  square: Square | number,
 ): BoardState | null {
-  if (!square) return null
-
-  square = square.toLowerCase()
-  if (!isSquare(square)) return null
-
-  const sq = SQUARES[square]
-  const piece = prevState.board[sq]
+  if (typeof square === 'string') {
+    square = SQUARES[square]
+  }
+  const piece = prevState.board[square]
   if (!piece) return null
 
   const state = prevState.clone()
@@ -316,7 +309,7 @@ export function removePiece(
   if (type === KING) {
     state.kings[color] = EMPTY
   }
-  delete state.board[sq]
+  delete state.board[square]
   return state
 }
 
@@ -504,7 +497,7 @@ export function generateMoves(
 export function moveToSan(
   state: Readonly<BoardState>,
   move: Readonly<HexMove>,
-  moves: HexMove[] = generateMoves(state, { piece: move.piece }),
+  moves: HexMove[] = state.generateMoves({ piece: move.piece }),
   options: { addPromotion?: boolean } = {},
 ): string {
   const { addPromotion = true } = options
@@ -592,7 +585,7 @@ export function sanToMove(
   // strip off any move decorations: e.g Nf3+?! becomes Nf3
   const cleanMove = strippedSan(move)
   let pieceType = inferPieceType(cleanMove)
-  let moves = generateMoves(state, { piece: pieceType })
+  let moves = state.generateMoves({ piece: pieceType })
 
   // strict parser
   const strippedMoves = []
@@ -673,7 +666,7 @@ export function sanToMove(
   }
 
   pieceType = inferPieceType(cleanMove)
-  moves = generateMoves(state, {
+  moves = state.generateMoves({
     legal: true,
     piece: piece ? (piece.toLowerCase() as PieceSymbol) : pieceType,
   })
@@ -740,7 +733,7 @@ export function hexToMove(
     color: move.color,
     flags,
     piece: move.piece,
-    san: moveToSan(state, move, generateMoves(state, { piece: move.piece })),
+    san: moveToSan(state, move, state.generateMoves({ piece: move.piece })),
     captured: move.captured,
     promotion: move.promotion,
   }
@@ -816,11 +809,11 @@ export function inCheck(state: Readonly<BoardState>): boolean {
 }
 
 export function inCheckmate(state: Readonly<BoardState>): boolean {
-  return inCheck(state) && generateMoves(state).length === 0
+  return inCheck(state) && state.generateMoves().length === 0
 }
 
 export function inStalemate(state: Readonly<BoardState>): boolean {
-  return !inCheck(state) && generateMoves(state).length === 0
+  return !inCheck(state) && state.generateMoves().length === 0
 }
 
 export function insufficientMaterial(state: Readonly<BoardState>): boolean {
@@ -1053,7 +1046,7 @@ export function validateMove(
     return sanToMove(state, move, options)
   } else if (typeof move === 'object') {
     const square = isSquare(move.from) ? move.from : undefined
-    const moves = generateMoves(state, { square })
+    const moves = state.generateMoves({ square })
     // Find a matching move
     for (let i = 0; i < moves.length; i++) {
       const m = moves[i]
