@@ -7,7 +7,6 @@ import {
   loadFen,
   hexToMove,
   getPiece,
-  generateMoves,
   removePiece,
   inCheck,
   inCheckmate,
@@ -16,7 +15,6 @@ import {
   ascii,
   getBoard,
   validateMove,
-  getFen,
   nodeMove,
   hexToGameState,
 } from './move'
@@ -348,7 +346,7 @@ export class Chess {
     // square coordinates to algebraic coordinates.  It also prunes an
     // unnecessary move keys resulting from a verbose call.
     const { square, verbose = false } = options
-    const uglyMoves = generateMoves(this.boardState, { square })
+    const uglyMoves = this.boardState.generateMoves({ square })
 
     if (verbose) {
       return uglyMoves.map((uglyMove) => hexToMove(this.boardState, uglyMove))
@@ -1201,7 +1199,7 @@ export class Chess {
 
   /** @internal */
   public perft(depth: number): number {
-    const moves = generateMoves(this.boardState, { legal: false })
+    const moves = this.boardState.generateMoves({ legal: false })
     let nodes = 0
     const color = this.boardState.turn
 

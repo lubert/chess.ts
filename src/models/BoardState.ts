@@ -1,6 +1,12 @@
-import { Board, ColorState, Color } from '../interfaces/types'
+import {
+  Board,
+  ColorState,
+  Color,
+  PieceSymbol,
+  Square,
+} from '../interfaces/types'
 import { EMPTY, WHITE } from '../constants'
-import { getFen } from '../move'
+import { generateMoves, getFen } from '../move'
 
 /** @public */
 export class BoardState {
@@ -50,5 +56,15 @@ export class BoardState {
 
   public get fen(): string {
     return getFen(this)
+  }
+
+  public generateMoves(
+    options: {
+      legal?: boolean
+      piece?: PieceSymbol
+      square?: Square | number
+    } = {},
+  ) {
+    return generateMoves(this, options)
   }
 }
