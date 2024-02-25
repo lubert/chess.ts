@@ -258,7 +258,7 @@ export function loadPgn(
       const nextState = makeMove(boardState, move)
       currentNode = currentNode.addModel({
         boardState: nextState,
-        fen: getFen(nextState),
+        fen: nextState.fen,
         nags: extractNags(token),
         move,
       })

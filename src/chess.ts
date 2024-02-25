@@ -1256,7 +1256,7 @@ export class Chess {
   protected makeMove(move: HexMove): void {
     const boardState = makeMove(this.boardState, move)
     this._currentNode = this._currentNode.addModel({
-      fen: getFen(boardState),
+      fen: boardState.fen,
       boardState,
       move,
     })
