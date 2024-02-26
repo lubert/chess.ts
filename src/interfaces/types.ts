@@ -84,6 +84,14 @@ export type Validation = {
   error: string
 }
 
+/** @public */
+export type BitBoard = {
+  w: Record<PieceSymbol, bigint>
+  b: Record<PieceSymbol, bigint>
+  empty: bigint
+  occupied: bigint
+}
+
 /** Private types */
 export type Board = Array<Piece | undefined>
 

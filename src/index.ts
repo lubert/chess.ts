@@ -1,6 +1,7 @@
 export { Chess } from './chess'
 export { BoardState } from './models/BoardState'
 export {
+  BitBoard,
   Color,
   CommentMap,
   Move,
@@ -22,7 +23,7 @@ export {
   KING,
   EMPTY,
   SQUARES,
-  BITSQUARES,
+  BIT_SQUARES as BITSQUARES,
   FLAGS,
   BITS,
 } from './constants'

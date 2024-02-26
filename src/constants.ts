@@ -164,7 +164,7 @@ export const SQUARES: Record<Square, number> = {
 
 // prettier-ignore
 /** @public */
-export const BITSQUARES: Record<Square, number> = {
+export const BIT_SQUARES: Record<Square, number> = {
   a8:  0, b8:  1, c8:  2, d8:  3, e8:  4, f8:  5, g8:  6, h8:  7,
   a7:  8, b7:  9, c7: 10, d7: 11, e7: 12, f7: 13, g7: 14, h7: 15,
   a6: 16, b6: 17, c6: 18, d6: 19, e6: 20, f6: 21, g6: 22, h6: 23,

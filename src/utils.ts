@@ -1,4 +1,4 @@
-import { BLACK, WHITE } from './constants'
+import { BLACK, WHITE, SQUARES } from './constants'
 import { Color, FlagKey, Piece, PieceSymbol, Square } from './interfaces/types'
 
 /**
@@ -80,6 +80,10 @@ export function toSquare(obj: unknown): Square | undefined {
     if (isSquare(str)) return str
   }
   return
+}
+
+export function bitToSquare(sq: number): number {
+  return (sq & 7) + 16 * (sq >> 3)
 }
 
 export function isFlagKey(key: string): key is FlagKey {
