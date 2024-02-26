@@ -23,6 +23,7 @@ export declare class Chess
 |  --- | --- | --- | --- |
 |  [currentNode](./chess.ts.chess.currentnode.md) | <code>readonly</code> | Readonly&lt;TreeNode&lt;GameState&gt;&gt; |  |
 |  [header](./chess.ts.chess.header.md) |  | HeaderMap |  |
+|  [hexTree](./chess.ts.chess.hextree.md) | <code>readonly</code> | Readonly&lt;TreeNode&lt;HexState&gt;&gt; |  |
 |  [state](./chess.ts.chess.state.md) | <code>readonly</code> | Readonly&lt;[BoardState](./chess.ts.boardstate.md)<!-- -->&gt; |  |
 |  [tree](./chess.ts.chess.tree.md) | <code>readonly</code> | Readonly&lt;TreeNode&lt;GameState&gt;&gt; |  |
 

@@ -84,6 +84,11 @@ export class Chess {
   }
 
   /** @public */
+  public get hexTree(): Readonly<TreeNode<HexState>> {
+    return this._tree
+  }
+
+  /** @public */
   public get tree(): Readonly<TreeNode<GameState>> {
     return this._tree.map((node) => hexToGameState(node))
   }
