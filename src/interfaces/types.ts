@@ -92,6 +92,25 @@ export type BitBoard = {
   occupied: bigint
 }
 
+/** @public */
+export type BitState = {
+  board: BitBoard
+  turn: Color
+  ep_square: number
+  half_moves: number
+  move_number: number
+  castling: {
+    w: {
+      k: boolean
+      q: boolean
+    }
+    b: {
+      k: boolean
+      q: boolean
+    }
+  }
+}
+
 /** Private types */
 export type Board = Array<Piece | undefined>
 

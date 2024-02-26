@@ -86,6 +86,22 @@ export function bitToSquare(sq: number): number {
   return (sq & 7) + 16 * (sq >> 3)
 }
 
+export function getBitIndices(n: bigint, first = false): number[] {
+  const indices = []
+  let pos = 0
+  let cur = n
+
+  while (cur > BigInt(0)) {
+    if (cur & BigInt(1)) {
+      indices.push(pos)
+      if (first) return indices
+    }
+    cur >>= BigInt(1)
+    pos++
+  }
+  return indices
+}
+
 export function isFlagKey(key: string): key is FlagKey {
   const keys = [
     'NORMAL',
