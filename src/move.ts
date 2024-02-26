@@ -578,7 +578,7 @@ export function sanToMove(
   const strippedMoves = []
   for (let i = 0, len = moves.length; i < len; i++) {
     const san = strippedSan(
-      moveToSan(state, moves[i], moves, { addPromotion: matchPromotion }),
+      state.toSan(moves[i], moves, { addPromotion: matchPromotion }),
     )
     if (cleanMove === san) {
       return moves[i]
@@ -720,7 +720,7 @@ export function hexToMove(
     color: move.color,
     flags,
     piece: move.piece,
-    san: moveToSan(state, move, state.generateMoves({ piece: move.piece })),
+    san: state.toSan(move),
     captured: move.captured,
     promotion: move.promotion,
   }
@@ -1055,7 +1055,7 @@ export function validateMove(
 export function nodeMove(node: TreeNode<HexState>): Move | null {
   // Need a parent board state to return a valid move
   if (node.model.move && node.parent?.model) {
-    return hexToMove(node.parent.model.boardState, node.model.move)
+    return node.parent.model.boardState.toMove(node.model.move)
   }
   return null
 }

@@ -2,10 +2,8 @@ import { TreeNode } from 'treenode.ts'
 import {
   isAttacked,
   makeMove,
-  moveToSan,
   putPiece,
   loadFen,
-  hexToMove,
   getPiece,
   removePiece,
   inCheck,
@@ -364,12 +362,10 @@ export class Chess {
     // square coordinates to algebraic coordinates.  It also prunes an
     // unnecessary move keys resulting from a verbose call.
     const { square, verbose = false } = options
-    const uglyMoves = this.boardState.generateMoves({ square })
+    const moves = this.boardState.generateMoves({ square })
 
-    if (verbose) {
-      return uglyMoves.map((uglyMove) => hexToMove(this.boardState, uglyMove))
-    }
-    return uglyMoves.map((uglyMove) => moveToSan(this.boardState, uglyMove))
+    if (verbose) return moves.map((move) => this.boardState.toMove(move))
+    return moves.map((move) => this.boardState.toSan(move))
   }
 
   /**
@@ -814,7 +810,7 @@ export class Chess {
     }
 
     // Create pretty move before updating the state
-    const prettyMove = hexToMove(this.boardState, validMove)
+    const prettyMove = this.boardState.toMove(validMove)
     if (!options.dry_run) {
       this.makeMove(validMove)
     }
@@ -848,7 +844,7 @@ export class Chess {
       if (!validMove) {
         return null
       }
-      validMoves.push(hexToMove(boardState, validMove))
+      validMoves.push(boardState.toMove(validMove))
       boardState = makeMove(boardState, validMove)
     }
     return validMoves
@@ -906,7 +902,7 @@ export class Chess {
    */
   public undo(): Move | null {
     const move = this.undoMove()
-    return move ? hexToMove(this.boardState, move) : null
+    return move ? this.boardState.toMove(move) : null
   }
 
   /**
@@ -1011,9 +1007,9 @@ export class Chess {
       .filter(isDefined)
 
     if (verbose) {
-      return nodes.map(({ prevState, move }) => hexToMove(prevState, move))
+      return nodes.map(({ prevState, move }) => prevState.toMove(move))
     }
-    return nodes.map(({ prevState, move }) => moveToSan(prevState, move))
+    return nodes.map(({ prevState, move }) => prevState.toSan(move))
   }
 
   /**

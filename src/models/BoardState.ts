@@ -5,10 +5,12 @@ import {
   PieceSymbol,
   Square,
   BitState,
+  Move,
+  HexMove,
 } from '../interfaces/types'
 import { fromBitBoard, toBitBoard } from '../board'
 import { BITS, EMPTY, WHITE } from '../constants'
-import { generateMoves, getFen } from '../move'
+import { hexToMove, generateMoves, getFen, moveToSan } from '../move'
 import { bitToSquare, getBitIndices } from '../utils'
 
 /** @public */
@@ -116,5 +118,17 @@ export class BoardState {
     } = {},
   ) {
     return generateMoves(this, options)
+  }
+
+  public toMove(hexMove: Readonly<HexMove>): Move {
+    return hexToMove(this, hexMove)
+  }
+
+  public toSan(
+    hexMove: Readonly<HexMove>,
+    moves: HexMove[] = this.generateMoves({ piece: hexMove.piece }),
+    options: { addPromotion?: boolean } = {},
+  ): string {
+    return moveToSan(this, hexMove, moves, options)
   }
 }
