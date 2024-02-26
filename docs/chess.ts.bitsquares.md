@@ -8,5 +8,5 @@
 **Signature:**
 
 ```typescript
-BITSQUARES: Record<Square, number>
+BIT_SQUARES: Record<Square, number>
 ```

@@ -35,5 +35,7 @@ export declare class BoardState
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
 |  [clone()](./chess.ts.boardstate.clone.md) |  |  |
+|  [fromBitState({ board, castling, turn, ep\_square, half\_moves, move\_number, })](./chess.ts.boardstate.frombitstate.md) | <code>static</code> |  |
 |  [generateMoves(options)](./chess.ts.boardstate.generatemoves.md) |  |  |
+|  [toBitState()](./chess.ts.boardstate.tobitstate.md) |  |  |
 

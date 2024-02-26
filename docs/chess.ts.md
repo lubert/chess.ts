@@ -51,6 +51,8 @@
 
 |  Type Alias | Description |
 |  --- | --- |
+|  [BitBoard](./chess.ts.bitboard.md) |  |
+|  [BitState](./chess.ts.bitstate.md) |  |
 |  [Color](./chess.ts.color.md) |  |
 |  [CommentMap](./chess.ts.commentmap.md) |  |
 |  [Move](./chess.ts.move.md) | Represents a chess move |
