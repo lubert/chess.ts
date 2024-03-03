@@ -674,7 +674,7 @@ describe('.move', () => {
     it(example.name, () => {
       const move = chess.move(example.move)
       if (example.expect) {
-        expect(move).toBeDefined()
+        expect(move).not.toBeNull()
         expect(chess.fen()).toEqual(example.next)
         expect(move!.captured).toEqual(example.captured)
       } else {

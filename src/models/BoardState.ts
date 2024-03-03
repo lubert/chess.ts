@@ -114,7 +114,8 @@ export class BoardState {
     options: {
       legal?: boolean
       piece?: PieceSymbol
-      square?: Square | number
+      from?: Square | number
+      to?: Square | number
     } = {},
   ) {
     return generateMoves(this, options)

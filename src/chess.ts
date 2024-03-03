@@ -362,7 +362,7 @@ export class Chess {
     // square coordinates to algebraic coordinates.  It also prunes an
     // unnecessary move keys resulting from a verbose call.
     const { square, verbose = false } = options
-    const moves = this.boardState.generateMoves({ square })
+    const moves = this.boardState.generateMoves({ from: square })
 
     if (verbose) return moves.map((move) => this.boardState.toMove(move))
     return moves.map((move) => this.boardState.toSan(move))

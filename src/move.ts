@@ -314,10 +314,11 @@ export function generateMoves(
   options: {
     legal?: boolean
     piece?: PieceSymbol
-    square?: Square | number
+    from?: Square | number
+    to?: Square | number
   } = {},
 ): HexMove[] {
-  const { legal = true, piece: forPiece, square: forSquare } = options
+  const { legal = true, piece: forPiece, from, to } = options
 
   const moves: HexMove[] = []
 
@@ -362,13 +363,23 @@ export function generateMoves(
   let lastSq = SQUARES.h1
 
   // Single square move generation
-  if (forSquare) {
-    if (typeof forSquare === 'number') {
+  let forSquare: number | undefined
+  if (from) {
+    if (typeof from === 'number') {
+      forSquare = from
       if (forSquare & 0x88) return []
-      firstSq = lastSq = forSquare
     } else {
-      if (!(forSquare in SQUARES)) return []
-      firstSq = lastSq = SQUARES[forSquare]
+      forSquare = SQUARES[from]
+    }
+    firstSq = lastSq = forSquare
+  }
+
+  let toSquare: number | undefined
+  if (to) {
+    if (typeof to === 'number') {
+      toSquare = to
+    } else {
+      toSquare = SQUARES[to]
     }
   }
 
@@ -390,11 +401,17 @@ export function generateMoves(
       // Single square, non-capturing
       toSq = fromSq + PAWN_OFFSETS[state.turn][0]
       if (!state.board[toSq]) {
-        addMove(PAWN, fromSq, toSq, BITS.NORMAL)
+        if (!toSquare || toSquare === toSq) {
+          addMove(PAWN, fromSq, toSq, BITS.NORMAL)
+        }
 
         // Double square
         toSq = fromSq + PAWN_OFFSETS[state.turn][1]
-        if (second_rank[state.turn] === rank(fromSq) && !state.board[toSq]) {
+        if (
+          second_rank[state.turn] === rank(fromSq) &&
+          !state.board[toSq] &&
+          (!toSquare || toSquare === toSq)
+        ) {
           addMove(PAWN, fromSq, toSq, BITS.BIG_PAWN)
         }
       }
@@ -403,6 +420,7 @@ export function generateMoves(
       for (let j = 2; j < 4; j++) {
         toSq = fromSq + PAWN_OFFSETS[state.turn][j]
         if (toSq & 0x88) continue
+        if (toSquare && toSq !== toSquare) continue
 
         const p = state.board[toSq]
         if (p && p.color === them) {
@@ -422,11 +440,14 @@ export function generateMoves(
 
           const p = state.board[toSq]
           if (!p) {
-            addMove(symbol, fromSq, toSq, BITS.NORMAL)
+            if (!toSquare || toSquare === toSq) {
+              addMove(symbol, fromSq, toSq, BITS.NORMAL)
+            }
           } else {
             if (p.color === state.turn) break
-
-            addMove(symbol, fromSq, toSq, BITS.CAPTURE, p.type)
+            if (!toSquare || toSquare === toSq) {
+              addMove(symbol, fromSq, toSq, BITS.CAPTURE, p.type)
+            }
             break
           }
 
@@ -543,6 +564,19 @@ export function extractMove(move: string): ParsedMove {
   }
 }
 
+function inferSquare(
+  san: string,
+  state: Readonly<BoardState>,
+): Square | undefined {
+  const matches = san.match(/[a-h][1-8]/g)
+  if (matches && matches.length) {
+    const square = matches[matches.length - 1]
+    if (square in SQUARES) return square as Square
+  }
+  if (san === 'O-O') return state.turn === WHITE ? 'g1' : 'g8'
+  if (san === 'O-O-O') return state.turn === WHITE ? 'c1' : 'c8'
+}
+
 function inferPieceType(san: string) {
   let pieceType = san.charAt(0)
   if (pieceType >= 'a' && pieceType <= 'h') {
@@ -571,18 +605,17 @@ export function sanToMove(
   const { strict, matchPromotion = true } = options
   // strip off any move decorations: e.g Nf3+?! becomes Nf3
   const cleanMove = strippedSan(move)
-  let pieceType = inferPieceType(cleanMove)
-  let moves = state.generateMoves({ piece: pieceType })
+  const pieceType = inferPieceType(cleanMove)
+  const toSq = inferSquare(cleanMove, state)
+  let moves = state.generateMoves({ piece: pieceType, to: toSq })
 
   // strict parser
-  const strippedMoves = []
+  let strippedMoves = []
   for (let i = 0, len = moves.length; i < len; i++) {
     const san = strippedSan(
       state.toSan(moves[i], moves, { addPromotion: matchPromotion }),
     )
-    if (cleanMove === san) {
-      return moves[i]
-    }
+    if (cleanMove === san) return moves[i]
     strippedMoves.push(san)
   }
 
@@ -652,14 +685,19 @@ export function sanToMove(
     }
   }
 
-  pieceType = inferPieceType(cleanMove)
-  moves = state.generateMoves({
-    legal: true,
-    piece: piece ? (piece.toLowerCase() as PieceSymbol) : pieceType,
-  })
-
-  if (!to) {
-    return null
+  if (!to) return null
+  if (piece?.toLowerCase() !== pieceType || toSq !== to) {
+    moves = state.generateMoves({
+      piece: piece ? (piece.toLowerCase() as PieceSymbol) : pieceType,
+      to,
+    })
+    strippedMoves = []
+    for (let i = 0, len = moves.length; i < len; i++) {
+      const san = strippedSan(
+        state.toSan(moves[i], moves, { addPromotion: matchPromotion }),
+      )
+      strippedMoves.push(san)
+    }
   }
 
   for (let i = 0, len = moves.length; i < len; i++) {
@@ -1033,7 +1071,7 @@ export function validateMove(
     return sanToMove(state, move, options)
   } else if (typeof move === 'object') {
     const square = isSquare(move.from) ? move.from : undefined
-    const moves = state.generateMoves({ square })
+    const moves = state.generateMoves({ from: square, to: move.to })
     // Find a matching move
     for (let i = 0; i < moves.length; i++) {
       const m = moves[i]
