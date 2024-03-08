@@ -48,7 +48,7 @@ export class BoardState {
   public static fromBitState({
     board,
     castling,
-    turn,
+    wtm,
     ep_square,
     half_moves,
     move_number,
@@ -59,7 +59,7 @@ export class BoardState {
         w: bitToSquare(getBitIndices(board.w.k, true)[0]),
         b: bitToSquare(getBitIndices(board.b.k, true)[0]),
       },
-      turn,
+      wtm ? 'w' : 'b',
       {
         w:
           ((castling >> 3) & 1) * BITS.KSIDE_CASTLE +
@@ -77,7 +77,7 @@ export class BoardState {
   public toBitState(): BitState {
     return {
       board: toBitBoard(this.board),
-      turn: this.turn,
+      wtm: this.turn === 'w',
       ep_square: squareToBit(this.ep_square),
       half_moves: this.half_moves,
       move_number: this.move_number,

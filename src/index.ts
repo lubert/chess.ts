@@ -1,6 +1,7 @@
 export { Chess } from './chess'
 export { BoardState } from './models/BoardState'
 export {
+  BaseState,
   BitBoard,
   BitState,
   Color,

@@ -91,13 +91,17 @@ export type BitBoard = {
 }
 
 /** @public */
-export type BitState = {
-  board: BitBoard
-  turn: Color
+export type BaseState = {
+  wtm: boolean
   ep_square: number
   half_moves: number
   move_number: number
   castling: number
+}
+
+/** @public */
+export type BitState = BaseState & {
+  board: BitBoard
 }
 
 /** Private types */
