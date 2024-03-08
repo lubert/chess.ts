@@ -8,23 +8,9 @@
 **Signature:**
 
 ```typescript
-export type BitState = {
+export type BitState = BaseState & {
     board: BitBoard;
-    turn: Color;
-    ep_square: number;
-    half_moves: number;
-    move_number: number;
-    castling: {
-        w: {
-            k: boolean;
-            q: boolean;
-        };
-        b: {
-            k: boolean;
-            q: boolean;
-        };
-    };
 };
 ```
-**References:** [BitBoard](./chess.ts.bitboard.md)<!-- -->, [Color](./chess.ts.color.md)
+**References:** [BaseState](./chess.ts.basestate.md)<!-- -->, [BitBoard](./chess.ts.bitboard.md)
 

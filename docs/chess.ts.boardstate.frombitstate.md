@@ -7,14 +7,14 @@
 **Signature:**
 
 ```typescript
-static fromBitState({ board, castling, turn, ep_square, half_moves, move_number, }: BitState): BoardState;
+static fromBitState({ board, castling, wtm, ep_square, half_moves, move_number, }: BitState): BoardState;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  { board, castling, turn, ep\_square, half\_moves, move\_number, } | [BitState](./chess.ts.bitstate.md) |  |
+|  { board, castling, wtm, ep\_square, half\_moves, move\_number, } | [BitState](./chess.ts.bitstate.md) |  |
 
 **Returns:**
 

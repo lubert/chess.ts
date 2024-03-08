@@ -10,17 +10,18 @@
 generateMoves(options?: {
         legal?: boolean;
         piece?: PieceSymbol;
-        square?: Square | number;
-    }): import("../interfaces/types").HexMove[];
+        from?: Square | number;
+        to?: Square | number;
+    }): HexMove[];
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | { legal?: boolean; piece?: [PieceSymbol](./chess.ts.piecesymbol.md)<!-- -->; square?: [Square](./chess.ts.square.md) \| number; } | _(Optional)_ |
+|  options | { legal?: boolean; piece?: [PieceSymbol](./chess.ts.piecesymbol.md)<!-- -->; from?: [Square](./chess.ts.square.md) \| number; to?: [Square](./chess.ts.square.md) \| number; } | _(Optional)_ |
 
 **Returns:**
 
-import("../interfaces/types").HexMove\[\]
+HexMove\[\]
 

@@ -16,6 +16,7 @@
 |  Enumeration | Description |
 |  --- | --- |
 |  [Nag](./chess.ts.nag.md) | https://en.wikipedia.org/wiki/Numeric\_Annotation\_Glyphs |
+|  [NibblePiece](./chess.ts.nibblepiece.md) |  |
 
 ## Functions
 
@@ -51,11 +52,13 @@
 
 |  Type Alias | Description |
 |  --- | --- |
+|  [BaseState](./chess.ts.basestate.md) |  |
 |  [BitBoard](./chess.ts.bitboard.md) |  |
 |  [BitState](./chess.ts.bitstate.md) |  |
 |  [Color](./chess.ts.color.md) |  |
 |  [CommentMap](./chess.ts.commentmap.md) |  |
 |  [Move](./chess.ts.move.md) | Represents a chess move |
+|  [NibbleState](./chess.ts.nibblestate.md) |  |
 |  [PartialMove](./chess.ts.partialmove.md) |  |
 |  [Piece](./chess.ts.piece.md) |  |
 |  [PieceSymbol](./chess.ts.piecesymbol.md) |  |

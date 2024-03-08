@@ -11,8 +11,6 @@
 export type BitBoard = {
     w: Record<PieceSymbol, bigint>;
     b: Record<PieceSymbol, bigint>;
-    empty: bigint;
-    occupied: bigint;
 };
 ```
 **References:** [PieceSymbol](./chess.ts.piecesymbol.md)
