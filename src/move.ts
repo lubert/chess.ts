@@ -686,6 +686,8 @@ export function sanToMove(
   }
 
   if (!to) return null
+
+  // Regenerate the moves if the arguments don't match
   if (piece?.toLowerCase() !== pieceType || toSq !== to) {
     moves = state.generateMoves({
       piece: piece ? (piece.toLowerCase() as PieceSymbol) : pieceType,
