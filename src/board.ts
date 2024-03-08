@@ -20,8 +20,6 @@ export function toBitBoard(board: Board): BitBoard {
       q: BigInt(0),
       k: BigInt(0),
     },
-    empty: BigInt(0),
-    occupied: BigInt(0),
   }
   const squares = Object.keys(SQUARES) as Square[]
   for (let i = 0; i < squares.length; i++) {
@@ -30,9 +28,6 @@ export function toBitBoard(board: Board): BitBoard {
     const piece = board[SQUARES[key]]
     if (piece) {
       bitboard[piece.color][piece.type] |= BigInt(1) << BigInt(sq)
-      bitboard.occupied |= BigInt(1) << BigInt(sq)
-    } else {
-      bitboard.empty |= BigInt(1) << BigInt(sq)
     }
   }
   return bitboard
