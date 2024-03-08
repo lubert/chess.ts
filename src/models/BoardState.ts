@@ -11,7 +11,7 @@ import {
 import { fromBitBoard, toBitBoard } from '../board'
 import { BITS, EMPTY, WHITE } from '../constants'
 import { hexToMove, generateMoves, getFen, moveToSan } from '../move'
-import { bitToSquare, getBitIndices } from '../utils'
+import { bitToSquare, getBitIndices, squareToBit } from '../utils'
 
 /** @public */
 export class BoardState {
@@ -62,11 +62,13 @@ export class BoardState {
       turn,
       {
         w:
-          +castling.w.k * BITS.KSIDE_CASTLE + +castling.w.q * BITS.QSIDE_CASTLE,
+          ((castling >> 3) & 1) * BITS.KSIDE_CASTLE +
+          ((castling >> 2) & 1) * BITS.QSIDE_CASTLE,
         b:
-          +castling.b.k * BITS.KSIDE_CASTLE + +castling.b.q * BITS.QSIDE_CASTLE,
+          ((castling >> 1) & 1) * BITS.KSIDE_CASTLE +
+          (castling & 1) * BITS.QSIDE_CASTLE,
       },
-      ep_square,
+      bitToSquare(ep_square),
       half_moves,
       move_number,
     )
@@ -76,19 +78,14 @@ export class BoardState {
     return {
       board: toBitBoard(this.board),
       turn: this.turn,
-      ep_square: this.ep_square,
+      ep_square: squareToBit(this.ep_square),
       half_moves: this.half_moves,
       move_number: this.move_number,
-      castling: {
-        w: {
-          k: !!(BITS.KSIDE_CASTLE & this.castling.w),
-          q: !!(BITS.QSIDE_CASTLE & this.castling.w),
-        },
-        b: {
-          k: !!(BITS.KSIDE_CASTLE & this.castling.b),
-          q: !!(BITS.QSIDE_CASTLE & this.castling.b),
-        },
-      },
+      castling:
+        (+!!(BITS.KSIDE_CASTLE & this.castling.w) << 3) +
+        (+!!(BITS.QSIDE_CASTLE & this.castling.w) << 2) +
+        (+!!(BITS.KSIDE_CASTLE & this.castling.b) << 1) +
+        +!!(BITS.QSIDE_CASTLE & this.castling.b),
     }
   }
 

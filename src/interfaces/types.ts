@@ -97,16 +97,7 @@ export type BitState = {
   ep_square: number
   half_moves: number
   move_number: number
-  castling: {
-    w: {
-      k: boolean
-      q: boolean
-    }
-    b: {
-      k: boolean
-      q: boolean
-    }
-  }
+  castling: number
 }
 
 /** Private types */

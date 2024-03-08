@@ -83,7 +83,15 @@ export function toSquare(obj: unknown): Square | undefined {
 }
 
 export function bitToSquare(sq: number): number {
+  if (sq === -1) return -1
   return (sq & 7) + 16 * (sq >> 3)
+}
+
+export function squareToBit(sq: number): number {
+  if (sq === -1) return -1
+  const row = Math.floor(sq / 16)
+  const column = sq % 8
+  return row * 8 + column
 }
 
 export function getBitIndices(n: bigint, first = false): number[] {
