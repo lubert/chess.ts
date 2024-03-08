@@ -119,7 +119,7 @@ export class BoardState {
           ((castling >> 1) & 1) * BITS.KSIDE_CASTLE +
           (castling & 1) * BITS.QSIDE_CASTLE,
       },
-      ep_square,
+      bitToSquare(ep_square),
       half_moves,
       move_number,
     )
@@ -129,7 +129,7 @@ export class BoardState {
     return {
       board: toNibbleBoard(this.board),
       wtm: this.turn === 'w',
-      ep_square: this.ep_square,
+      ep_square: squareToBit(this.ep_square),
       half_moves: this.half_moves,
       move_number: this.move_number,
       castling:
