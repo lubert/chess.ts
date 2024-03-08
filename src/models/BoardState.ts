@@ -7,8 +7,15 @@ import {
   BitState,
   Move,
   HexMove,
+  NibbleState,
+  NibblePiece,
 } from '../interfaces/types'
-import { fromBitBoard, toBitBoard } from '../board'
+import {
+  fromBitBoard,
+  fromNibbleBoard,
+  toBitBoard,
+  toNibbleBoard,
+} from '../board'
 import { BITS, EMPTY, WHITE } from '../constants'
 import { hexToMove, generateMoves, getFen, moveToSan } from '../move'
 import { bitToSquare, getBitIndices, squareToBit } from '../utils'
@@ -79,6 +86,50 @@ export class BoardState {
       board: toBitBoard(this.board),
       wtm: this.turn === 'w',
       ep_square: squareToBit(this.ep_square),
+      half_moves: this.half_moves,
+      move_number: this.move_number,
+      castling:
+        (+!!(BITS.KSIDE_CASTLE & this.castling.w) << 3) +
+        (+!!(BITS.QSIDE_CASTLE & this.castling.w) << 2) +
+        (+!!(BITS.KSIDE_CASTLE & this.castling.b) << 1) +
+        +!!(BITS.QSIDE_CASTLE & this.castling.b),
+    }
+  }
+
+  public static fromNibbleState({
+    board,
+    castling,
+    wtm,
+    ep_square,
+    half_moves,
+    move_number,
+  }: NibbleState): BoardState {
+    return new BoardState(
+      fromNibbleBoard(board),
+      {
+        w: bitToSquare(board.indexOf(NibblePiece.WHITE_KING)),
+        b: bitToSquare(board.indexOf(NibblePiece.BLACK_KING)),
+      },
+      wtm ? 'w' : 'b',
+      {
+        w:
+          ((castling >> 3) & 1) * BITS.KSIDE_CASTLE +
+          ((castling >> 2) & 1) * BITS.QSIDE_CASTLE,
+        b:
+          ((castling >> 1) & 1) * BITS.KSIDE_CASTLE +
+          (castling & 1) * BITS.QSIDE_CASTLE,
+      },
+      ep_square,
+      half_moves,
+      move_number,
+    )
+  }
+
+  public toNibbleState(): NibbleState {
+    return {
+      board: toNibbleBoard(this.board),
+      wtm: this.turn === 'w',
+      ep_square: this.ep_square,
       half_moves: this.half_moves,
       move_number: this.move_number,
       castling:

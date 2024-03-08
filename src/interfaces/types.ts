@@ -104,6 +104,28 @@ export type BitState = BaseState & {
   board: BitBoard
 }
 
+/** @public */
+export enum NibblePiece {
+  EMPTY = 0,
+  WHITE_PAWN = 1,
+  WHITE_KNIGHT = 2,
+  WHITE_BISHOP = 3,
+  WHITE_ROOK = 4,
+  WHITE_QUEEN = 5,
+  WHITE_KING = 6,
+  BLACK_PAWN = 7,
+  BLACK_KNIGHT = 8,
+  BLACK_BISHOP = 9,
+  BLACK_ROOK = 10,
+  BLACK_QUEEN = 11,
+  BLACK_KING = 12,
+}
+
+/** @public */
+export type NibbleState = BaseState & {
+  board: NibblePiece[]
+}
+
 /** Private types */
 export type Board = Array<Piece | undefined>
 

@@ -7,6 +7,8 @@ export {
   Color,
   CommentMap,
   Move,
+  NibblePiece,
+  NibbleState,
   PartialMove,
   Piece,
   PieceSymbol,
