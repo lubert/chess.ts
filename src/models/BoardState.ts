@@ -12,11 +12,13 @@ import {
 } from '../interfaces/types'
 import {
   fromBitBoard,
+  fromCastlingBits,
   fromNibbleBoard,
   toBitBoard,
+  toCastlingBits,
   toNibbleBoard,
 } from '../board'
-import { BITS, EMPTY, WHITE } from '../constants'
+import { EMPTY, WHITE } from '../constants'
 import { hexToMove, generateMoves, getFen, moveToSan } from '../move'
 import { bitToSquare, getBitIndices, squareToBit } from '../utils'
 
@@ -67,14 +69,7 @@ export class BoardState {
         b: bitToSquare(getBitIndices(board.b.k, true)[0]),
       },
       wtm ? 'w' : 'b',
-      {
-        w:
-          ((castling >> 3) & 1) * BITS.KSIDE_CASTLE +
-          ((castling >> 2) & 1) * BITS.QSIDE_CASTLE,
-        b:
-          ((castling >> 1) & 1) * BITS.KSIDE_CASTLE +
-          (castling & 1) * BITS.QSIDE_CASTLE,
-      },
+      fromCastlingBits(castling),
       bitToSquare(ep_square),
       half_moves,
       move_number,
@@ -88,11 +83,7 @@ export class BoardState {
       ep_square: squareToBit(this.ep_square),
       half_moves: this.half_moves,
       move_number: this.move_number,
-      castling:
-        (+!!(BITS.KSIDE_CASTLE & this.castling.w) << 3) +
-        (+!!(BITS.QSIDE_CASTLE & this.castling.w) << 2) +
-        (+!!(BITS.KSIDE_CASTLE & this.castling.b) << 1) +
-        +!!(BITS.QSIDE_CASTLE & this.castling.b),
+      castling: toCastlingBits(this.castling),
     }
   }
 
@@ -111,14 +102,7 @@ export class BoardState {
         b: bitToSquare(board.indexOf(NibblePiece.BLACK_KING)),
       },
       wtm ? 'w' : 'b',
-      {
-        w:
-          ((castling >> 3) & 1) * BITS.KSIDE_CASTLE +
-          ((castling >> 2) & 1) * BITS.QSIDE_CASTLE,
-        b:
-          ((castling >> 1) & 1) * BITS.KSIDE_CASTLE +
-          (castling & 1) * BITS.QSIDE_CASTLE,
-      },
+      fromCastlingBits(castling),
       bitToSquare(ep_square),
       half_moves,
       move_number,
@@ -132,11 +116,7 @@ export class BoardState {
       ep_square: squareToBit(this.ep_square),
       half_moves: this.half_moves,
       move_number: this.move_number,
-      castling:
-        (+!!(BITS.KSIDE_CASTLE & this.castling.w) << 3) +
-        (+!!(BITS.QSIDE_CASTLE & this.castling.w) << 2) +
-        (+!!(BITS.KSIDE_CASTLE & this.castling.b) << 1) +
-        +!!(BITS.QSIDE_CASTLE & this.castling.b),
+      castling: toCastlingBits(this.castling),
     }
   }
 

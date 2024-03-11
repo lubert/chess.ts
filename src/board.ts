@@ -1,5 +1,11 @@
-import { BIT_SQUARES, SQUARES } from './constants'
-import { BitBoard, Board, PieceSymbol, Square } from './interfaces/types'
+import { BITS, BIT_SQUARES, SQUARES } from './constants'
+import {
+  BitBoard,
+  Board,
+  ColorState,
+  PieceSymbol,
+  Square,
+} from './interfaces/types'
 import { bitToSquare } from './utils'
 
 export function toBitBoard(board: Board): BitBoard {
@@ -31,6 +37,26 @@ export function toBitBoard(board: Board): BitBoard {
     }
   }
   return bitboard
+}
+
+export function toCastlingBits(castling: ColorState): number {
+  return (
+    (+!!(BITS.KSIDE_CASTLE & castling.w) << 3) +
+    (+!!(BITS.QSIDE_CASTLE & castling.w) << 2) +
+    (+!!(BITS.KSIDE_CASTLE & castling.b) << 1) +
+    +!!(BITS.QSIDE_CASTLE & castling.b)
+  )
+}
+
+export function fromCastlingBits(castling: number): ColorState {
+  return {
+    w:
+      ((castling >> 3) & 1) * BITS.KSIDE_CASTLE +
+      ((castling >> 2) & 1) * BITS.QSIDE_CASTLE,
+    b:
+      ((castling >> 1) & 1) * BITS.KSIDE_CASTLE +
+      (castling & 1) * BITS.QSIDE_CASTLE,
+  }
 }
 
 export function toNibbleBoard(board: Board): number[] {
