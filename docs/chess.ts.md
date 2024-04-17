@@ -63,5 +63,4 @@
 |  [Piece](./chess.ts.piece.md) |  |
 |  [PieceSymbol](./chess.ts.piecesymbol.md) |  |
 |  [Square](./chess.ts.square.md) |  |
-|  [Validation](./chess.ts.validation.md) |  |
 

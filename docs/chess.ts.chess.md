@@ -70,6 +70,6 @@ export declare class Chess
 |  [turn()](./chess.ts.chess.turn.md) |  | Returns the current side to move. |
 |  [undo()](./chess.ts.chess.undo.md) |  | Takeback the last half-move, returning a move object if successful, otherwise null. |
 |  [undoAll()](./chess.ts.chess.undoall.md) |  | Undo all moves. |
-|  [validateFen(fen)](./chess.ts.chess.validatefen.md) |  | Returns a validation object specifying validity or the errors found within the FEN string. |
+|  [validateFen(fen, positionOnly)](./chess.ts.chess.validatefen.md) |  | Returns a object mapping FEN validation errors to error message. |
 |  [validateMoves(moves)](./chess.ts.chess.validatemoves.md) |  | Validates a sequence of moves, returning an array of move objects if the moves are all legal, otherwise null. |
 
