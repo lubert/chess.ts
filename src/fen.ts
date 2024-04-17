@@ -26,7 +26,7 @@ export function validateFen(
     }
   }
 
-  if (tokens.length !== 6) {
+  if (!positionOnly && tokens.length !== 6) {
     return { SIX_FIELDS: 'FEN must contain six space-delimited fields.' }
   }
 
@@ -52,7 +52,6 @@ export function validateFen(
     for (let k = 0; k < rows[i].length; k++) {
       if (!isNaN(rows[i][k] as any)) {
         if (previous_was_number) {
-          console.log('consecutive', rows[i][k], i, k)
           errors.CONSECUTIVE =
             '1st field (piece positions) is invalid [consecutive numbers].'
         }
