@@ -172,7 +172,7 @@ export function loadFen(fen: string): BoardState | null {
   const position = tokens[0]
   let square = 0
 
-  if (!validateFen(fen).valid) {
+  if (Object.keys(validateFen(fen)).length) {
     return null
   }
 

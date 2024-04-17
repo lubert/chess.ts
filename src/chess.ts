@@ -24,7 +24,6 @@ import {
   HexMove,
   Move,
   Piece,
-  Validation,
   PartialMove,
   HeaderMap,
   CommentMap,
@@ -42,7 +41,7 @@ import {
 } from './utils'
 import { DEFAULT_POSITION, SQUARES, BITS } from './constants'
 import { BoardState } from './models/BoardState'
-import { validateFen } from './fen'
+import { FenErrorType, validateFen } from './fen'
 
 /** @public */
 export class Chess {
@@ -1182,21 +1181,24 @@ export class Chess {
   }
 
   /**
-   * Returns a validation object specifying validity or the errors found
-   * within the FEN string.
+   * Returns a object mapping FEN validation errors to error message.
    *
    * @example
    * ```js
    * chess.validateFen('2n1r3/p1k2pp1/B1p3b1/P7/5bP1/2N1B3/1P2KP2/2R5 b - - 4 25')
-   * // -> { valid: true, error_number: 0, error: 'No errors.' }
+   * // -> {}
    *
    * chess.validateFen('4r3/8/X12XPk/1p6/pP2p1R1/P1B5/2P2K2/3r4 w - - 1 45')
-   * // -> { valid: false, error_number: 9,
-   * //     error: '1st field (piece positions) is invalid [invalid piece].' }
+   * // -> { 'INVALID_PIECE': '1st field (piece positions) is invalid [invalid piece].' }
    * ```
+   * @param fen - FEN string
+   * @param positionOnly - Validate only the position part of the FEN string
    */
-  public validateFen(fen: string): Validation {
-    return validateFen(fen)
+  public validateFen(
+    fen: string,
+    positionOnly = false,
+  ): Partial<Record<FenErrorType, string>> {
+    return validateFen(fen, positionOnly)
   }
 
   /** @internal */

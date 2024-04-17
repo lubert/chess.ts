@@ -13,7 +13,6 @@ export {
   Piece,
   PieceSymbol,
   Square,
-  Validation,
 } from './interfaces/types'
 export { Nag, NagMap } from './interfaces/nag'
 export {

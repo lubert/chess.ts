@@ -1,99 +1,110 @@
-import { Validation } from './interfaces/types'
+/* eslint-disable @typescript-eslint/no-explicit-any */
+export type FenErrorType =
+  | 'ONE_FIELD'
+  | 'SIX_FIELDS'
+  | 'ROWS_LENGTH'
+  | 'CONSECUTIVE'
+  | 'INVALID_PIECE'
+  | 'ROW_TOO_LARGE'
+  | 'SIDE_TO_MOVE'
+  | 'CASTLING'
+  | 'EN_PASSANT'
+  | 'HALF_MOVE'
+  | 'FULL_MOVE'
 
-/* TODO: this function is pretty much crap - it validates structure but
- * completely ignores content (e.g. doesn't verify that each side has a king)
- * ... we should rewrite this, and ditch the silly error_number field while
- * we're at it
- */
-export function validateFen(fen: string): Validation {
-  const errors: Record<number, string> = {
-    0: 'No errors.',
-    1: 'FEN string must contain six space-delimited fields.',
-    2: '6th field (move number) must be a positive integer.',
-    3: '5th field (half move counter) must be a non-negative integer.',
-    4: '4th field (en-passant square) is invalid.',
-    5: '3rd field (castling availability) is invalid.',
-    6: '2nd field (side to move) is invalid.',
-    7: "1st field (piece positions) does not contain 8 '/'-delimited rows.",
-    8: '1st field (piece positions) is invalid [consecutive numbers].',
-    9: '1st field (piece positions) is invalid [invalid piece].',
-    10: '1st field (piece positions) is invalid [row too large].',
-    11: 'Illegal en-passant square',
-  }
+export function validateFen(
+  fen: string,
+  positionOnly = false,
+): Partial<Record<FenErrorType, string>> {
+  const errors: Partial<Record<FenErrorType, string>> = {}
 
-  /* 1st criterion: 6 space-seperated fields? */
   const tokens = fen.split(/\s+/)
+  if (positionOnly && tokens.length !== 1) {
+    return {
+      ONE_FIELD:
+        'FEN must contain exactly one field for position-only validation.',
+    }
+  }
+
   if (tokens.length !== 6) {
-    return { valid: false, error_number: 1, error: errors[1] }
+    return { SIX_FIELDS: 'FEN must contain six space-delimited fields.' }
   }
 
-  /* 2nd criterion: move number field is a integer value > 0? */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  if (isNaN(tokens[5] as any) || parseInt(tokens[5], 10) <= 0) {
-    return { valid: false, error_number: 2, error: errors[2] }
-  }
+  const position = tokens[0]
+  const turn = tokens[1]
+  const castling = tokens[2]
+  const enPassant = tokens[3]
+  const halfMove = tokens[4]
+  const moveNumber = tokens[5]
 
-  /* 3rd criterion: half move counter is an integer >= 0? */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  if (isNaN(tokens[4] as any) || parseInt(tokens[4], 10) < 0) {
-    return { valid: false, error_number: 3, error: errors[3] }
-  }
-
-  /* 4th criterion: 4th field is a valid e.p.-string? */
-  if (!/^(-|[abcdefgh][36])$/.test(tokens[3])) {
-    return { valid: false, error_number: 4, error: errors[4] }
-  }
-
-  /* 5th criterion: 3th field is a valid castle-string? */
-  if (!/^(KQ?k?q?|Qk?q?|kq?|q|-)$/.test(tokens[2])) {
-    return { valid: false, error_number: 5, error: errors[5] }
-  }
-
-  /* 6th criterion: 2nd field is "w" (white) or "b" (black)? */
-  if (!/^(w|b)$/.test(tokens[1])) {
-    return { valid: false, error_number: 6, error: errors[6] }
-  }
-
-  /* 7th criterion: 1st field contains 8 rows? */
-  const rows = tokens[0].split('/')
+  // 1st field: Piece positions
+  const rows = position.split('/')
   if (rows.length !== 8) {
-    return { valid: false, error_number: 7, error: errors[7] }
+    errors.ROWS_LENGTH =
+      "1st field (piece positions) must contain 8 '/'-delimited rows."
   }
 
-  /* 8th criterion: every row is valid? */
   for (let i = 0; i < rows.length; i++) {
-    /* check for right sum of fields AND not two numbers in succession */
+    // Check for right sum of fields AND not two numbers in succession
     let sum_fields = 0
     let previous_was_number = false
 
     for (let k = 0; k < rows[i].length; k++) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       if (!isNaN(rows[i][k] as any)) {
         if (previous_was_number) {
-          return { valid: false, error_number: 8, error: errors[8] }
+          console.log('consecutive', rows[i][k], i, k)
+          errors.CONSECUTIVE =
+            '1st field (piece positions) is invalid [consecutive numbers].'
         }
         sum_fields += parseInt(rows[i][k], 10)
         previous_was_number = true
       } else {
         if (!/^[prnbqkPRNBQK]$/.test(rows[i][k])) {
-          return { valid: false, error_number: 9, error: errors[9] }
+          errors.INVALID_PIECE =
+            '1st field (piece positions) is invalid [invalid piece].'
         }
         sum_fields += 1
         previous_was_number = false
       }
     }
     if (sum_fields !== 8) {
-      return { valid: false, error_number: 10, error: errors[10] }
+      errors.ROW_TOO_LARGE =
+        '1st field (piece positions) is invalid [row too large].'
     }
   }
 
-  if (
-    (tokens[3][1] == '3' && tokens[1] == 'w') ||
-    (tokens[3][1] == '6' && tokens[1] == 'b')
-  ) {
-    return { valid: false, error_number: 11, error: errors[11] }
+  if (positionOnly) return errors
+
+  // 2nd field: Side to move
+  if (!/^(w|b)$/.test(turn)) {
+    errors.SIDE_TO_MOVE = '2nd field (side to move) is invalid.'
   }
 
-  /* everything's okay! */
-  return { valid: true, error_number: 0, error: errors[0] }
+  // 3rd field: Castling availability
+  if (!/^(KQ?k?q?|Qk?q?|kq?|q|-)$/.test(castling)) {
+    errors.CASTLING = '3rd field (castling availability) is invalid.'
+  }
+
+  // 4th field: En passant square
+  if (
+    (enPassant[1] === '3' && turn === 'w') ||
+    (enPassant[1] === '6' && turn == 'b') ||
+    !/^(-|[abcdefgh][36])$/.test(enPassant)
+  ) {
+    errors.EN_PASSANT = '4th field (en-passant square) is invalid.'
+  }
+
+  // 5th field: Half move clock
+  if (isNaN(halfMove as any) || parseInt(halfMove, 10) < 0) {
+    errors.HALF_MOVE =
+      '5th field (half move clock) must be a non-negative integer.'
+  }
+
+  // 6th field: Full move number
+  if (isNaN(moveNumber as any) || parseInt(moveNumber, 10) <= 0) {
+    errors.FULL_MOVE =
+      '6th field (full move counter) must be a positive integer.'
+  }
+
+  return errors
 }

@@ -78,13 +78,6 @@ export type Square =
   | 'a1' | 'b1' | 'c1' | 'd1' | 'e1' | 'f1' | 'g1' | 'h1'
 
 /** @public */
-export type Validation = {
-  valid: boolean
-  error_number: number
-  error: string
-}
-
-/** @public */
 export type BitBoard = {
   w: Record<PieceSymbol, bigint>
   b: Record<PieceSymbol, bigint>
