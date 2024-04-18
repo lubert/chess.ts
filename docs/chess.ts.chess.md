@@ -53,7 +53,7 @@ export declare class Chess
 |  [insufficientMaterial()](./chess.ts.chess.insufficientmaterial.md) |  | Returns true if the game is drawn due to insufficient material (K vs. K, K vs. KB, or K vs. KN) otherwise false. |
 |  [inThreefoldRepetition()](./chess.ts.chess.inthreefoldrepetition.md) |  | Returns true or false if the current board position has occurred three or more times. |
 |  [isPromotion(move)](./chess.ts.chess.ispromotion.md) |  | Checks if a move results in a promotion. |
-|  [load(fen)](./chess.ts.chess.load.md) |  | Clears the board and loads the Forsyth–Edwards Notation (FEN) string. |
+|  [load(fen, options)](./chess.ts.chess.load.md) |  | Clears the board and loads the Forsyth–Edwards Notation (FEN) string. |
 |  [loadPgn(pgn, options)](./chess.ts.chess.loadpgn.md) |  | <p>Load the moves of a game stored in \[Portable Game Notation\](http://en.wikipedia.org/wiki/Portable\_Game\_Notation). <code>pgn</code> should be a string. Options is an optional <code>object</code> which may contain a string <code>newline</code>.</p><p>The <code>newline</code> is a string representation of a valid RegExp fragment and is used to process the PGN. It defaults to <code>\r?\n</code>. Special characters should not be pre-escaped, but any literal special characters should be escaped as is normal for a RegExp. Keep in mind that backslashes in JavaScript strings must themselves be escaped. Avoid using a <code>newline</code> that may occur elsewhere in a PGN, such as <code>.</code> or <code>x</code>, as this will result in behavior.</p><p>The method will throw an error if the PGN was not parsed successfully.</p> |
 |  [move(move, options)](./chess.ts.chess.move.md) |  | Attempts to make a move on the board, returning a move object if the move was legal, otherwise null. The .move function can be called two ways, by passing a string in Standard Algebraic Notation (SAN): |
 |  [moves(options)](./chess.ts.chess.moves.md) |  | Returns a list of legal moves from the current position. The function takes an optional parameter which controls the single-square move generation and verbosity. |
@@ -70,6 +70,6 @@ export declare class Chess
 |  [turn()](./chess.ts.chess.turn.md) |  | Returns the current side to move. |
 |  [undo()](./chess.ts.chess.undo.md) |  | Takeback the last half-move, returning a move object if successful, otherwise null. |
 |  [undoAll()](./chess.ts.chess.undoall.md) |  | Undo all moves. |
-|  [validateFen(fen, positionOnly)](./chess.ts.chess.validatefen.md) |  | Returns a object mapping FEN validation errors to error message. |
+|  [validateFen(fen, options)](./chess.ts.chess.validatefen.md) |  | Returns a object mapping FEN validation errors to error message. |
 |  [validateMoves(moves)](./chess.ts.chess.validatemoves.md) |  | Validates a sequence of moves, returning an array of move objects if the moves are all legal, otherwise null. |
 

@@ -9,15 +9,18 @@ Returns a object mapping FEN validation errors to error message.
 **Signature:**
 
 ```typescript
-validateFen(fen: string, positionOnly?: boolean): Partial<Record<FenErrorType, string>>;
+validateFen(fen: string, options?: {
+        positionOnly?: boolean;
+        legal?: boolean;
+    }): Partial<Record<FenErrorType, string>>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  fen | string | FEN string |
-|  positionOnly | boolean | _(Optional)_ Validate only the position part of the FEN string |
+|  fen | string |  |
+|  options | { positionOnly?: boolean; legal?: boolean; } | _(Optional)_ |
 
 **Returns:**
 
