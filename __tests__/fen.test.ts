@@ -1,4 +1,29 @@
 import { FenErrorType, validateFen } from '../src/fen'
+import { Chess } from '../src/chess'
+
+describe('getFen', () => {
+  it('ep square present only if en passant is legal (legal)', () => {
+    const chess = new Chess('4k3/8/8/8/5p2/8/4P3/4K3 w - - 0 1')
+    chess.move('e4')
+    expect(chess.fen()).toEqual('4k3/8/8/8/4Pp2/8/8/4K3 b - e3 0 1')
+  })
+
+  it('ep square only if en passant is legal (illegal - pinned) - #1)', () => {
+    const chess = new Chess('5k2/8/8/8/5p2/8/4P3/4KR2 w - - 0 1')
+    chess.move('e4')
+    expect(chess.fen()).toEqual('5k2/8/8/8/4Pp2/8/8/4KR2 b - - 0 1')
+  })
+
+  it('ep square only if en passant is legal (illegal - pinned - #2)', () => {
+    const chess = new Chess(
+      'rnb1kbn1/p1p1pp2/PpPp2qr/5Pp1/8/R1P4p/1PK1P1PP/1NBQ1BNR b - - 0 1',
+    )
+    chess.move('e5')
+    expect(chess.fen()).toEqual(
+      'rnb1kbn1/p1p2p2/PpPp2qr/4pPp1/8/R1P4p/1PK1P1PP/1NBQ1BNR w - - 0 2',
+    )
+  })
+})
 
 describe('validateFen', () => {
   describe('position-only', () => {
@@ -34,7 +59,7 @@ describe('validateFen', () => {
 
     positions.forEach(({ fen, errorType }) => {
       it(fen + ' (valid: ' + !errorType + ')', () => {
-        const errors = validateFen(fen, true)
+        const errors = validateFen(fen, { positionOnly: true })
         const keys = Object.keys(errors)
         if (!errorType) {
           expect(keys.length).toBe(0)
@@ -93,7 +118,7 @@ describe('validateFen', () => {
       },
       {
         fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR ? KQkq - 0 1',
-        errorType: 'SIDE_TO_MOVE',
+        errorType: 'ACTIVE_COLOR',
       },
       {
         fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP w KQkq - 0 1',

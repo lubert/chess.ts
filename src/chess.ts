@@ -134,10 +134,15 @@ export class Chess {
    * Clears the board and loads the Forsyth–Edwards Notation (FEN) string.
    *
    * @param fen - FEN string
+   * @param options.positionOnly - Validate the position only
+   * @param options.legal - Basic position legality check
    * @returns True if the position was successfully loaded, otherwise false.
    */
-  public load(fen: string): boolean {
-    const boardState = loadFen(fen)
+  public load(
+    fen: string,
+    options?: { positionOnly?: boolean; legal?: boolean },
+  ): boolean {
+    const boardState = loadFen(fen, options)
     if (!boardState) {
       return false
     }
@@ -1191,14 +1196,15 @@ export class Chess {
    * chess.validateFen('4r3/8/X12XPk/1p6/pP2p1R1/P1B5/2P2K2/3r4 w - - 1 45')
    * // -> { 'INVALID_PIECE': '1st field (piece positions) is invalid [invalid piece].' }
    * ```
-   * @param fen - FEN string
-   * @param positionOnly - Validate only the position part of the FEN string
+   * @param options.fen - FEN string
+   * @param options.positionOnly - Validate the position only
+   * @param options.legal - Basic position legality check
    */
   public validateFen(
     fen: string,
-    positionOnly = false,
+    options?: { positionOnly?: boolean; legal?: boolean },
   ): Partial<Record<FenErrorType, string>> {
-    return validateFen(fen, positionOnly)
+    return validateFen(fen, options)
   }
 
   /** @internal */

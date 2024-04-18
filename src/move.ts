@@ -155,7 +155,42 @@ export function getFen(state: Readonly<BoardState>): string {
 
   /* do we have an empty castling flag? */
   cflags = cflags || '-'
-  const epflags = state.ep_square === EMPTY ? '-' : algebraic(state.ep_square)
+
+  let epflags = '-'
+  /*
+   * only print the ep square if en passant is a valid move (pawn is present
+   * and ep capture is not pinned)
+   */
+  if (state.ep_square !== EMPTY) {
+    const bigPawnSquare = state.ep_square + (state.turn === WHITE ? 16 : -16)
+    const squares = [bigPawnSquare + 1, bigPawnSquare - 1]
+    const color = state.turn
+
+    for (const square of squares) {
+      if (square & 0x88) continue
+      // is there a pawn that can capture the epSquare?
+      if (
+        state.board[square]?.color === color &&
+        state.board[square]?.type === PAWN
+      ) {
+        // if the pawn makes an ep capture, does it leave it's king in check?
+        const nextState = makeMove(state, {
+          color,
+          from: square,
+          to: state.ep_square,
+          piece: PAWN,
+          captured: PAWN,
+          flags: BITS.EP_CAPTURE,
+        })
+
+        // if ep is legal, break and set the ep square in the FEN output
+        if (!isKingAttacked(nextState, color)) {
+          epflags = algebraic(state.ep_square) || '-'
+          break
+        }
+      }
+    }
+  }
 
   return [
     fen,
@@ -167,12 +202,15 @@ export function getFen(state: Readonly<BoardState>): string {
   ].join(' ')
 }
 
-export function loadFen(fen: string): BoardState | null {
+export function loadFen(
+  fen: string,
+  options?: { positionOnly?: boolean; legal?: boolean },
+): BoardState | null {
   const tokens = fen.split(/\s+/)
   const position = tokens[0]
   let square = 0
 
-  if (Object.keys(validateFen(fen)).length) {
+  if (Object.keys(validateFen(fen, options)).length) {
     return null
   }
 
