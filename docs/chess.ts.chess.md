@@ -21,7 +21,7 @@ export declare class Chess
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [currentNode](./chess.ts.chess.currentnode.md) | <code>readonly</code> | Readonly&lt;TreeNode&lt;GameState&gt;&gt; |  |
+|  [currentNode](./chess.ts.chess.currentnode.md) |  | Readonly&lt;TreeNode&lt;GameState&gt;&gt; |  |
 |  [header](./chess.ts.chess.header.md) |  | HeaderMap |  |
 |  [hexTree](./chess.ts.chess.hextree.md) | <code>readonly</code> | Readonly&lt;TreeNode&lt;HexState&gt;&gt; |  |
 |  [state](./chess.ts.chess.state.md) | <code>readonly</code> | Readonly&lt;[BoardState](./chess.ts.boardstate.md)<!-- -->&gt; |  |
@@ -31,17 +31,17 @@ export declare class Chess
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [addNag(nag, fen)](./chess.ts.chess.addnag.md) |  |  |
+|  [addNag(nag, key)](./chess.ts.chess.addnag.md) |  |  |
 |  [ascii(newline\_char)](./chess.ts.chess.ascii.md) |  | Returns a string containing an ASCII diagram of the current position. |
 |  [board()](./chess.ts.chess.board.md) |  | Returns an 2D array representation of the current position. Empty squares are represented by <code>null</code>. |
 |  [clear(keepHeaders)](./chess.ts.chess.clear.md) |  | Clears the board. |
-|  [deleteComment(fen)](./chess.ts.chess.deletecomment.md) |  | Delete and return the comment for a position in the current branch, it exists. |
-|  [deleteComments()](./chess.ts.chess.deletecomments.md) |  | Delete and return comments for all positions in the current branch. |
+|  [deleteComment(key)](./chess.ts.chess.deletecomment.md) |  | Delete and return the comment for a position, if it exists. |
+|  [deleteComments()](./chess.ts.chess.deletecomments.md) |  | Delete comments for all positions. |
 |  [fen()](./chess.ts.chess.fen.md) |  | Returns the FEN string for the current position. |
 |  [gameOver()](./chess.ts.chess.gameover.md) |  | Returns true if the game has ended via checkmate, stalemate, draw, threefold repetition, or insufficient material. Otherwise, returns false. |
-|  [getComment(fen)](./chess.ts.chess.getcomment.md) |  | Retrieve the comment for a position, if it exists. |
-|  [getComments()](./chess.ts.chess.getcomments.md) |  | Retrieve comments for all positions. |
-|  [getNags(fen)](./chess.ts.chess.getnags.md) |  |  |
+|  [getComment(key)](./chess.ts.chess.getcomment.md) |  | Retrieve the comment if it exists. |
+|  [getComments(key)](./chess.ts.chess.getcomments.md) |  | Retrieve comments for all positions, keyed by FEN string. |
+|  [getNags(key)](./chess.ts.chess.getnags.md) |  |  |
 |  [getPiece(square)](./chess.ts.chess.getpiece.md) |  | Returns the piece on the square. |
 |  [getPieces()](./chess.ts.chess.getpieces.md) |  | Returns a map of squares to pieces. |
 |  [history(options)](./chess.ts.chess.history.md) |  | Returns a list containing the moves of the current game. |
@@ -64,8 +64,7 @@ export declare class Chess
 |  [redoAll()](./chess.ts.chess.redoall.md) |  | Redo all mainline moves. |
 |  [removePiece(square)](./chess.ts.chess.removepiece.md) |  | Remove and return the piece on <code>square</code>. |
 |  [reset()](./chess.ts.chess.reset.md) |  | Reset the board to the initial starting position. |
-|  [setComment(comment, fen)](./chess.ts.chess.setcomment.md) |  | Comment on a position. |
-|  [setCurrentNode(newNode)](./chess.ts.chess.setcurrentnode.md) |  |  |
+|  [setComment(comment, key)](./chess.ts.chess.setcomment.md) |  | Comment on a position, if it exists. |
 |  [squareColor(square)](./chess.ts.chess.squarecolor.md) |  | Returns the color of the square ('light' or 'dark'). |
 |  [turn()](./chess.ts.chess.turn.md) |  | Returns the current side to move. |
 |  [undo()](./chess.ts.chess.undo.md) |  | Takeback the last half-move, returning a move object if successful, otherwise null. |

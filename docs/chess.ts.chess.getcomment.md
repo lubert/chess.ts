@@ -4,19 +4,19 @@
 
 ## Chess.getComment() method
 
-Retrieve the comment for a position, if it exists.
+Retrieve the comment if it exists.
 
 **Signature:**
 
 ```typescript
-getComment(fen?: string): string | undefined;
+getComment(key?: string | number[]): string | undefined;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  fen | string | _(Optional)_ Defaults to the current position |
+|  key | string \| number\[\] | _(Optional)_ FEN string or node indices, defaults to the current position |
 
 **Returns:**
 
@@ -30,7 +30,14 @@ const chess = new Chess()
 
 chess.loadPgn("1. e4 e5 2. Nf3 Nc6 3. Bc4 Bc5 {giuoco piano} *")
 
-chess.getComment()
+chess.getComment(
+  'r1bqk1nr/pppp1ppp/2n5/2b1p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 4 4'
+)
 // -> "giuoco piano"
+
+chess.getComment(
+  [0,0,0,0,0,0]
+)
+// -> "giuoco piano"*
 ```
 

@@ -9,4 +9,6 @@
 
 ```typescript
 get currentNode(): Readonly<TreeNode<GameState>>;
+
+set currentNode(node: TreeNode<GameState>);
 ```

@@ -1220,12 +1220,14 @@ export class Chess {
     return nodes
   }
 
+  /** @internal */
   protected getNode(key?: string | number[]): TreeNode<HexState> | null {
     if (!key) return this._currentNode
     if (Array.isArray(key)) return this._tree.fetch(key)
     return this._tree.breadth(({ model }) => model.fen === key)
   }
 
+  /** @internal */
   protected cleanComment(comment: string): string {
     return comment.replace('{', '[').replace('}', ']')
   }

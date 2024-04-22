@@ -7,16 +7,16 @@
 **Signature:**
 
 ```typescript
-getNags(fen?: string): Nag[];
+getNags(key?: string | number[]): Nag[] | undefined;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  fen | string | _(Optional)_ |
+|  key | string \| number\[\] | _(Optional)_ |
 
 **Returns:**
 
-[Nag](./chess.ts.nag.md)<!-- -->\[\]
+[Nag](./chess.ts.nag.md)<!-- -->\[\] \| undefined
 

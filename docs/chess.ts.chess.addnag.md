@@ -7,7 +7,7 @@
 **Signature:**
 
 ```typescript
-addNag(nag: Nag, fen?: string): void;
+addNag(nag: Nag, key?: string | number[]): boolean;
 ```
 
 ## Parameters
@@ -15,9 +15,9 @@ addNag(nag: Nag, fen?: string): void;
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  nag | [Nag](./chess.ts.nag.md) |  |
-|  fen | string | _(Optional)_ |
+|  key | string \| number\[\] | _(Optional)_ |
 
 **Returns:**
 
-void
+boolean
 

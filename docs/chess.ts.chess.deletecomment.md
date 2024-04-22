@@ -4,19 +4,19 @@
 
 ## Chess.deleteComment() method
 
-Delete and return the comment for a position in the current branch, it exists.
+Delete and return the comment for a position, if it exists.
 
 **Signature:**
 
 ```typescript
-deleteComment(fen?: string): string | undefined;
+deleteComment(key?: string | number[]): string | undefined;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  fen | string | _(Optional)_ Defaults to the current position |
+|  key | string \| number\[\] | _(Optional)_ FEN string or node indices, defaults to the current position |
 
 **Returns:**
 
@@ -33,7 +33,9 @@ chess.loadPgn("1. e4 e5 2. Nf3 Nc6 3. Bc4 Bc5 {giuoco piano} *")
 chess.getComment()
 // -> "giuoco piano"
 
-chess.deleteComments()
+chess.deleteComment(
+  "r1bqk1nr/pppp1ppp/2n5/2b1p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 4 4"
+)
 // -> "giuoco piano"
 
 chess.getComment()

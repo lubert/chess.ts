@@ -4,13 +4,20 @@
 
 ## Chess.getComments() method
 
-Retrieve comments for all positions.
+Retrieve comments for all positions, keyed by FEN string.
 
 **Signature:**
 
 ```typescript
-getComments(): CommentMap;
+getComments(key?: 'fen' | 'indices'): CommentMap;
 ```
+
+## Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  key | 'fen' \| 'indices' | _(Optional)_ Key by 'fen' or node 'indices' |
+
 **Returns:**
 
 [CommentMap](./chess.ts.commentmap.md)

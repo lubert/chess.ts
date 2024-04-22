@@ -4,12 +4,12 @@
 
 ## Chess.setComment() method
 
-Comment on a position.
+Comment on a position, if it exists.
 
 **Signature:**
 
 ```typescript
-setComment(comment: string, fen?: string): void;
+setComment(comment: string, key?: string | number[]): boolean;
 ```
 
 ## Parameters
@@ -17,11 +17,11 @@ setComment(comment: string, fen?: string): void;
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  comment | string | Comment |
-|  fen | string | _(Optional)_ Defaults to the current position |
+|  key | string \| number\[\] | _(Optional)_ FEN string or node indices, defaults to the current position |
 
 **Returns:**
 
-void
+boolean
 
 ## Example
 
@@ -30,7 +30,10 @@ void
 const chess = new Chess()
 
 chess.move("e4")
-chess.setComment("king's pawn opening")
+chess.setComment(
+  "king's pawn opening",
+  "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1"
+)
 
 chess.pgn()
 // -> "1. e4 {king's pawn opening}"

@@ -4,16 +4,16 @@
 
 ## Chess.deleteComments() method
 
-Delete and return comments for all positions in the current branch.
+Delete comments for all positions.
 
 **Signature:**
 
 ```typescript
-deleteComments(): CommentMap;
+deleteComments(): void;
 ```
 **Returns:**
 
-[CommentMap](./chess.ts.commentmap.md)
+void
 
 ## Example
 
@@ -24,17 +24,6 @@ const chess = new Chess()
 chess.loadPgn("1. e4 e5 {king's pawn opening} 2. Nf3 Nc6 3. Bc4 Bc5 {giuoco piano} *")
 
 chess.deleteComments()
-// -> [
-//     {
-//       fen: "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2",
-//       comment: "king's pawn opening"
-//     },
-//     {
-//       fen: "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3",
-//       comment: "giuoco piano"
-//     }
-//    ]
-
 chess.getComments()
 // -> []
 ```
