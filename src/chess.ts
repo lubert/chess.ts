@@ -96,19 +96,10 @@ export class Chess {
   }
 
   /** @public */
-  public setCurrentNode(newNode: TreeNode<GameState>): Move | null {
-    const jsonPath = JSON.stringify(newNode.path().map((n) => n.model))
-    const node = this.tree.breadth(
-      (treeNode) =>
-        JSON.stringify(treeNode.path().map((n) => n.model)) === jsonPath,
-    )
-    if (node) {
-      const hexNode = this._tree.fetch(node.indices)
-      if (!hexNode) return null
-      this._currentNode = hexNode
-      return nodeMove(this._currentNode)
-    }
-    return null
+  public set currentNode(node: TreeNode<GameState>) {
+    const newNode = this._tree.fetch(node.indices)
+    if (!newNode) return
+    this._currentNode = newNode
   }
 
   /** @internal */
@@ -1017,7 +1008,7 @@ export class Chess {
   }
 
   /**
-   * Retrieve the comment for a position, if it exists.
+   * Retrieve the comment if it exists.
    *
    * @example
    * ```js
@@ -1025,22 +1016,26 @@ export class Chess {
    *
    * chess.loadPgn("1. e4 e5 2. Nf3 Nc6 3. Bc4 Bc5 {giuoco piano} *")
    *
-   * chess.getComment()
+   * chess.getComment(
+   *   'r1bqk1nr/pppp1ppp/2n5/2b1p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 4 4'
+   * )
    * // -> "giuoco piano"
+   *
+   * chess.getComment(
+   *   [0,0,0,0,0,0]
+   * )
+   * // -> "giuoco piano"*
    * ```
    *
-   * @param fen - Defaults to the current position
+   * @param [key] - FEN string or node indices, defaults to the current position
    */
-  public getComment(fen?: string): string | undefined {
-    if (fen) {
-      const node = this._tree.breadth(({ model }) => model.fen === fen)
-      return node?.model.comment
-    }
-    return this._currentNode.model.comment
+  public getComment(key?: string | number[]): string | undefined {
+    const node = this.getNode(key)
+    return node?.model.comment
   }
 
   /**
-   * Retrieve comments for all positions.
+   * Retrieve comments for all positions, keyed by FEN string.
    *
    * @example
    * ```js
@@ -1054,50 +1049,51 @@ export class Chess {
    * //      "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3": "giuoco piano"
    * //    }
    * ```
+   *
+   * @param key - Key by 'fen' or node 'indices'
    */
-  public getComments(): CommentMap {
+  public getComments(key: 'fen' | 'indices' = 'fen'): CommentMap {
     const comments: CommentMap = {}
-    this._currentNode.path().forEach(({ model }) => {
-      if (model.comment) {
-        comments[model.fen] = model.comment
+    this._tree.breadth((node) => {
+      const { fen, comment } = node.model
+      if (comment) {
+        const k = key === 'fen' ? fen : node.indices.join(',')
+        comments[k] = comment
       }
     })
     return comments
   }
 
   /**
-   * Comment on a position.
+   * Comment on a position, if it exists.
    *
    * @example
    * ```js
    * const chess = new Chess()
    *
    * chess.move("e4")
-   * chess.setComment("king's pawn opening")
+   * chess.setComment(
+   *   "king's pawn opening",
+   *   "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1"
+   * )
    *
    * chess.pgn()
    * // -> "1. e4 {king's pawn opening}"
    * ```
    *
    * @param comment - Comment
-   * @param fen - Defaults to the current position
+   * @param key - FEN string or node indices, defaults to the current position
    */
-  public setComment(comment: string, fen?: string): void {
-    const cleaned = comment.replace('{', '[').replace('}', ']')
-    if (fen) {
-      const node = this._tree.breadth(({ model }) => model.fen === fen)
-      if (node) {
-        node.model.comment = cleaned
-      }
-      return
-    }
+  public setComment(comment: string, key?: string | number[]): boolean {
+    const node = this.getNode(key)
+    if (!node) return false
 
-    this._currentNode.model.comment = cleaned
+    node.model.comment = this.cleanComment(comment)
+    return true
   }
 
   /**
-   * Delete and return the comment for a position in the current branch,
-   * it exists.
+   * Delete and return the comment for a position, if it exists.
    *
    * @example
    * ```js
@@ -1108,28 +1104,28 @@ export class Chess {
    * chess.getComment()
    * // -> "giuoco piano"
    *
-   * chess.deleteComments()
+   * chess.deleteComment(
+   *   "r1bqk1nr/pppp1ppp/2n5/2b1p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 4 4"
+   * )
    * // -> "giuoco piano"
    *
    * chess.getComment()
    * // -> undefined
    * ```
    *
-   * @param fen - Defaults to the current position
+   * @param key - FEN string or node indices, defaults to the current position
    */
-  public deleteComment(fen?: string): string | undefined {
-    let node: TreeNode<HexState> | undefined = this._currentNode
-    if (fen) {
-      node = this._currentNode.path().find((n) => n.model.fen === fen)
-      if (!node) return
-    }
+  public deleteComment(key?: string | number[]): string | undefined {
+    const node = this.getNode(key)
+    if (!node) return
+
     const comment = node.model.comment
     delete node.model.comment
     return comment
   }
 
   /**
-   * Delete and return comments for all positions in the current branch.
+   * Delete comments for all positions.
    *
    * @example
    * ```js
@@ -1138,50 +1134,33 @@ export class Chess {
    * chess.loadPgn("1. e4 e5 {king's pawn opening} 2. Nf3 Nc6 3. Bc4 Bc5 {giuoco piano} *")
    *
    * chess.deleteComments()
-   * // -> [
-   * //     {
-   * //       fen: "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2",
-   * //       comment: "king's pawn opening"
-   * //     },
-   * //     {
-   * //       fen: "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3",
-   * //       comment: "giuoco piano"
-   * //     }
-   * //    ]
-   *
    * chess.getComments()
    * // -> []
    * ```
    */
-  public deleteComments(): CommentMap {
-    const comments: CommentMap = {}
-    this._currentNode.path().forEach(({ model }) => {
+  public deleteComments(): void {
+    this._tree.breadth(({ model }) => {
       if (model.comment) {
-        comments[model.fen] = model.comment
         delete model.comment
       }
     })
-    return comments
   }
 
-  public addNag(nag: Nag, fen?: string): void {
-    let node: TreeNode<HexState> | undefined = this._currentNode
-    if (fen) {
-      node = this._currentNode.path().find((n) => n.model.fen === fen)
-      if (!node) return
-    }
+  public addNag(nag: Nag, key?: string | number[]): boolean {
+    const node = this.getNode(key)
+    if (!node) return false
+
     node.model.nags = node.model.nags || []
     if (!node.model.nags.includes(nag)) {
       node.model.nags.push(nag)
     }
+    return true
   }
 
-  public getNags(fen?: string): Nag[] {
-    let node: TreeNode<HexState> | undefined = this._currentNode
-    if (fen) {
-      node = this._currentNode.path().find((n) => n.model.fen === fen)
-      if (!node) return []
-    }
+  public getNags(key?: string | number[]): Nag[] | undefined {
+    const node = this.getNode(key)
+    if (!node) return
+
     return node.model.nags || []
   }
 
@@ -1239,6 +1218,16 @@ export class Chess {
     }
 
     return nodes
+  }
+
+  protected getNode(key?: string | number[]): TreeNode<HexState> | null {
+    if (!key) return this._currentNode
+    if (Array.isArray(key)) return this._tree.fetch(key)
+    return this._tree.breadth(({ model }) => model.fen === key)
+  }
+
+  protected cleanComment(comment: string): string {
+    return comment.replace('{', '[').replace('}', ']')
   }
 
   /**
