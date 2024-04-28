@@ -96,10 +96,12 @@ export class Chess {
   }
 
   /** @public */
-  public set currentNode(node: TreeNode<GameState>) {
-    const newNode = this._tree.fetch(node.indices)
-    if (!newNode) return
-    this._currentNode = newNode
+  public setCurrentNode(key?: string | number[]): boolean {
+    const node = this.getNode(key)
+    if (!node) return false
+
+    this._currentNode = node
+    return true
   }
 
   /** @internal */
