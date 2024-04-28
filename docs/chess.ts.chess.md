@@ -21,7 +21,7 @@ export declare class Chess
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [currentNode](./chess.ts.chess.currentnode.md) |  | Readonly&lt;TreeNode&lt;GameState&gt;&gt; |  |
+|  [currentNode](./chess.ts.chess.currentnode.md) | <code>readonly</code> | Readonly&lt;TreeNode&lt;GameState&gt;&gt; |  |
 |  [header](./chess.ts.chess.header.md) |  | HeaderMap |  |
 |  [hexTree](./chess.ts.chess.hextree.md) | <code>readonly</code> | Readonly&lt;TreeNode&lt;HexState&gt;&gt; |  |
 |  [state](./chess.ts.chess.state.md) | <code>readonly</code> | Readonly&lt;[BoardState](./chess.ts.boardstate.md)<!-- -->&gt; |  |
@@ -65,6 +65,7 @@ export declare class Chess
 |  [removePiece(square)](./chess.ts.chess.removepiece.md) |  | Remove and return the piece on <code>square</code>. |
 |  [reset()](./chess.ts.chess.reset.md) |  | Reset the board to the initial starting position. |
 |  [setComment(comment, key)](./chess.ts.chess.setcomment.md) |  | Comment on a position, if it exists. |
+|  [setCurrentNode(key)](./chess.ts.chess.setcurrentnode.md) |  |  |
 |  [squareColor(square)](./chess.ts.chess.squarecolor.md) |  | Returns the color of the square ('light' or 'dark'). |
 |  [turn()](./chess.ts.chess.turn.md) |  | Returns the current side to move. |
 |  [undo()](./chess.ts.chess.undo.md) |  | Takeback the last half-move, returning a move object if successful, otherwise null. |
