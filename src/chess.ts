@@ -1148,6 +1148,18 @@ export class Chess {
     })
   }
 
+  /**
+   * Delete a node and its children from the tree. Cannot delete the root node.
+   *
+   * @param key - FEN string or node indices, defaults to the current position
+   */
+  public deleteNode(key?: string | number[]): boolean {
+    const node = this.getNode(key)
+    if (!node || !node.parent) return false
+    node.drop()
+    return true
+  }
+
   public addNag(nag: Nag, key?: string | number[]): boolean {
     const node = this.getNode(key)
     if (!node) return false
