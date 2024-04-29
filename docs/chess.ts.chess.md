@@ -38,7 +38,7 @@ export declare class Chess
 |  [deleteComment(key)](./chess.ts.chess.deletecomment.md) |  | Delete and return the comment for a position, if it exists. |
 |  [deleteComments()](./chess.ts.chess.deletecomments.md) |  | Delete comments for all positions. |
 |  [deleteNode(key)](./chess.ts.chess.deletenode.md) |  | Delete a node and its children from the tree. Cannot delete the root node. |
-|  [fen()](./chess.ts.chess.fen.md) |  | Returns the FEN string for the current position. |
+|  [fen(strict)](./chess.ts.chess.fen.md) |  | Returns the FEN string for the current position. |
 |  [gameOver()](./chess.ts.chess.gameover.md) |  | Returns true if the game has ended via checkmate, stalemate, draw, threefold repetition, or insufficient material. Otherwise, returns false. |
 |  [getComment(key)](./chess.ts.chess.getcomment.md) |  | Retrieve the comment if it exists. |
 |  [getComments(key)](./chess.ts.chess.getcomments.md) |  | Retrieve comments for all positions, keyed by FEN string. |

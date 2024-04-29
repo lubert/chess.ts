@@ -9,8 +9,15 @@ Returns the FEN string for the current position.
 **Signature:**
 
 ```typescript
-fen(): string;
+fen(strict?: boolean): string;
 ```
+
+## Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  strict | boolean | _(Optional)_ |
+
 **Returns:**
 
 string

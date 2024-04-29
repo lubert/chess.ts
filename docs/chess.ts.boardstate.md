@@ -28,6 +28,7 @@ export declare class BoardState
 |  [half\_moves](./chess.ts.boardstate.half_moves.md) |  | number |  |
 |  [kings](./chess.ts.boardstate.kings.md) |  | ColorState |  |
 |  [move\_number](./chess.ts.boardstate.move_number.md) |  | number |  |
+|  [strictFen](./chess.ts.boardstate.strictfen.md) | <code>readonly</code> | string |  |
 |  [turn](./chess.ts.boardstate.turn.md) |  | [Color](./chess.ts.color.md) |  |
 
 ## Methods
