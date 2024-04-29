@@ -54,6 +54,10 @@ export class BoardState {
     return getFen(this)
   }
 
+  public get strictFen(): string {
+    return getFen(this, true)
+  }
+
   public static fromBitState({
     board,
     castling,

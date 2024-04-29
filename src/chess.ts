@@ -381,7 +381,10 @@ export class Chess {
    * // -> 'rnbqkbnr/pppp1ppp/8/4p3/4PP2/8/PPPP2PP/RNBQKBNR b KQkq f3 0 2'
    * ```
    */
-  public fen(): string {
+  public fen(strict = false): string {
+    if (strict) {
+      return this.boardState.strictFen
+    }
     return this.boardState.fen
   }
 

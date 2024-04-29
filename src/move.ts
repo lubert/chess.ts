@@ -105,7 +105,7 @@ export function getDisambiguator(
   return ''
 }
 
-export function getFen(state: Readonly<BoardState>): string {
+export function getFen(state: Readonly<BoardState>, strict = false): string {
   let empty = 0
   let fen = ''
 
@@ -157,38 +157,44 @@ export function getFen(state: Readonly<BoardState>): string {
   cflags = cflags || '-'
 
   let epflags = '-'
-  /*
-   * only print the ep square if en passant is a valid move (pawn is present
-   * and ep capture is not pinned)
-   */
+
   if (state.ep_square !== EMPTY) {
-    const bigPawnSquare = state.ep_square + (state.turn === WHITE ? 16 : -16)
-    const squares = [bigPawnSquare + 1, bigPawnSquare - 1]
-    const color = state.turn
+    if (strict) {
+      /*
+       * Set the ep square only if en passant is a valid move (pawn is present
+       * and ep capture is not pinned)
+       */
+      const bigPawnSquare = state.ep_square + (state.turn === WHITE ? 16 : -16)
+      const squares = [bigPawnSquare + 1, bigPawnSquare - 1]
+      const color = state.turn
 
-    for (const square of squares) {
-      if (square & 0x88) continue
-      // is there a pawn that can capture the epSquare?
-      if (
-        state.board[square]?.color === color &&
-        state.board[square]?.type === PAWN
-      ) {
-        // if the pawn makes an ep capture, does it leave it's king in check?
-        const nextState = makeMove(state, {
-          color,
-          from: square,
-          to: state.ep_square,
-          piece: PAWN,
-          captured: PAWN,
-          flags: BITS.EP_CAPTURE,
-        })
+      for (const square of squares) {
+        if (square & 0x88) continue
+        // is there a pawn that can capture the epSquare?
+        if (
+          state.board[square]?.color === color &&
+          state.board[square]?.type === PAWN
+        ) {
+          // if the pawn makes an ep capture, does it leave it's king in check?
+          const nextState = makeMove(state, {
+            color,
+            from: square,
+            to: state.ep_square,
+            piece: PAWN,
+            captured: PAWN,
+            flags: BITS.EP_CAPTURE,
+          })
 
-        // if ep is legal, break and set the ep square in the FEN output
-        if (!isKingAttacked(nextState, color)) {
-          epflags = algebraic(state.ep_square) || '-'
-          break
+          // if ep is legal, break and set the ep square in the FEN output
+          if (!isKingAttacked(nextState, color)) {
+            epflags = algebraic(state.ep_square) || '-'
+            break
+          }
         }
       }
+    } else {
+      //
+      epflags = algebraic(state.ep_square) || '-'
     }
   }
 
