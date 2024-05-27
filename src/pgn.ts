@@ -8,7 +8,7 @@ import {
   NULL_MOVES,
   CASTLING_MOVES,
 } from './constants'
-import { loadFen, sanToMove, makeMove } from './move'
+import { loadFen, sanToMove, makeMove, getFen, moveToSan } from './move'
 import {
   REGEXP_HEADER_KEY,
   REGEXP_HEADER_VAL,
@@ -53,7 +53,7 @@ export function pgnMoves(node: TreeNode<HexState>): string[] {
     const { move, comment, nags } = state
     if (move) {
       const isFirstMove = !node.model.move
-      const san = boardState.toSan(move)
+      const san = moveToSan(boardState, move)
       const nagStr =
         nags && nags.length ? ' ' + nags.map((nag) => `$${nag}`).join(' ') : ''
       // Move
@@ -258,7 +258,7 @@ export function loadPgn(
       const nextState = makeMove(boardState, move)
       currentNode = currentNode.addModel({
         boardState: nextState,
-        fen: nextState.fen,
+        fen: getFen(nextState),
         nags: extractNags(token),
         move,
       })

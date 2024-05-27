@@ -8,7 +8,6 @@
 
 |  Class | Description |
 |  --- | --- |
-|  [BoardState](./chess.ts.boardstate.md) |  |
 |  [Chess](./chess.ts.chess.md) |  |
 
 ## Enumerations
@@ -63,6 +62,7 @@
 |  [BaseState](./chess.ts.basestate.md) |  |
 |  [BitBoard](./chess.ts.bitboard.md) |  |
 |  [BitState](./chess.ts.bitstate.md) |  |
+|  [BoardState](./chess.ts.boardstate.md) |  |
 |  [Color](./chess.ts.color.md) |  |
 |  [CommentMap](./chess.ts.commentmap.md) |  |
 |  [Move](./chess.ts.move.md) | Represents a chess move |

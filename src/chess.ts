@@ -15,6 +15,10 @@ import {
   validateMove,
   nodeMove,
   hexToGameState,
+  generateMoves,
+  hexToMove,
+  moveToSan,
+  getFen,
 } from './move'
 import { Nag } from './interfaces/nag'
 import { loadPgn, getPgn } from './pgn'
@@ -29,6 +33,7 @@ import {
   CommentMap,
   Square,
   GameState,
+  BoardState,
 } from './interfaces/types'
 import {
   file,
@@ -40,8 +45,8 @@ import {
   swapColor,
 } from './utils'
 import { DEFAULT_POSITION, SQUARES, BITS } from './constants'
-import { BoardState } from './models/BoardState'
 import { FenErrorType, validateFen } from './fen'
+import { defaultBoardState } from './state'
 
 /** @public */
 export class Chess {
@@ -158,7 +163,7 @@ export class Chess {
    */
   public clear(keepHeaders = false): void {
     this._tree = new TreeNode<HexState>({
-      boardState: new BoardState(),
+      boardState: defaultBoardState(),
       fen: DEFAULT_POSITION,
     })
     if (!keepHeaders) this.header = {}
@@ -359,10 +364,10 @@ export class Chess {
     // square coordinates to algebraic coordinates.  It also prunes an
     // unnecessary move keys resulting from a verbose call.
     const { square, verbose = false } = options
-    const moves = this.boardState.generateMoves({ from: square })
+    const moves = generateMoves(this.boardState, { from: square })
 
-    if (verbose) return moves.map((move) => this.boardState.toMove(move))
-    return moves.map((move) => this.boardState.toSan(move))
+    if (verbose) return moves.map((move) => hexToMove(this.boardState, move))
+    return moves.map((move) => moveToSan(this.boardState, move))
   }
 
   /**
@@ -382,10 +387,7 @@ export class Chess {
    * ```
    */
   public fen(strict = false): string {
-    if (strict) {
-      return this.boardState.strictFen
-    }
-    return this.boardState.fen
+    return getFen(this.boardState, strict)
   }
 
   /**
@@ -476,7 +478,7 @@ export class Chess {
     const positions: Record<string, number> = {}
 
     const checkState = (state: Readonly<BoardState>): boolean => {
-      const key = state.fen.split(' ').slice(0, 4).join(' ')
+      const key = getFen(state).split(' ').slice(0, 4).join(' ')
 
       // Has the position occurred three or move times?
       positions[key] = key in positions ? positions[key] + 1 : 1
@@ -810,7 +812,7 @@ export class Chess {
     }
 
     // Create pretty move before updating the state
-    const prettyMove = this.boardState.toMove(validMove)
+    const prettyMove = hexToMove(this.boardState, validMove)
     if (!options.dry_run) {
       this.makeMove(validMove)
     }
@@ -844,7 +846,7 @@ export class Chess {
       if (!validMove) {
         return null
       }
-      validMoves.push(boardState.toMove(validMove))
+      validMoves.push(hexToMove(boardState, validMove))
       boardState = makeMove(boardState, validMove)
     }
     return validMoves
@@ -902,7 +904,7 @@ export class Chess {
    */
   public undo(): Move | null {
     const move = this.undoMove()
-    return move ? this.boardState.toMove(move) : null
+    return move ? hexToMove(this.boardState, move) : null
   }
 
   /**
@@ -1007,9 +1009,9 @@ export class Chess {
       .filter(isDefined)
 
     if (verbose) {
-      return nodes.map(({ prevState, move }) => prevState.toMove(move))
+      return nodes.map(({ prevState, move }) => hexToMove(prevState, move))
     }
-    return nodes.map(({ prevState, move }) => prevState.toSan(move))
+    return nodes.map(({ prevState, move }) => moveToSan(prevState, move))
   }
 
   /**
@@ -1217,7 +1219,7 @@ export class Chess {
 
   /** @internal */
   public perft(depth: number): number {
-    const moves = this.boardState.generateMoves({ legal: false })
+    const moves = generateMoves(this.boardState, { legal: false })
     let nodes = 0
     const color = this.boardState.turn
 
@@ -1258,7 +1260,7 @@ export class Chess {
    * @internal
    */
   protected updateSetup(): void {
-    const fen = this.boardState.fen
+    const fen = getFen(this.boardState)
     if (this._currentNode.parent) return
 
     if (fen !== DEFAULT_POSITION) {
@@ -1284,7 +1286,7 @@ export class Chess {
   protected makeMove(move: HexMove): void {
     const boardState = makeMove(this.boardState, move)
     this._currentNode = this._currentNode.addModel({
-      fen: boardState.fen,
+      fen: getFen(boardState),
       boardState,
       move,
     })
