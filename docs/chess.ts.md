@@ -23,9 +23,12 @@
 |  --- | --- |
 |  [algebraic(i)](./chess.ts.algebraic.md) | Converts a 0x88 square to algebraic notation. |
 |  [file(i)](./chess.ts.file.md) | Extracts the zero-based file of an 0x88 square. |
+|  [generateMoves(state, options)](./chess.ts.generatemoves.md) | Return all moves for a given board state. |
+|  [hexToMove(state, move)](./chess.ts.hextomove.md) | Converts a HexMove to a Move. |
 |  [isColor(color)](./chess.ts.iscolor.md) |  |
 |  [isPieceSymbol(symbol)](./chess.ts.ispiecesymbol.md) |  |
 |  [isSquare(sq)](./chess.ts.issquare.md) |  |
+|  [moveToSan(state, move, moves, options)](./chess.ts.movetosan.md) |  |
 |  [rank(i)](./chess.ts.rank.md) | Extracts the zero-based rank of an 0x88 square. |
 |  [sameDiagonal(sq1, sq2)](./chess.ts.samediagonal.md) | Tests if two squares are on the same diagonal. |
 |  [sameFile(sq1, sq2)](./chess.ts.samefile.md) | Tests if two squares are on the same file. |

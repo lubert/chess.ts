@@ -350,8 +350,12 @@ export function isLegal(state: BoardState, move: HexMove): boolean {
 }
 
 /**
- * Return all pseudo-legal moves, which includes moves that allow the king to
- * be captured. Legal moves or single square moves can be further filtered out.
+ * Return all moves for a given board state.
+ * @param options.legal[=true] - Filter by legal moves
+ * @param options.piece - Filter by piece type
+ * @param options.from - Filter by initial square
+ * @param options.to - Filter by target square
+ * @public
  */
 export function generateMoves(
   state: Readonly<BoardState>,
@@ -545,6 +549,7 @@ export function generateMoves(
 
 /*
  * Convert a move from 0x88 coordinates to Standard Algebraic Notation (SAN)
+ * @public
  */
 export function moveToSan(
   state: Readonly<BoardState>,
@@ -787,6 +792,10 @@ export function sanToMove(
   return null
 }
 
+/**
+ * Converts a HexMove to a Move.
+ * @public
+ */
 export function hexToMove(
   state: Readonly<BoardState>,
   move: Readonly<HexMove>,
