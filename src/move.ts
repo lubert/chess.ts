@@ -52,7 +52,7 @@ import {
 } from './utils'
 import { REGEXP_MOVE, REGEXP_NAG } from './regex'
 import { validateFen } from './fen'
-import { defaultBoardState } from './state'
+import { cloneBoardState, defaultBoardState } from './state'
 
 /* this function is used to uniquely identify ambiguous moves */
 export function getDisambiguator(
@@ -307,7 +307,7 @@ export function putPiece(
 ): BoardState | null {
   const { type, color } = piece
 
-  const state = structuredClone(prevState) as BoardState
+  const state = cloneBoardState(prevState)
   /* don't let the user place more than one king */
   const sq = SQUARES[square]
   if (
@@ -336,7 +336,7 @@ export function removePiece(
   const piece = prevState.board[square]
   if (!piece) return null
 
-  const state = structuredClone(prevState) as BoardState
+  const state = cloneBoardState(prevState)
   const { type, color } = piece
   if (type === KING) {
     state.kings[color] = EMPTY
@@ -948,7 +948,7 @@ export function makeMove(
   prevState: Readonly<BoardState>,
   move: Readonly<HexMove>,
 ): BoardState {
-  const state = structuredClone(prevState) as BoardState
+  const state = cloneBoardState(prevState)
   const us = state.turn
   const them = swapColor(us)
 

@@ -20,6 +20,18 @@ export function defaultBoardState(): BoardState {
   }
 }
 
+export function cloneBoardState(state: BoardState): BoardState {
+  return {
+    board: state.board.slice(),
+    kings: { ...state.kings },
+    turn: state.turn,
+    castling: { ...state.castling },
+    ep_square: state.ep_square,
+    half_moves: state.half_moves,
+    move_number: state.move_number,
+  }
+}
+
 export function fromBitState(state: BitState): BoardState {
   return {
     board: fromBitBoard(state.board),
