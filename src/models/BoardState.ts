@@ -7,16 +7,12 @@ import {
   BitState,
   Move,
   HexMove,
-  NibbleState,
-  NibblePiece,
 } from '../interfaces/types'
 import {
   fromBitBoard,
   fromCastlingBits,
-  fromNibbleBoard,
   toBitBoard,
   toCastlingBits,
-  toNibbleBoard,
 } from '../board'
 import { EMPTY, WHITE } from '../constants'
 import { hexToMove, generateMoves, getFen, moveToSan } from '../move'
@@ -83,39 +79,6 @@ export class BoardState {
   public toBitState(): BitState {
     return {
       board: toBitBoard(this.board),
-      wtm: this.turn === 'w',
-      ep_square: squareToBit(this.ep_square),
-      half_moves: this.half_moves,
-      move_number: this.move_number,
-      castling: toCastlingBits(this.castling),
-    }
-  }
-
-  public static fromNibbleState({
-    board,
-    castling,
-    wtm,
-    ep_square,
-    half_moves,
-    move_number,
-  }: NibbleState): BoardState {
-    return new BoardState(
-      fromNibbleBoard(board),
-      {
-        w: bitToSquare(board.indexOf(NibblePiece.WHITE_KING)),
-        b: bitToSquare(board.indexOf(NibblePiece.BLACK_KING)),
-      },
-      wtm ? 'w' : 'b',
-      fromCastlingBits(castling),
-      bitToSquare(ep_square),
-      half_moves,
-      move_number,
-    )
-  }
-
-  public toNibbleState(): NibbleState {
-    return {
-      board: toNibbleBoard(this.board),
       wtm: this.turn === 'w',
       ep_square: squareToBit(this.ep_square),
       half_moves: this.half_moves,

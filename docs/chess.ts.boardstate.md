@@ -37,10 +37,8 @@ export declare class BoardState
 |  --- | --- | --- |
 |  [clone()](./chess.ts.boardstate.clone.md) |  |  |
 |  [fromBitState({ board, castling, wtm, ep\_square, half\_moves, move\_number, })](./chess.ts.boardstate.frombitstate.md) | <code>static</code> |  |
-|  [fromNibbleState({ board, castling, wtm, ep\_square, half\_moves, move\_number, })](./chess.ts.boardstate.fromnibblestate.md) | <code>static</code> |  |
 |  [generateMoves(options)](./chess.ts.boardstate.generatemoves.md) |  |  |
 |  [toBitState()](./chess.ts.boardstate.tobitstate.md) |  |  |
 |  [toMove(hexMove)](./chess.ts.boardstate.tomove.md) |  |  |
-|  [toNibbleState()](./chess.ts.boardstate.tonibblestate.md) |  |  |
 |  [toSan(hexMove, moves, options)](./chess.ts.boardstate.tosan.md) |  |  |
 
