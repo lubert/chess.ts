@@ -2,43 +2,21 @@
 
 [Home](./index.md) &gt; [chess.ts](./chess.ts.md) &gt; [BoardState](./chess.ts.boardstate.md)
 
-## BoardState class
+## BoardState type
 
 
 **Signature:**
 
 ```typescript
-export declare class BoardState 
+export type BoardState = {
+    board: Board;
+    kings: ColorState;
+    turn: Color;
+    castling: ColorState;
+    ep_square: number;
+    half_moves: number;
+    move_number: number;
+};
 ```
-
-## Constructors
-
-|  Constructor | Modifiers | Description |
-|  --- | --- | --- |
-|  [(constructor)(board, kings, turn, castling, ep\_square, half\_moves, move\_number)](./chess.ts.boardstate._constructor_.md) |  | Constructs a new instance of the <code>BoardState</code> class |
-
-## Properties
-
-|  Property | Modifiers | Type | Description |
-|  --- | --- | --- | --- |
-|  [board](./chess.ts.boardstate.board.md) |  | Board |  |
-|  [castling](./chess.ts.boardstate.castling.md) |  | ColorState |  |
-|  [ep\_square](./chess.ts.boardstate.ep_square.md) |  | number |  |
-|  [fen](./chess.ts.boardstate.fen.md) | <code>readonly</code> | string |  |
-|  [half\_moves](./chess.ts.boardstate.half_moves.md) |  | number |  |
-|  [kings](./chess.ts.boardstate.kings.md) |  | ColorState |  |
-|  [move\_number](./chess.ts.boardstate.move_number.md) |  | number |  |
-|  [strictFen](./chess.ts.boardstate.strictfen.md) | <code>readonly</code> | string |  |
-|  [turn](./chess.ts.boardstate.turn.md) |  | [Color](./chess.ts.color.md) |  |
-
-## Methods
-
-|  Method | Modifiers | Description |
-|  --- | --- | --- |
-|  [clone()](./chess.ts.boardstate.clone.md) |  |  |
-|  [fromBitState({ board, castling, wtm, ep\_square, half\_moves, move\_number, })](./chess.ts.boardstate.frombitstate.md) | <code>static</code> |  |
-|  [generateMoves(options)](./chess.ts.boardstate.generatemoves.md) |  |  |
-|  [toBitState()](./chess.ts.boardstate.tobitstate.md) |  |  |
-|  [toMove(hexMove)](./chess.ts.boardstate.tomove.md) |  |  |
-|  [toSan(hexMove, moves, options)](./chess.ts.boardstate.tosan.md) |  |  |
+**References:** [Color](./chess.ts.color.md)
 

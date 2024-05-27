@@ -1,3 +1,4 @@
+import { TreeNode } from 'treenode.ts'
 import {
   BISHOP,
   BITS,
@@ -34,6 +35,7 @@ import {
   HexState,
   GameState,
   PieceSymbol,
+  BoardState,
 } from './interfaces/types'
 import {
   algebraic,
@@ -49,9 +51,8 @@ import {
   toSquare,
 } from './utils'
 import { REGEXP_MOVE, REGEXP_NAG } from './regex'
-import { BoardState } from './models/BoardState'
 import { validateFen } from './fen'
-import { TreeNode } from 'treenode.ts'
+import { defaultBoardState } from './state'
 
 /* this function is used to uniquely identify ambiguous moves */
 export function getDisambiguator(
@@ -220,7 +221,7 @@ export function loadFen(
     return null
   }
 
-  let state = new BoardState()
+  let state = defaultBoardState()
 
   for (let i = 0; i < position.length; i++) {
     let piece = position.charAt(i)
@@ -306,7 +307,7 @@ export function putPiece(
 ): BoardState | null {
   const { type, color } = piece
 
-  const state = prevState.clone()
+  const state = structuredClone(prevState) as BoardState
   /* don't let the user place more than one king */
   const sq = SQUARES[square]
   if (
@@ -335,7 +336,7 @@ export function removePiece(
   const piece = prevState.board[square]
   if (!piece) return null
 
-  const state = prevState.clone()
+  const state = structuredClone(prevState) as BoardState
   const { type, color } = piece
   if (type === KING) {
     state.kings[color] = EMPTY
@@ -554,7 +555,7 @@ export function generateMoves(
 export function moveToSan(
   state: Readonly<BoardState>,
   move: Readonly<HexMove>,
-  moves: HexMove[] = state.generateMoves({ piece: move.piece }),
+  moves: HexMove[] = generateMoves(state, { piece: move.piece }),
   options: { addPromotion?: boolean } = {},
 ): string {
   const { addPromotion = true } = options
@@ -656,13 +657,13 @@ export function sanToMove(
   const cleanMove = strippedSan(move)
   const pieceType = inferPieceType(cleanMove)
   const toSq = inferSquare(cleanMove, state)
-  let moves = state.generateMoves({ piece: pieceType, to: toSq })
+  let moves = generateMoves(state, { piece: pieceType, to: toSq })
 
   // strict parser
   let strippedMoves = []
   for (let i = 0, len = moves.length; i < len; i++) {
     const san = strippedSan(
-      state.toSan(moves[i], moves, { addPromotion: matchPromotion }),
+      moveToSan(state, moves[i], moves, { addPromotion: matchPromotion }),
     )
     if (cleanMove === san) return moves[i]
     strippedMoves.push(san)
@@ -738,14 +739,14 @@ export function sanToMove(
 
   // Regenerate the moves if the arguments don't match
   if (piece?.toLowerCase() !== pieceType || toSq !== to) {
-    moves = state.generateMoves({
+    moves = generateMoves(state, {
       piece: piece ? (piece.toLowerCase() as PieceSymbol) : pieceType,
       to,
     })
     strippedMoves = []
     for (let i = 0, len = moves.length; i < len; i++) {
       const san = strippedSan(
-        state.toSan(moves[i], moves, { addPromotion: matchPromotion }),
+        moveToSan(state, moves[i], moves, { addPromotion: matchPromotion }),
       )
       strippedMoves.push(san)
     }
@@ -813,7 +814,7 @@ export function hexToMove(
     color: move.color,
     flags,
     piece: move.piece,
-    san: state.toSan(move),
+    san: moveToSan(state, move),
     captured: move.captured,
     promotion: move.promotion,
   }
@@ -889,11 +890,11 @@ export function inCheck(state: Readonly<BoardState>): boolean {
 }
 
 export function inCheckmate(state: Readonly<BoardState>): boolean {
-  return inCheck(state) && state.generateMoves().length === 0
+  return inCheck(state) && generateMoves(state).length === 0
 }
 
 export function inStalemate(state: Readonly<BoardState>): boolean {
-  return !inCheck(state) && state.generateMoves().length === 0
+  return !inCheck(state) && generateMoves(state).length === 0
 }
 
 export function insufficientMaterial(state: Readonly<BoardState>): boolean {
@@ -947,7 +948,7 @@ export function makeMove(
   prevState: Readonly<BoardState>,
   move: Readonly<HexMove>,
 ): BoardState {
-  const state = prevState.clone()
+  const state = structuredClone(prevState) as BoardState
   const us = state.turn
   const them = swapColor(us)
 
@@ -1126,7 +1127,7 @@ export function validateMove(
     return sanToMove(state, move, options)
   } else if (typeof move === 'object') {
     const square = isSquare(move.from) ? move.from : undefined
-    const moves = state.generateMoves({ from: square, to: move.to })
+    const moves = generateMoves(state, { from: square, to: move.to })
     // Find a matching move
     for (let i = 0; i < moves.length; i++) {
       const m = moves[i]
@@ -1148,7 +1149,7 @@ export function validateMove(
 export function nodeMove(node: TreeNode<HexState>): Move | null {
   // Need a parent board state to return a valid move
   if (node.model.move && node.parent?.model) {
-    return node.parent.model.boardState.toMove(node.model.move)
+    return hexToMove(node.parent.model.boardState, node.model.move)
   }
   return null
 }
