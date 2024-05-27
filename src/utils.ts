@@ -18,6 +18,22 @@ export function file(i: number): number {
 }
 
 /**
+ * Tests if two squares are on the same file.
+ * @public
+ */
+export function sameFile(sq1: number, sq2: number): boolean {
+  return (sq1 & 0x0f) === (sq2 & 0x0f)
+}
+
+/**
+ * Tests if two squares are on the same rank.
+ * @public
+ */
+export function sameRank(sq1: number, sq2: number): boolean {
+  return (sq1 & 0xf0) === (sq2 & 0xf0)
+}
+
+/**
  * Converts a 0x88 square to algebraic notation.
  * @public
  */

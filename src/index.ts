@@ -33,6 +33,8 @@ export {
 export {
   rank,
   file,
+  sameRank,
+  sameFile,
   algebraic,
   isColor,
   isPieceSymbol,
