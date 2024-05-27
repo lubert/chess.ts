@@ -1,4 +1,4 @@
-import { BLACK, WHITE, SQUARES } from './constants'
+import { BLACK, WHITE } from './constants'
 import { Color, FlagKey, Piece, PieceSymbol, Square } from './interfaces/types'
 
 /**
@@ -22,7 +22,7 @@ export function file(i: number): number {
  * @public
  */
 export function sameFile(sq1: number, sq2: number): boolean {
-  return (sq1 & 0x0f) === (sq2 & 0x0f)
+  return rank(sq1) === rank(sq2)
 }
 
 /**
@@ -30,7 +30,39 @@ export function sameFile(sq1: number, sq2: number): boolean {
  * @public
  */
 export function sameRank(sq1: number, sq2: number): boolean {
-  return (sq1 & 0xf0) === (sq2 & 0xf0)
+  return file(sq1) === file(sq2)
+}
+
+/**
+ * Tests if two squares are on the same rank or file.
+ * @public
+ */
+export function sameRankOrFile(sq1: number, sq2: number): boolean {
+  return sameRank(sq1, sq2) || sameFile(sq1, sq2)
+}
+
+/**
+ * Tests if two squares are on the same major diagonal.
+ * @public
+ */
+export function sameMajorDiagonal(sq1: number, sq2: number): boolean {
+  return rank(sq1) - file(sq1) === rank(sq2) - file(sq2)
+}
+
+/**
+ * Tests if two squares are on the same minor diagonal.
+ * @public
+ */
+export function sameMinorDiagonal(sq1: number, sq2: number): boolean {
+  return rank(sq1) + file(sq1) === rank(sq2) + file(sq2)
+}
+
+/**
+ * Tests if two squares are on the same diagonal.
+ * @public
+ */
+export function sameDiagonal(sq1: number, sq2: number): boolean {
+  return sameMajorDiagonal(sq1, sq2) || sameMinorDiagonal(sq1, sq2)
 }
 
 /**

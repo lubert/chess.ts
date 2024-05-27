@@ -28,8 +28,12 @@
 |  [isPieceSymbol(symbol)](./chess.ts.ispiecesymbol.md) |  |
 |  [isSquare(sq)](./chess.ts.issquare.md) |  |
 |  [rank(i)](./chess.ts.rank.md) | Extracts the zero-based rank of an 0x88 square. |
+|  [sameDiagonal(sq1, sq2)](./chess.ts.samediagonal.md) | Tests if two squares are on the same diagonal. |
 |  [sameFile(sq1, sq2)](./chess.ts.samefile.md) | Tests if two squares are on the same file. |
+|  [sameMajorDiagonal(sq1, sq2)](./chess.ts.samemajordiagonal.md) | Tests if two squares are on the same major diagonal. |
+|  [sameMinorDiagonal(sq1, sq2)](./chess.ts.sameminordiagonal.md) | Tests if two squares are on the same minor diagonal. |
 |  [sameRank(sq1, sq2)](./chess.ts.samerank.md) | Tests if two squares are on the same rank. |
+|  [sameRankOrFile(sq1, sq2)](./chess.ts.samerankorfile.md) | Tests if two squares are on the same rank or file. |
 
 ## Variables
 
