@@ -517,9 +517,9 @@ export function generateMoves(
         if (
           !state.board[castlingFrom + 1] &&
           !state.board[castlingTo] &&
-          !isAttacked(state, them, state.kings[state.turn]) &&
-          !isAttacked(state, them, castlingFrom + 1) &&
-          !isAttacked(state, them, castlingTo)
+          !isAttacked(state, state.kings[state.turn]) &&
+          !isAttacked(state, castlingFrom + 1) &&
+          !isAttacked(state, castlingTo)
         ) {
           addMove(KING, state.kings[state.turn], castlingTo, BITS.KSIDE_CASTLE)
         }
@@ -534,9 +534,9 @@ export function generateMoves(
           !state.board[castlingFrom - 1] &&
           !state.board[castlingFrom - 2] &&
           !state.board[castlingFrom - 3] &&
-          !isAttacked(state, them, state.kings[state.turn]) &&
-          !isAttacked(state, them, castlingFrom - 1) &&
-          !isAttacked(state, them, castlingTo)
+          !isAttacked(state, state.kings[state.turn]) &&
+          !isAttacked(state, castlingFrom - 1) &&
+          !isAttacked(state, castlingTo)
         ) {
           addMove(KING, state.kings[state.turn], castlingTo, BITS.QSIDE_CASTLE)
         }
@@ -820,10 +820,17 @@ export function hexToMove(
   }
 }
 
+/**
+ * Checks if a square is attacked. If an attacking color is not provided, the opposite color of the piece on the square or the current turn is used.
+ *
+ * @param state - Board state
+ * @param square - Square to check
+ * @param color - Color of the attacking side
+ */
 export function isAttacked(
   state: Readonly<BoardState>,
-  color: Color,
   square: number,
+  color: Color = swapColor(state.board[square]?.color || state.turn),
 ): boolean {
   if (square & 0x88) return false
 
@@ -882,7 +889,7 @@ export function isKingAttacked(
   state: Readonly<BoardState>,
   color: Color,
 ): boolean {
-  return isAttacked(state, swapColor(color), state.kings[color])
+  return isAttacked(state, state.kings[color])
 }
 
 export function inCheck(state: Readonly<BoardState>): boolean {

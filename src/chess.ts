@@ -1,6 +1,5 @@
 import { TreeNode } from 'treenode.ts'
 import {
-  isAttacked,
   makeMove,
   putPiece,
   loadFen,
@@ -19,6 +18,7 @@ import {
   hexToMove,
   moveToSan,
   getFen,
+  isKingAttacked,
 } from './move'
 import { Nag } from './interfaces/nag'
 import { loadPgn, getPgn } from './pgn'
@@ -42,7 +42,6 @@ import {
   isSquare,
   isDefined,
   rank,
-  swapColor,
 } from './utils'
 import { DEFAULT_POSITION, SQUARES, BITS } from './constants'
 import { FenErrorType, validateFen } from './fen'
@@ -1225,7 +1224,7 @@ export class Chess {
 
     for (let i = 0, len = moves.length; i < len; i++) {
       this.makeMove(moves[i])
-      if (!this.kingAttacked(color)) {
+      if (!isKingAttacked(this.boardState, color)) {
         if (depth - 1 > 0) {
           const child_nodes = this.perft(depth - 1)
           nodes += child_nodes
@@ -1270,16 +1269,6 @@ export class Chess {
       delete this.header['SetUp']
       delete this.header['FEN']
     }
-  }
-
-  /** @internal */
-  protected attacked(color: Color, square: number): boolean {
-    return isAttacked(this.boardState, color, square)
-  }
-
-  /** @internal */
-  protected kingAttacked(color: Color): boolean {
-    return this.attacked(swapColor(color), this.boardState.kings[color])
   }
 
   /** @internal */
