@@ -11,6 +11,13 @@ describe('move', () => {
         expect(isAttackedBy(state, SQUARES.f3, SQUARES.e2)).toBe(true)
         expect(isAttackedBy(state, SQUARES.e2, SQUARES.f3)).toBe(true)
       })
+
+      it('returns false if square is not attacked by a pawn', () => {
+        const state = loadFen('8/8/8/8/8/4p3/4P3/8 w KQkq - 0 1')
+        if (!state) throw new Error('state is undefined')
+        expect(isAttackedBy(state, SQUARES.e3, SQUARES.e2)).toBe(false)
+        expect(isAttackedBy(state, SQUARES.e2, SQUARES.e3)).toBe(false)
+      })
     })
   })
 
