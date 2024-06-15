@@ -1,7 +1,19 @@
-import { extractMove } from '../src/move'
+import { extractMove, isAttackedBy, loadFen } from '../src/move'
 import { ParsedMove } from '../src/interfaces/types'
+import { SQUARES } from '../src/constants'
 
 describe('move', () => {
+  describe.only('isAttackedBy', () => {
+    describe('pawn', () => {
+      it('returns true if square is attacked by a pawn', () => {
+        const state = loadFen('8/8/8/8/8/5p2/4P3/8 w KQkq - 0 1')
+        if (!state) throw new Error('state is undefined')
+        expect(isAttackedBy(state, SQUARES.f3, SQUARES.e2)).toBe(true)
+        expect(isAttackedBy(state, SQUARES.e2, SQUARES.f3)).toBe(true)
+      })
+    })
+  })
+
   describe('extractMove', () => {
     interface ExtractMoveExample {
       token: string

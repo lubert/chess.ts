@@ -827,19 +827,27 @@ export function isAttackedBy(
   square: number,
   bySquare: number,
 ): boolean {
-  if (square & 0x88 || bySquare & 0x88) return false
+  if (square & 0x88 || bySquare & 0x88) {
+    return false
+  }
 
   // Check if there is an attacking piece
   const byPiece = state.board[bySquare]
-  if (!byPiece) return false
+  if (!byPiece) {
+    return false
+  }
 
   // Check if the target square is occupied by the same color
-  if (state.board[square]?.color === byPiece.color) return false
+  if (state.board[square]?.color === byPiece.color) {
+    return false
+  }
 
   const { type: byType } = byPiece
   switch (byType) {
     case PAWN:
-      break
+      return PAWN_ATTACK_OFFSETS[byPiece.color]
+        .map((offset) => square + offset)
+        .includes(bySquare)
     case KNIGHT:
       break
     case BISHOP:
