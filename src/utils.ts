@@ -65,6 +65,19 @@ export function sameDiagonal(sq1: number, sq2: number): boolean {
   return sameMajorDiagonal(sq1, sq2) || sameMinorDiagonal(sq1, sq2)
 }
 
+export function diagonalOffset(
+  fromSquare: number,
+  toSquare: number,
+): number | undefined {
+  const fileDiff = (toSquare % 16) - (fromSquare % 16)
+  const rankDiff = Math.floor(fromSquare / 16) - Math.floor(toSquare / 16)
+
+  if (Math.abs(fileDiff) !== Math.abs(rankDiff)) return
+  if (fileDiff === 0) return 0
+
+  return Math.sign(fileDiff) + (rankDiff > 0 ? -16 : 16)
+}
+
 /**
  * Converts a 0x88 square to algebraic notation.
  * @public
