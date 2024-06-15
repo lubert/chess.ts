@@ -78,6 +78,25 @@ export function diagonalOffset(
   return Math.sign(fileDiff) + (rankDiff > 0 ? -16 : 16)
 }
 
+export function linearOffset(
+  fromSquare: number,
+  toSquare: number,
+): number | undefined {
+  const toFile = file(toSquare)
+  const fromFile = file(fromSquare)
+  const toRank = rank(toSquare)
+  const fromRank = rank(fromSquare)
+  if (toRank === fromRank) {
+    if (toFile === fromFile) return 0
+    return toFile > fromFile ? 1 : -1
+  }
+  if (toFile === fromFile) {
+    if (toRank === fromRank) return 0
+    return toRank > fromRank ? 16 : -16
+  }
+  return
+}
+
 /**
  * Converts a 0x88 square to algebraic notation.
  * @public

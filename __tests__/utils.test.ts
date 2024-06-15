@@ -1,4 +1,9 @@
-import { bitToSquare, squareToBit, diagonalOffset } from '../src/utils'
+import {
+  bitToSquare,
+  squareToBit,
+  diagonalOffset,
+  linearOffset,
+} from '../src/utils'
 import { BIT_SQUARES, SQUARES } from '../src/constants'
 import { Square } from '../src/interfaces/types'
 
@@ -46,5 +51,36 @@ describe('diagonalOffset', () => {
     // Left
     expect(diagonalOffset(SQUARES.c6, SQUARES.b6)).toBeUndefined()
     expect(diagonalOffset(SQUARES.c6, SQUARES.a6)).toBeUndefined()
+  })
+})
+
+describe('linearOffset', () => {
+  it('should return the correct linear offset', () => {
+    // Same square
+    expect(linearOffset(SQUARES.c6, SQUARES.c6)).toBe(0)
+    // Top-left
+    expect(linearOffset(SQUARES.c6, SQUARES.b7)).toBeUndefined()
+    expect(linearOffset(SQUARES.c6, SQUARES.a8)).toBeUndefined()
+    // Top
+    expect(linearOffset(SQUARES.c6, SQUARES.c7)).toBe(-16)
+    expect(linearOffset(SQUARES.c6, SQUARES.c8)).toBe(-16)
+    // Top-right
+    expect(linearOffset(SQUARES.c6, SQUARES.d7)).toBeUndefined()
+    expect(linearOffset(SQUARES.c6, SQUARES.e8)).toBeUndefined()
+    // Right
+    expect(linearOffset(SQUARES.c6, SQUARES.d6)).toBe(1)
+    expect(linearOffset(SQUARES.c6, SQUARES.e6)).toBe(1)
+    // Bottom-right
+    expect(linearOffset(SQUARES.c6, SQUARES.d5)).toBeUndefined()
+    expect(linearOffset(SQUARES.c6, SQUARES.e4)).toBeUndefined()
+    // Bottom
+    expect(linearOffset(SQUARES.c6, SQUARES.c5)).toBe(16)
+    expect(linearOffset(SQUARES.c6, SQUARES.c4)).toBe(16)
+    // Bottom-left
+    expect(linearOffset(SQUARES.c6, SQUARES.b5)).toBeUndefined()
+    expect(linearOffset(SQUARES.c6, SQUARES.a4)).toBeUndefined()
+    // Left
+    expect(linearOffset(SQUARES.c6, SQUARES.b6)).toBe(-1)
+    expect(linearOffset(SQUARES.c6, SQUARES.a6)).toBe(-1)
   })
 })
