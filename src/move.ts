@@ -849,7 +849,9 @@ export function isAttackedBy(
         .map((offset) => square + offset)
         .includes(bySquare)
     case KNIGHT:
-      break
+      return PIECE_OFFSETS[KNIGHT].map((offset) => square + offset).includes(
+        bySquare,
+      )
     case BISHOP:
       if (!sameDiagonal(square, bySquare)) return false
       break

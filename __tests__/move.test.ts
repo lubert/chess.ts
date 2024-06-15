@@ -17,6 +17,26 @@ describe('move', () => {
         expect(isAttackedBy(state, SQUARES.e2, SQUARES.e3)).toBe(false)
       })
     })
+
+    describe('knight', () => {
+      it('returns whether a square is attacked by a knight', () => {
+        const state = loadFen('8/8/3n1n2/2n3n1/4P3/2n3n1/3n1n2/8 w KQkq - 0 1')
+        if (!state) throw new Error('state is undefined')
+        const attackSquares = [
+          SQUARES.f2,
+          SQUARES.g3,
+          SQUARES.g5,
+          SQUARES.f6,
+          SQUARES.d6,
+          SQUARES.c5,
+          SQUARES.c3,
+          SQUARES.d2,
+        ]
+        attackSquares.forEach((square) => {
+          expect(isAttackedBy(state, SQUARES.e4, square)).toBe(true)
+        })
+      })
+    })
   })
 
   describe('extractMove', () => {
