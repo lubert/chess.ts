@@ -69,8 +69,8 @@ export function diagonalOffset(
   fromSquare: number,
   toSquare: number,
 ): number | undefined {
-  const fileDiff = (toSquare % 16) - (fromSquare % 16)
-  const rankDiff = Math.floor(fromSquare / 16) - Math.floor(toSquare / 16)
+  const fileDiff = file(toSquare) - file(fromSquare)
+  const rankDiff = rank(fromSquare) - rank(toSquare)
 
   if (Math.abs(fileDiff) !== Math.abs(rankDiff)) return
   if (fileDiff === 0) return 0
