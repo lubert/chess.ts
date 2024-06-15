@@ -45,6 +45,8 @@ import {
   isPieceSymbol,
   isSquare,
   rank,
+  sameDiagonal,
+  sameRankOrFile,
   swapColor,
   symbol,
   toPieceSymbol,
@@ -820,8 +822,45 @@ export function hexToMove(
   }
 }
 
+export function isAttackedBy(
+  state: Readonly<BoardState>,
+  square: number,
+  bySquare: number,
+): boolean {
+  if (square & 0x88 || bySquare & 0x88) return false
+
+  // Check if there is an attacking piece
+  const byPiece = state.board[bySquare]
+  if (!byPiece) return false
+
+  // Check if the target square is occupied by the same color
+  if (state.board[square]?.color === byPiece.color) return false
+
+  const { type: byType } = byPiece
+  switch (byType) {
+    case PAWN:
+      break
+    case KNIGHT:
+      break
+    case BISHOP:
+      if (!sameDiagonal(square, bySquare)) return false
+      break
+    case ROOK:
+      if (!sameRankOrFile(square, bySquare)) return false
+      break
+    case QUEEN:
+      if (!sameRankOrFile(square, bySquare) || !sameDiagonal(square, bySquare))
+        return false
+      break
+    case KING:
+      break
+  }
+
+  return false
+}
+
 /**
- * Checks if a square is attacked. If an attacking color is not provided, the opposite color of the piece on the square or the current turn is used.
+ * Checks if a square is attacked. If an attacking color is not provided, the opposite color of the piece on the square or the current turn is used. This function does not check if the attacking piece is pinned.
  *
  * @param state - Board state
  * @param square - Square to check
