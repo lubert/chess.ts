@@ -39,15 +39,15 @@ import {
 } from './interfaces/types'
 import {
   algebraic,
-  diagonalOffset,
+  diagonalSquaresBetween,
   file,
   isDigit,
   isFlagKey,
   isPieceSymbol,
   isSquare,
-  linearOffset,
+  linearSquaresBetween,
   rank,
-  squaresByOffset,
+  squaresBetween,
   swapColor,
   symbol,
   toPieceSymbol,
@@ -858,27 +858,16 @@ export function isAttackedBy(
         .map((offset) => targetSquare + offset)
         .includes(attackerSquare)
     case BISHOP: {
-      const offset = diagonalOffset(attackerSquare, targetSquare)
-      if (!offset) return false
-      return squaresByOffset(attackerSquare, targetSquare, offset).every(
-        (sq) => !state.board[sq],
-      )
+      const squares = diagonalSquaresBetween(attackerSquare, targetSquare)
+      return !!squares.length && squares.every((sq) => !state.board[sq])
     }
     case ROOK: {
-      const offset = linearOffset(attackerSquare, targetSquare)
-      if (!offset) return false
-      return squaresByOffset(attackerSquare, targetSquare, offset).every(
-        (sq) => !state.board[sq],
-      )
+      const squares = linearSquaresBetween(attackerSquare, targetSquare)
+      return !!squares.length && squares.every((sq) => !state.board[sq])
     }
     case QUEEN: {
-      const offset =
-        linearOffset(attackerSquare, targetSquare) ||
-        diagonalOffset(attackerSquare, targetSquare)
-      if (!offset) return false
-      return squaresByOffset(attackerSquare, targetSquare, offset).every(
-        (sq) => !state.board[sq],
-      )
+      const squares = squaresBetween(attackerSquare, targetSquare)
+      return !!squares.length && squares.every((sq) => !state.board[sq])
     }
   }
 

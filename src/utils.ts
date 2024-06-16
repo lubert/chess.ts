@@ -122,6 +122,41 @@ export function squaresByOffset(
 }
 
 /**
+ * Returns the squares between two squares on the same diagonal.
+ */
+export function diagonalSquaresBetween(
+  fromSquare: number,
+  toSquare: number,
+): number[] {
+  const offset = diagonalOffset(fromSquare, toSquare)
+  if (offset === undefined) return []
+  return squaresByOffset(fromSquare, toSquare, offset)
+}
+
+/**
+ * Returns the squares between two squares on the same rank or file.
+ */
+export function linearSquaresBetween(
+  fromSquare: number,
+  toSquare: number,
+): number[] {
+  const offset = linearOffset(fromSquare, toSquare)
+  if (offset === undefined) return []
+  return squaresByOffset(fromSquare, toSquare, offset)
+}
+
+/**
+ * Returns the squares between two squares on the same diagonal, rank, or file.
+ */
+export function squaresBetween(fromSquare: number, toSquare: number): number[] {
+  if (sameDiagonal(fromSquare, toSquare))
+    return diagonalSquaresBetween(fromSquare, toSquare)
+  if (sameRankOrFile(fromSquare, toSquare))
+    return linearSquaresBetween(fromSquare, toSquare)
+  return []
+}
+
+/**
  * Converts a 0x88 square to algebraic notation.
  * @public
  */
