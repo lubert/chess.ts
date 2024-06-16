@@ -65,6 +65,9 @@ export function sameDiagonal(sq1: number, sq2: number): boolean {
   return sameMajorDiagonal(sq1, sq2) || sameMinorDiagonal(sq1, sq2)
 }
 
+/**
+ * Returns the diagonal offset direction between two squares.
+ */
 export function diagonalOffset(
   fromSquare: number,
   toSquare: number,
@@ -78,6 +81,9 @@ export function diagonalOffset(
   return Math.sign(fileDiff) + (rankDiff > 0 ? -16 : 16)
 }
 
+/**
+ * Returns the linear offset direction between two squares.
+ */
 export function linearOffset(
   fromSquare: number,
   toSquare: number,
@@ -95,6 +101,24 @@ export function linearOffset(
     return toRank > fromRank ? 16 : -16
   }
   return
+}
+
+/**
+ * Returns intermediate squares given an offset. If the board is exceeded before reaching the target square, an empty array is returned.
+ */
+export function squaresByOffset(
+  fromSquare: number,
+  toSquare: number,
+  offset: number,
+): number[] {
+  const offsets = []
+  let sq = fromSquare + offset
+  while (sq !== toSquare) {
+    if (sq & 0x88) return []
+    offsets.push(sq)
+    sq += offset
+  }
+  return offsets
 }
 
 /**

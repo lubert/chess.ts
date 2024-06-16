@@ -3,6 +3,7 @@ import {
   squareToBit,
   diagonalOffset,
   linearOffset,
+  squaresByOffset,
 } from '../src/utils'
 import { BIT_SQUARES, SQUARES } from '../src/constants'
 import { Square } from '../src/interfaces/types'
@@ -82,5 +83,31 @@ describe('linearOffset', () => {
     // Left
     expect(linearOffset(SQUARES.c6, SQUARES.b6)).toBe(-1)
     expect(linearOffset(SQUARES.c6, SQUARES.a6)).toBe(-1)
+  })
+})
+
+describe('squaresByOffset', () => {
+  it('should return the correct squares by linear offset', () => {
+    expect(squaresByOffset(SQUARES.a8, SQUARES.h8, 1)).toEqual([
+      SQUARES.b8,
+      SQUARES.c8,
+      SQUARES.d8,
+      SQUARES.e8,
+      SQUARES.f8,
+      SQUARES.g8,
+    ])
+    expect(squaresByOffset(SQUARES.a8, SQUARES.h8, 16)).toEqual([])
+  })
+
+  it('should return the correct squares by diagonal offset', () => {
+    expect(squaresByOffset(SQUARES.a8, SQUARES.h1, 17)).toEqual([
+      SQUARES.b7,
+      SQUARES.c6,
+      SQUARES.d5,
+      SQUARES.e4,
+      SQUARES.f3,
+      SQUARES.g2,
+    ])
+    expect(squaresByOffset(SQUARES.a8, SQUARES.h1, 16)).toEqual([])
   })
 })
