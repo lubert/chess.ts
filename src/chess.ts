@@ -19,6 +19,8 @@ import {
   moveToSan,
   getFen,
   isKingAttacked,
+  isAttacked,
+  isAttackedBy,
 } from './move'
 import { Nag } from './interfaces/nag'
 import { loadPgn, getPgn } from './pgn'
@@ -1202,6 +1204,28 @@ export class Chess {
     options?: { positionOnly?: boolean; legal?: boolean },
   ): Partial<Record<FenErrorType, string>> {
     return validateFen(fen, options)
+  }
+
+  /**
+   * Checks if a square is attacked by any piece
+   * @param square - Square to check
+   * @param color - Color of the attacking pieces
+   */
+  public isAttacked(square: Square, color?: Color): boolean {
+    return isAttacked(this.boardState, SQUARES[square], color)
+  }
+
+  /**
+   * Checks if a square is attacked by a piece on another square
+   * @param targetSquare - Square to check
+   * @param attackerSquare - Square of the attacking piece
+   */
+  public isAttackedBy(targetSquare: Square, attackerSquare: Square): boolean {
+    return isAttackedBy(
+      this.boardState,
+      SQUARES[targetSquare],
+      SQUARES[attackerSquare],
+    )
   }
 
   /** @internal */
