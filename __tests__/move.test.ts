@@ -37,6 +37,18 @@ describe('move', () => {
         })
       })
     })
+
+    describe('bishop', () => {
+      it('returns whether a square is attacked by a bishop', () => {
+        const state = loadFen('b7/7b/8/8/4P2b/8/8/1b5b w KQkq - 0 1')
+        if (!state) throw new Error('state is undefined')
+        const attackSquares = [SQUARES.a8, SQUARES.h7, SQUARES.h1, SQUARES.b1]
+        attackSquares.forEach((square) => {
+          expect(isAttackedBy(state, SQUARES.e4, square)).toBe(true)
+        })
+        expect(isAttackedBy(state, SQUARES.e4, SQUARES.h4)).toBe(false)
+      })
+    })
   })
 
   describe('extractMove', () => {

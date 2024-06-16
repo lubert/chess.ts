@@ -39,14 +39,15 @@ import {
 } from './interfaces/types'
 import {
   algebraic,
+  diagonalOffset,
   file,
   isDigit,
   isFlagKey,
   isPieceSymbol,
   isSquare,
+  linearOffset,
   rank,
-  sameDiagonal,
-  sameRankOrFile,
+  squaresByOffset,
   swapColor,
   symbol,
   toPieceSymbol,
@@ -822,23 +823,26 @@ export function hexToMove(
   }
 }
 
+/**
+ * Checks if a square is attacked by a given square
+ */
 export function isAttackedBy(
   state: Readonly<BoardState>,
-  square: number,
-  bySquare: number,
+  targetSquare: number,
+  attackerSquare: number,
 ): boolean {
-  if (square & 0x88 || bySquare & 0x88) {
+  if (targetSquare & 0x88 || attackerSquare & 0x88) {
     return false
   }
 
   // Check if there is an attacking piece
-  const byPiece = state.board[bySquare]
+  const byPiece = state.board[attackerSquare]
   if (!byPiece) {
     return false
   }
 
   // Check if the target square is occupied by the same color
-  if (state.board[square]?.color === byPiece.color) {
+  if (state.board[targetSquare]?.color === byPiece.color) {
     return false
   }
 
@@ -846,24 +850,36 @@ export function isAttackedBy(
   switch (byType) {
     case PAWN:
       return PAWN_ATTACK_OFFSETS[byPiece.color]
-        .map((offset) => square + offset)
-        .includes(bySquare)
+        .map((offset) => targetSquare + offset)
+        .includes(attackerSquare)
     case KNIGHT:
-      return PIECE_OFFSETS[KNIGHT].map((offset) => square + offset).includes(
-        bySquare,
-      )
-    case BISHOP:
-      if (!sameDiagonal(square, bySquare)) return false
-      break
-    case ROOK:
-      if (!sameRankOrFile(square, bySquare)) return false
-      break
-    case QUEEN:
-      if (!sameRankOrFile(square, bySquare) || !sameDiagonal(square, bySquare))
-        return false
-      break
     case KING:
-      break
+      return PIECE_OFFSETS[byType]
+        .map((offset) => targetSquare + offset)
+        .includes(attackerSquare)
+    case BISHOP: {
+      const offset = diagonalOffset(targetSquare, attackerSquare)
+      if (!offset) return false
+      return squaresByOffset(attackerSquare, targetSquare, offset).every(
+        (sq) => !state.board[sq],
+      )
+    }
+    case ROOK: {
+      const offset = linearOffset(targetSquare, attackerSquare)
+      if (!offset) return false
+      return squaresByOffset(attackerSquare, targetSquare, offset).every(
+        (sq) => !state.board[sq],
+      )
+    }
+    case QUEEN: {
+      const offset =
+        linearOffset(targetSquare, attackerSquare) ||
+        diagonalOffset(targetSquare, attackerSquare)
+      if (!offset) return false
+      return squaresByOffset(attackerSquare, targetSquare, offset).every(
+        (sq) => !state.board[sq],
+      )
+    }
   }
 
   return false
