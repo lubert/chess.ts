@@ -825,6 +825,10 @@ export function hexToMove(
 
 /**
  * Checks if a square is attacked by a given square
+ * @param state - Board state
+ * @param targetSquare - Target square
+ * @param attackerSquare - Attacker square
+ * @public
  */
 export function isAttackedBy(
   state: Readonly<BoardState>,
@@ -880,6 +884,7 @@ export function isAttackedBy(
  * @param state - Board state
  * @param square - Square to check
  * @param color - Color of the attacking side
+ * @public
  */
 export function isAttacked(
   state: Readonly<BoardState>,

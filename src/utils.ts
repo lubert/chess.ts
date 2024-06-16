@@ -67,6 +67,7 @@ export function sameDiagonal(sq1: number, sq2: number): boolean {
 
 /**
  * Returns the diagonal offset direction between two squares.
+ * @public
  */
 export function diagonalOffset(
   fromSquare: number,
@@ -83,6 +84,7 @@ export function diagonalOffset(
 
 /**
  * Returns the linear offset direction between two squares.
+ * @public
  */
 export function linearOffset(
   fromSquare: number,
@@ -105,6 +107,7 @@ export function linearOffset(
 
 /**
  * Returns intermediate squares given an offset. If the board is exceeded before reaching the target square, an empty array is returned.
+ * @public
  */
 export function squaresByOffset(
   fromSquare: number,
@@ -123,6 +126,7 @@ export function squaresByOffset(
 
 /**
  * Returns the squares between two squares on the same diagonal.
+ * @public
  */
 export function diagonalSquaresBetween(
   fromSquare: number,
@@ -135,6 +139,7 @@ export function diagonalSquaresBetween(
 
 /**
  * Returns the squares between two squares on the same rank or file.
+ * @public
  */
 export function linearSquaresBetween(
   fromSquare: number,
@@ -147,6 +152,7 @@ export function linearSquaresBetween(
 
 /**
  * Returns the squares between two squares on the same diagonal, rank, or file.
+ * @public
  */
 export function squaresBetween(fromSquare: number, toSquare: number): number[] {
   if (sameDiagonal(fromSquare, toSquare))

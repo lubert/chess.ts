@@ -24,6 +24,8 @@
 |  [file(i)](./chess.ts.file.md) | Extracts the zero-based file of an 0x88 square. |
 |  [generateMoves(state, options)](./chess.ts.generatemoves.md) | Return all moves for a given board state. |
 |  [hexToMove(state, move)](./chess.ts.hextomove.md) | Converts a HexMove to a Move. |
+|  [isAttacked(state, square, color)](./chess.ts.isattacked.md) | Checks if a square is attacked. If an attacking color is not provided, the opposite color of the piece on the square or the current turn is used. This function does not check if the attacking piece is pinned. |
+|  [isAttackedBy(state, targetSquare, attackerSquare)](./chess.ts.isattackedby.md) | Checks if a square is attacked by a given square |
 |  [isColor(color)](./chess.ts.iscolor.md) |  |
 |  [isPieceSymbol(symbol)](./chess.ts.ispiecesymbol.md) |  |
 |  [isSquare(sq)](./chess.ts.issquare.md) |  |

@@ -42,4 +42,10 @@ export {
   isPieceSymbol,
   isSquare,
 } from './utils'
-export { hexToMove, generateMoves, moveToSan } from './move'
+export {
+  hexToMove,
+  generateMoves,
+  moveToSan,
+  isAttacked,
+  isAttackedBy,
+} from './move'
