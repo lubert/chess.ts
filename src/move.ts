@@ -858,14 +858,14 @@ export function isAttackedBy(
         .map((offset) => targetSquare + offset)
         .includes(attackerSquare)
     case BISHOP: {
-      const offset = diagonalOffset(targetSquare, attackerSquare)
+      const offset = diagonalOffset(attackerSquare, targetSquare)
       if (!offset) return false
       return squaresByOffset(attackerSquare, targetSquare, offset).every(
         (sq) => !state.board[sq],
       )
     }
     case ROOK: {
-      const offset = linearOffset(targetSquare, attackerSquare)
+      const offset = linearOffset(attackerSquare, targetSquare)
       if (!offset) return false
       return squaresByOffset(attackerSquare, targetSquare, offset).every(
         (sq) => !state.board[sq],
@@ -873,8 +873,8 @@ export function isAttackedBy(
     }
     case QUEEN: {
       const offset =
-        linearOffset(targetSquare, attackerSquare) ||
-        diagonalOffset(targetSquare, attackerSquare)
+        linearOffset(attackerSquare, targetSquare) ||
+        diagonalOffset(attackerSquare, targetSquare)
       if (!offset) return false
       return squaresByOffset(attackerSquare, targetSquare, offset).every(
         (sq) => !state.board[sq],

@@ -3,7 +3,7 @@ import { ParsedMove } from '../src/interfaces/types'
 import { SQUARES } from '../src/constants'
 
 describe('move', () => {
-  describe.only('isAttackedBy', () => {
+  describe('isAttackedBy', () => {
     describe('pawn', () => {
       it('returns whether a square is attacked by a pawn', () => {
         const state = loadFen('8/8/8/8/8/3ppp2/4P3/8 w KQkq - 0 1')
@@ -40,13 +40,88 @@ describe('move', () => {
 
     describe('bishop', () => {
       it('returns whether a square is attacked by a bishop', () => {
-        const state = loadFen('b7/7b/8/8/4P2b/8/8/1b5b w KQkq - 0 1')
+        const state = loadFen(
+          '8/1b5b/2b1b1b1/8/2b1P1b1/8/2b1b1b1/1b5b w KQkq - 0 1',
+        )
         if (!state) throw new Error('state is undefined')
-        const attackSquares = [SQUARES.a8, SQUARES.h7, SQUARES.h1, SQUARES.b1]
+        const attackSquares = [SQUARES.c2, SQUARES.c6, SQUARES.g2, SQUARES.g6]
         attackSquares.forEach((square) => {
           expect(isAttackedBy(state, SQUARES.e4, square)).toBe(true)
         })
-        expect(isAttackedBy(state, SQUARES.e4, SQUARES.h4)).toBe(false)
+        const blockedSquares = [
+          SQUARES.b1,
+          SQUARES.b7,
+          SQUARES.c4,
+          SQUARES.e2,
+          SQUARES.e6,
+          SQUARES.g4,
+          SQUARES.h1,
+          SQUARES.h7,
+        ]
+        blockedSquares.forEach((square) => {
+          expect(isAttackedBy(state, SQUARES.e4, square)).toBe(false)
+        })
+      })
+    })
+
+    describe('rook', () => {
+      it('returns whether a square is attacked by a rook', () => {
+        const state = loadFen(
+          '8/4r3/2r1r1r1/8/1rr1P1rr/8/2r1r1r1/4r3 w KQkq - 0 1',
+        )
+        if (!state) throw new Error('state is undefined')
+        const attackSquares = [SQUARES.c4, SQUARES.e2, SQUARES.e6, SQUARES.g4]
+        attackSquares.forEach((square) => {
+          expect(isAttackedBy(state, SQUARES.e4, square)).toBe(true)
+        })
+        const blockedSquares = [
+          SQUARES.b4,
+          SQUARES.c2,
+          SQUARES.c6,
+          SQUARES.e1,
+          SQUARES.e7,
+          SQUARES.g2,
+          SQUARES.g6,
+          SQUARES.h4,
+        ]
+        blockedSquares.forEach((square) => {
+          expect(isAttackedBy(state, SQUARES.e4, square)).toBe(false)
+        })
+      })
+    })
+
+    describe('queen', () => {
+      it('returns whether a square is attacked by a queen', () => {
+        const state = loadFen(
+          '8/1q2q2q/2q1q1q1/8/1qq1P1qq/8/2q1q1q1/1q2q2q w KQkq - 0 1',
+        )
+        if (!state) throw new Error('state is undefined')
+        const attackSquares = [
+          SQUARES.c2,
+          SQUARES.c4,
+          SQUARES.c6,
+          SQUARES.e2,
+          SQUARES.e6,
+          SQUARES.g2,
+          SQUARES.g4,
+          SQUARES.g6,
+        ]
+        attackSquares.forEach((square) => {
+          expect(isAttackedBy(state, SQUARES.e4, square)).toBe(true)
+        })
+        const blockedSquares = [
+          SQUARES.b1,
+          SQUARES.b4,
+          SQUARES.b7,
+          SQUARES.e1,
+          SQUARES.e7,
+          SQUARES.h1,
+          SQUARES.h4,
+          SQUARES.h7,
+        ]
+        blockedSquares.forEach((square) => {
+          expect(isAttackedBy(state, SQUARES.e4, square)).toBe(false)
+        })
       })
     })
   })
