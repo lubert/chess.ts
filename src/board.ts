@@ -1,4 +1,4 @@
-import { BITS, BIT_SQUARES, SQUARES } from './constants'
+import { BITS, BIT_SQUARES, RANKS, SQUARES } from './constants'
 import {
   BitBoard,
   Board,
@@ -6,7 +6,28 @@ import {
   PieceSymbol,
   Square,
 } from './interfaces/types'
-import { bitToSquare } from './utils'
+import { bitToSquare, symbol } from './utils'
+
+export function ascii(board: Readonly<Board>, eol = '\n'): string {
+  const pieces = RANKS.map((rank) => {
+    const rankPieces = board.slice(rank * 16, rank * 16 + 8)
+    // Use a loop because `map` skips empty indexes
+    const row: string[] = []
+    for (const piece of rankPieces) {
+      row.push(piece ? ` ${symbol(piece)} ` : ' . ')
+    }
+    const rankStr = row.join('')
+
+    return '87654321'[rank] + ' |' + rankStr + '|'
+  })
+
+  return [
+    '  +------------------------+',
+    pieces.join(eol),
+    '  +------------------------+',
+    '    a  b  c  d  e  f  g  h',
+  ].join(eol)
+}
 
 export function toBitBoard(board: Board): BitBoard {
   const bitboard: BitBoard = {

@@ -9,7 +9,6 @@ import {
   inCheckmate,
   inStalemate,
   insufficientMaterial,
-  ascii,
   getBoard,
   validateMove,
   nodeMove,
@@ -45,6 +44,7 @@ import {
   isDefined,
   rank,
 } from './utils'
+import { ascii } from './board'
 import { DEFAULT_POSITION, SQUARES, BITS } from './constants'
 import { FenErrorType, validateFen } from './fen'
 import { defaultBoardState } from './state'
