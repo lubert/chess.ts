@@ -21,6 +21,7 @@
 |  Function | Description |
 |  --- | --- |
 |  [algebraic(i)](./chess.ts.algebraic.md) | Converts a 0x88 square to algebraic notation. |
+|  [boardToMap(board)](./chess.ts.boardtomap.md) | Converts a board state to a map of squares to piece symbols. |
 |  [file(i)](./chess.ts.file.md) | Extracts the zero-based file of an 0x88 square. |
 |  [generateMoves(state, options)](./chess.ts.generatemoves.md) | Return all moves for a given board state. |
 |  [hexToMove(state, move)](./chess.ts.hextomove.md) | Converts a HexMove to a Move. |
