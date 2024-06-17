@@ -4,7 +4,7 @@
 
 ## isAttackedBy() function
 
-Checks if a square is attacked by a given square
+Checks if a target square is attacked by a square for a board state, and uses the current turn as the attacking color.
 
 **Signature:**
 

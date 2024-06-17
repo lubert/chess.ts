@@ -822,7 +822,8 @@ export function hexToMove(
 }
 
 /**
- * Checks if a square is attacked by a given square
+ * Checks if a target square is attacked by a square for a board state, and uses
+ * the current turn as the attacking color.
  * @param state - Board state
  * @param targetSquare - Target square
  * @param attackerSquare - Attacker square
@@ -833,18 +834,38 @@ export function isAttackedBy(
   targetSquare: number,
   attackerSquare: number,
 ): boolean {
+  const moves = generateMoves(state, {
+    from: attackerSquare,
+    to: targetSquare,
+  })
+  return !!moves.length
+}
+
+/**
+ * Checks if a target square is attacked by a square for a position, ignoring
+ * the current turn.
+ * @param state - Board state
+ * @param targetSquare - Target square
+ * @param attackerSquare - Attacker square
+ * @public
+ */
+export function isPositionAttackedBy(
+  board: Readonly<Board>,
+  targetSquare: number,
+  attackerSquare: number,
+): boolean {
   if (targetSquare & 0x88 || attackerSquare & 0x88) {
     return false
   }
 
   // Check if there is an attacking piece
-  const byPiece = state.board[attackerSquare]
+  const byPiece = board[attackerSquare]
   if (!byPiece) {
     return false
   }
 
   // Check if the target square is occupied by the same color
-  if (state.board[targetSquare]?.color === byPiece.color) {
+  if (board[targetSquare]?.color === byPiece.color) {
     return false
   }
 
@@ -861,15 +882,15 @@ export function isAttackedBy(
         .includes(attackerSquare)
     case BISHOP: {
       const squares = diagonalSquaresBetween(attackerSquare, targetSquare)
-      return !!squares.length && squares.every((sq) => !state.board[sq])
+      return !!squares.length && squares.every((sq) => !board[sq])
     }
     case ROOK: {
       const squares = linearSquaresBetween(attackerSquare, targetSquare)
-      return !!squares.length && squares.every((sq) => !state.board[sq])
+      return !!squares.length && squares.every((sq) => !board[sq])
     }
     case QUEEN: {
       const squares = squaresBetween(attackerSquare, targetSquare)
-      return !!squares.length && squares.every((sq) => !state.board[sq])
+      return !!squares.length && squares.every((sq) => !board[sq])
     }
   }
 

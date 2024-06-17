@@ -10,9 +10,6 @@ describe('move', () => {
         if (!state) throw new Error('state is undefined')
         expect(isAttackedBy(state, SQUARES.f3, SQUARES.e2)).toBe(true)
         expect(isAttackedBy(state, SQUARES.d3, SQUARES.e2)).toBe(true)
-        expect(isAttackedBy(state, SQUARES.e2, SQUARES.f3)).toBe(true)
-        expect(isAttackedBy(state, SQUARES.e2, SQUARES.f3)).toBe(true)
-
         expect(isAttackedBy(state, SQUARES.e3, SQUARES.e2)).toBe(false)
         expect(isAttackedBy(state, SQUARES.e2, SQUARES.e3)).toBe(false)
       })
@@ -20,7 +17,7 @@ describe('move', () => {
 
     describe('knight', () => {
       it('returns whether a square is attacked by a knight', () => {
-        const state = loadFen('8/8/3n1n2/2n3n1/4P3/2n3n1/3n1n2/8 w KQkq - 0 1')
+        const state = loadFen('8/8/3n1n2/2n3n1/4P3/2n3n1/3n1n2/8 b KQkq - 0 1')
         if (!state) throw new Error('state is undefined')
         const attackSquares = [
           SQUARES.f2,
@@ -41,7 +38,7 @@ describe('move', () => {
     describe('bishop', () => {
       it('returns whether a square is attacked by a bishop', () => {
         const state = loadFen(
-          '8/1b5b/2b1b1b1/8/2b1P1b1/8/2b1b1b1/1b5b w KQkq - 0 1',
+          '8/1b5b/2b1b1b1/8/2b1P1b1/8/2b1b1b1/1b5b b KQkq - 0 1',
         )
         if (!state) throw new Error('state is undefined')
         const attackSquares = [SQUARES.c2, SQUARES.c6, SQUARES.g2, SQUARES.g6]
@@ -67,7 +64,7 @@ describe('move', () => {
     describe('rook', () => {
       it('returns whether a square is attacked by a rook', () => {
         const state = loadFen(
-          '8/4r3/2r1r1r1/8/1rr1P1rr/8/2r1r1r1/4r3 w KQkq - 0 1',
+          '8/4r3/2r1r1r1/8/1rr1P1rr/8/2r1r1r1/4r3 b KQkq - 0 1',
         )
         if (!state) throw new Error('state is undefined')
         const attackSquares = [SQUARES.c4, SQUARES.e2, SQUARES.e6, SQUARES.g4]
@@ -93,7 +90,7 @@ describe('move', () => {
     describe('queen', () => {
       it('returns whether a square is attacked by a queen', () => {
         const state = loadFen(
-          '8/1q2q2q/2q1q1q1/8/1qq1P1qq/8/2q1q1q1/1q2q2q w KQkq - 0 1',
+          '8/1q2q2q/2q1q1q1/8/1qq1P1qq/8/2q1q1q1/1q2q2q b KQkq - 0 1',
         )
         if (!state) throw new Error('state is undefined')
         const attackSquares = [
