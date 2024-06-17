@@ -44,7 +44,7 @@ import {
   isDefined,
   rank,
 } from './utils'
-import { boardToAscii } from './board'
+import { boardToMap, mapToAscii } from './board'
 import { DEFAULT_POSITION, SQUARES, BITS } from './constants'
 import { FenErrorType, validateFen } from './fen'
 import { defaultBoardState } from './state'
@@ -721,7 +721,7 @@ export class Chess {
    * ```
    */
   public ascii(newline_char = '\n'): string {
-    return boardToAscii(this.boardState.board, newline_char)
+    return mapToAscii(boardToMap(this.boardState.board), newline_char)
   }
 
   /**

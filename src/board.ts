@@ -38,18 +38,19 @@ export function mapToAscii(
 }
 
 /**
- * Renders a board state as an ASCII board.
+ * Converts a board state to a map of squares to piece symbols.
  * @param board - Board state
- * @param eol - End of line character
  * @public
  */
-export function boardToAscii(board: Readonly<Board>, eol = '\n'): string {
+export function boardToMap(
+  board: Readonly<Board>,
+): Partial<Record<Square, string>> {
   const charMap: Partial<Record<Square, string>> = {}
   Object.entries(SQUARES).forEach(([sq, i]) => {
     const piece = board[i]
     if (piece) charMap[sq as Square] = symbol(piece)
   })
-  return mapToAscii(charMap, eol)
+  return charMap
 }
 
 export function toBitBoard(board: Board): BitBoard {
