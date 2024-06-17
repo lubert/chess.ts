@@ -379,6 +379,8 @@ export function generateMoves(
     flags: number,
     captured?: PieceSymbol,
   ) => {
+    // Check for illegal moves
+    if (from & 0x88 || to & 0x88) return
     // Pawn promotion
     const r = rank(to)
     if (piece === PAWN && (r === RANK_8 || r === RANK_1)) {
