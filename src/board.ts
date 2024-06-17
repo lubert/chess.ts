@@ -8,15 +8,23 @@ import {
 } from './interfaces/types'
 import { bitToSquare, symbol } from './utils'
 
-export function ascii(board: Readonly<Board>, eol = '\n'): string {
+/**
+ * Renders a map of squares to characters on an ASCII board.
+ * @param charMap - Map of squares to characters
+ * @param eol - End of line character
+ * @public
+ */
+export function mapToAscii(
+  charMap: Readonly<Partial<Record<Square, string>>>,
+  eol = '\n',
+): string {
   const pieces = RANKS.map((rank) => {
-    const rankPieces = board.slice(rank * 16, rank * 16 + 8)
-    // Use a loop because `map` skips empty indexes
-    const row: string[] = []
-    for (const piece of rankPieces) {
-      row.push(piece ? ` ${symbol(piece)} ` : ' . ')
-    }
-    const rankStr = row.join('')
+    const rankPieces = RANKS.map((file) => {
+      const sq = ('abcdefgh'[file] + '87654321'[rank]) as Square
+      const symbol = charMap[sq]
+      return symbol ? ` ${symbol} ` : ' . '
+    })
+    const rankStr = rankPieces.join('')
 
     return '87654321'[rank] + ' |' + rankStr + '|'
   })
@@ -27,6 +35,21 @@ export function ascii(board: Readonly<Board>, eol = '\n'): string {
     '  +------------------------+',
     '    a  b  c  d  e  f  g  h',
   ].join(eol)
+}
+
+/**
+ * Renders a board state as an ASCII board.
+ * @param board - Board state
+ * @param eol - End of line character
+ * @public
+ */
+export function boardToAscii(board: Readonly<Board>, eol = '\n'): string {
+  const charMap: Partial<Record<Square, string>> = {}
+  Object.entries(SQUARES).forEach(([sq, i]) => {
+    const piece = board[i]
+    if (piece) charMap[sq as Square] = symbol(piece)
+  })
+  return mapToAscii(charMap, eol)
 }
 
 export function toBitBoard(board: Board): BitBoard {

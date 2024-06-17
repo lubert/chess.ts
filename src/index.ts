@@ -13,6 +13,7 @@ export {
   Square,
 } from './interfaces/types'
 export { Nag, NagMap } from './interfaces/nag'
+export { mapToAscii } from './board'
 export {
   WHITE,
   BLACK,
