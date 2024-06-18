@@ -1,4 +1,4 @@
-import { BitState, BoardState } from './interfaces/types'
+import { BitState, BoardState, HexState } from './interfaces/types'
 import {
   fromBitBoard,
   fromCastlingBits,
@@ -7,6 +7,7 @@ import {
 } from './board'
 import { bitToSquare, getBitIndices, squareToBit } from './utils'
 import { EMPTY, WHITE } from './constants'
+import { cloneMove } from './move'
 
 export function defaultBoardState(): BoardState {
   return {
@@ -17,6 +18,16 @@ export function defaultBoardState(): BoardState {
     ep_square: EMPTY,
     half_moves: 0,
     move_number: 1,
+  }
+}
+
+export function cloneHexState(state: HexState): HexState {
+  return {
+    boardState: cloneBoardState(state.boardState),
+    fen: state.fen,
+    nags: state.nags?.slice(),
+    move: state.move ? cloneMove(state.move) : undefined,
+    comment: state.comment,
   }
 }
 

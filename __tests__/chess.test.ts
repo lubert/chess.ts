@@ -2389,3 +2389,21 @@ describe('.ascii', () => {
     )
   })
 })
+
+describe('.clone', () => {
+  it('clones the position', () => {
+    const chess = new Chess()
+    chess.move('e4')
+    chess.move('e5')
+    const clone = chess.clone()
+    expect(chess.fen()).toBe(clone.fen())
+  })
+
+  it('mutating clones does not affect the original', () => {
+    const chess = new Chess()
+    const clone = chess.clone()
+    expect(chess.state).not.toBe(clone.state)
+    clone.putPiece({ type: 'q', color: 'w' }, 'e4')
+    expect(chess.fen()).not.toBe(clone.fen())
+  })
+})

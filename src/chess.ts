@@ -49,7 +49,7 @@ import {
 import { boardToMap, mapToAscii } from './board'
 import { DEFAULT_POSITION, SQUARES, BITS } from './constants'
 import { FenErrorType, validateFen } from './fen'
-import { defaultBoardState } from './state'
+import { cloneHexState, defaultBoardState } from './state'
 
 /** @public */
 export class Chess {
@@ -1249,7 +1249,7 @@ export class Chess {
   /** @internal */
   public clone(): Chess {
     const clone = new Chess()
-    clone._tree = this._tree.clone()
+    clone._tree = this._tree.clone().map((node) => cloneHexState(node.model))
     clone._currentNode =
       clone._tree.breadth(
         ({ model }) => model.fen === this._currentNode.model.fen,
