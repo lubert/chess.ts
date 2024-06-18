@@ -1226,7 +1226,7 @@ export class Chess {
    * @param targetSquare - Target square
    */
   public isAttacking(square: Square, targetSquare: Square): boolean {
-    return isAttacking(this.boardState, SQUARES[targetSquare], SQUARES[square])
+    return isAttacking(this.boardState, SQUARES[square], SQUARES[targetSquare])
   }
 
   /**
@@ -1237,8 +1237,8 @@ export class Chess {
   public isThreatening(square: Square, targetSquare: Square): boolean {
     return isThreatening(
       this.boardState.board,
-      SQUARES[targetSquare],
       SQUARES[square],
+      SQUARES[targetSquare],
     )
   }
 
