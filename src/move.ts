@@ -453,7 +453,7 @@ export function generateMoves(
       // Single square, non-capturing
       toSq = fromSq + PAWN_OFFSETS[state.turn][0]
       if (!state.board[toSq]) {
-        if (!toSquare || toSquare === toSq) {
+        if (toSquare === undefined || toSquare === toSq) {
           addMove(PAWN, fromSq, toSq, BITS.NORMAL)
         }
 
@@ -462,7 +462,7 @@ export function generateMoves(
         if (
           second_rank[state.turn] === rank(fromSq) &&
           !state.board[toSq] &&
-          (!toSquare || toSquare === toSq)
+          (toSquare === undefined || toSquare === toSq)
         ) {
           addMove(PAWN, fromSq, toSq, BITS.BIG_PAWN)
         }
@@ -472,7 +472,7 @@ export function generateMoves(
       for (let j = 2; j < 4; j++) {
         toSq = fromSq + PAWN_OFFSETS[state.turn][j]
         if (toSq & 0x88) continue
-        if (toSquare && toSq !== toSquare) continue
+        if (toSquare !== undefined && toSq !== toSquare) continue
 
         const p = state.board[toSq]
         if (p && p.color === them) {
@@ -492,12 +492,12 @@ export function generateMoves(
 
           const p = state.board[toSq]
           if (!p) {
-            if (!toSquare || toSquare === toSq) {
+            if (toSquare === undefined || toSquare === toSq) {
               addMove(symbol, fromSq, toSq, BITS.NORMAL)
             }
           } else {
             if (p.color === state.turn) break
-            if (!toSquare || toSquare === toSq) {
+            if (toSquare === undefined || toSquare === toSq) {
               addMove(symbol, fromSq, toSq, BITS.CAPTURE, p.type)
             }
             break
@@ -511,13 +511,14 @@ export function generateMoves(
   }
 
   if (forPiece === undefined || forPiece === KING) {
-    if (!forSquare || lastSq === state.kings[state.turn]) {
+    if (forSquare === undefined || lastSq === state.kings[state.turn]) {
       // King-side castling
       if (state.castling[state.turn] & BITS.KSIDE_CASTLE) {
         const castlingFrom = state.kings[state.turn]
         const castlingTo = castlingFrom + 2
 
         if (
+          (toSquare === undefined || toSquare === castlingTo) &&
           !state.board[castlingFrom + 1] &&
           !state.board[castlingTo] &&
           !isAttacked(state, state.kings[state.turn]) &&
@@ -534,6 +535,7 @@ export function generateMoves(
         const castlingTo = castlingFrom - 2
 
         if (
+          (toSquare === undefined || toSquare === castlingTo) &&
           !state.board[castlingFrom - 1] &&
           !state.board[castlingFrom - 2] &&
           !state.board[castlingFrom - 3] &&
