@@ -20,6 +20,7 @@ import {
   isKingAttacked,
   isAttacked,
   isAttackedBy,
+  isThreatenedBy,
 } from './move'
 import { Nag } from './interfaces/nag'
 import { loadPgn, getPgn } from './pgn'
@@ -1216,13 +1217,26 @@ export class Chess {
   }
 
   /**
-   * Checks if a square is attacked by a piece on another square
+   * Checks if a square can be attacked by a piece given the current turn.
    * @param targetSquare - Square to check
    * @param attackerSquare - Square of the attacking piece
    */
   public isAttackedBy(targetSquare: Square, attackerSquare: Square): boolean {
     return isAttackedBy(
       this.boardState,
+      SQUARES[targetSquare],
+      SQUARES[attackerSquare],
+    )
+  }
+
+  /**
+   * Checks if a square is threatened by a piece given the current position.
+   * @param targetSquare - Square to check
+   * @param attackerSquare - Square of the attacking piece
+   */
+  public isThreatenedBy(targetSquare: Square, attackerSquare: Square): boolean {
+    return isThreatenedBy(
+      this.boardState.board,
       SQUARES[targetSquare],
       SQUARES[attackerSquare],
     )

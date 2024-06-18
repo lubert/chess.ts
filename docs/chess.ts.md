@@ -30,6 +30,7 @@
 |  [isColor(color)](./chess.ts.iscolor.md) |  |
 |  [isPieceSymbol(symbol)](./chess.ts.ispiecesymbol.md) |  |
 |  [isSquare(sq)](./chess.ts.issquare.md) |  |
+|  [isThreatenedBy(board, targetSquare, attackerSquare)](./chess.ts.isthreatenedby.md) | Checks if a target square is threatened by a square for a position, ignoring the current turn. |
 |  [mapToAscii(charMap, eol)](./chess.ts.maptoascii.md) | Renders a map of squares to characters on an ASCII board. |
 |  [moveToSan(state, move, moves, options)](./chess.ts.movetosan.md) |  |
 |  [rank(i)](./chess.ts.rank.md) | Extracts the zero-based rank of an 0x88 square. |

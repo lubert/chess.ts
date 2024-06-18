@@ -844,14 +844,14 @@ export function isAttackedBy(
 }
 
 /**
- * Checks if a target square is attacked by a square for a position, ignoring
+ * Checks if a target square is threatened by a square for a position, ignoring
  * the current turn.
  * @param state - Board state
  * @param targetSquare - Target square
  * @param attackerSquare - Attacker square
  * @public
  */
-export function isPositionAttackedBy(
+export function isThreatenedBy(
   board: Readonly<Board>,
   targetSquare: number,
   attackerSquare: number,

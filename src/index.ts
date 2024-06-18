@@ -49,4 +49,5 @@ export {
   moveToSan,
   isAttacked,
   isAttackedBy,
+  isThreatenedBy,
 } from './move'
