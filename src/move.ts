@@ -306,22 +306,20 @@ export function putPiece(
   piece: Piece,
   square: Square,
 ): BoardState | null {
-  const { type, color } = piece
-
   const state = cloneBoardState(prevState)
-  /* don't let the user place more than one king */
+  // Don't allow placing more than one king
   const sq = SQUARES[square]
   if (
-    type === KING &&
-    state.kings[color] !== EMPTY &&
-    state.kings[color] !== sq
+    piece.type === KING &&
+    state.kings[piece.color] !== EMPTY &&
+    state.kings[piece.color] !== sq
   ) {
     return null
   }
 
-  state.board[sq] = { type, color }
-  if (type === KING) {
-    state.kings[color] = sq
+  state.board[sq] = piece
+  if (piece.type === KING) {
+    state.kings[piece.color] = sq
   }
 
   return state

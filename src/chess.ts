@@ -269,11 +269,14 @@ export class Chess {
     piece: { type: string; color: string },
     square: string,
   ): boolean {
-    const { type, color } = piece
-    if (!isPieceSymbol(type) || !isColor(color) || !isSquare(square))
+    if (
+      !isPieceSymbol(piece.type) ||
+      !isColor(piece.color) ||
+      !isSquare(square)
+    )
       return false
 
-    const newState = putPiece(this.boardState, { type, color }, square)
+    const newState = putPiece(this.boardState, piece as Piece, square)
     if (newState) {
       this.boardState = newState
       this.updateSetup()
