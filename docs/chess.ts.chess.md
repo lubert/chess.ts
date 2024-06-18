@@ -60,14 +60,14 @@ export declare class Chess
 |  [load(fen, options)](./chess.ts.chess.load.md) |  | Clears the board and loads the Forsyth–Edwards Notation (FEN) string. |
 |  [loadPgn(pgn, options)](./chess.ts.chess.loadpgn.md) |  | <p>Load the moves of a game stored in \[Portable Game Notation\](http://en.wikipedia.org/wiki/Portable\_Game\_Notation). <code>pgn</code> should be a string. Options is an optional <code>object</code> which may contain a string <code>newline</code>.</p><p>The <code>newline</code> is a string representation of a valid RegExp fragment and is used to process the PGN. It defaults to <code>\r?\n</code>. Special characters should not be pre-escaped, but any literal special characters should be escaped as is normal for a RegExp. Keep in mind that backslashes in JavaScript strings must themselves be escaped. Avoid using a <code>newline</code> that may occur elsewhere in a PGN, such as <code>.</code> or <code>x</code>, as this will result in behavior.</p><p>The method will throw an error if the PGN was not parsed successfully.</p> |
 |  [move(move, options)](./chess.ts.chess.move.md) |  | Attempts to make a move on the board, returning a move object if the move was legal, otherwise null. The .move function can be called two ways, by passing a string in Standard Algebraic Notation (SAN): |
-|  [moves(options)](./chess.ts.chess.moves.md) |  | Returns a list of legal moves from the current position. The function takes an optional parameter which controls the single-square move generation and verbosity. |
-|  [moves(options)](./chess.ts.chess.moves_1.md) |  | Returns a list of legal moves from the current position. The function takes an optional parameter which controls the single-square move generation and verbosity. |
+|  [moves(options)](./chess.ts.chess.moves.md) |  | Returns a list of legal moves from the current position. The function takes an optional parameter for filtering move generation. |
 |  [pgn(options)](./chess.ts.chess.pgn.md) |  | Returns the game in PGN format. Options is an optional parameter which may include max width and/or a newline character settings. |
 |  [putPiece(piece, square)](./chess.ts.chess.putpiece.md) |  | Place a piece on the square where piece is an object with the form <code>{ type: ..., color: ... }</code>. Returns true if the piece was successfully placed, otherwise, the board remains unchanged and false is returned. <code>put()</code> will fail when passed an invalid piece or square, or when two or more kings of the same color are placed. |
 |  [redo()](./chess.ts.chess.redo.md) |  | Redo mainline move. |
 |  [redoAll()](./chess.ts.chess.redoall.md) |  | Redo all mainline moves. |
 |  [removePiece(square)](./chess.ts.chess.removepiece.md) |  | Remove and return the piece on <code>square</code>. |
 |  [reset()](./chess.ts.chess.reset.md) |  | Reset the board to the initial starting position. |
+|  [sanMoves(options)](./chess.ts.chess.sanmoves.md) |  | Returns a list of legal moves from the current position. The function takes an optional parameter for filtering move generation. |
 |  [setComment(comment, key)](./chess.ts.chess.setcomment.md) |  | Comment on a position, if it exists. |
 |  [setCurrentNode(key)](./chess.ts.chess.setcurrentnode.md) |  |  |
 |  [squareColor(square)](./chess.ts.chess.squarecolor.md) |  | Returns the color of the square ('light' or 'dark'). |

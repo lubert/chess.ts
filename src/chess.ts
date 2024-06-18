@@ -36,6 +36,7 @@ import {
   Square,
   GameState,
   BoardState,
+  PieceSymbol,
 } from './interfaces/types'
 import {
   file,
@@ -321,34 +322,12 @@ export class Chess {
 
   /**
    * Returns a list of legal moves from the current position. The function
-   * takes an optional parameter which controls the single-square move
-   * generation and verbosity.
+   * takes an optional parameter for filtering move generation.
    *
    * @example
    * ```js
    * const chess = new Chess()
    * chess.moves()
-   * // -> ['a3', 'a4', 'b3', 'b4', 'c3', 'c4', 'd3', 'd4', 'e3', 'e4',
-   * //     'f3', 'f4', 'g3', 'g4', 'h3', 'h4', 'Na3', 'Nc3', 'Nf3', 'Nh3']
-   *
-   * chess.moves({ square: 'e2' })
-   * // -> ['e3', 'e4']
-   *
-   * chess.moves({ square: 'e9' }) // invalid square
-   * // -> []
-   * ```
-   */
-  public moves(options?: { square?: Square; verbose?: false }): string[]
-
-  /**
-   * Returns a list of legal moves from the current position. The function
-   * takes an optional parameter which controls the single-square move
-   * generation and verbosity.
-   *
-   * @example
-   * ```js
-   * const chess = new Chess()
-   * chess.moves({ verbose: true })
    * // -> [{ color: 'w', from: 'a2', to: 'a3',
    * //       flags: 'n', piece: 'p', san 'a3'
    * //       # a captured: key is included when the move is a capture
@@ -359,19 +338,41 @@ export class Chess {
    * ```
    * {@link Move}
    */
-  public moves(options: { square?: Square; verbose: true }): Move[]
+  public moves(options?: {
+    legal?: boolean
+    piece?: PieceSymbol
+    from?: Square | number
+    to?: Square | number
+  }): Move[] {
+    const moves = generateMoves(this.boardState, options)
+    return moves.map((move) => hexToMove(this.boardState, move))
+  }
 
-  public moves(
-    options: { square?: Square; verbose?: boolean } = {},
-  ): string[] | Move[] {
-    // The internal representation of a chess move is in 0x88 format, and
-    // not meant to be human-readable.  The code below converts the 0x88
-    // square coordinates to algebraic coordinates.  It also prunes an
-    // unnecessary move keys resulting from a verbose call.
-    const { square, verbose = false } = options
-    const moves = generateMoves(this.boardState, { from: square })
-
-    if (verbose) return moves.map((move) => hexToMove(this.boardState, move))
+  /**
+   * Returns a list of legal moves from the current position. The function
+   * takes an optional parameter for filtering move generation.
+   *
+   * @example
+   * ```js
+   * const chess = new Chess()
+   * chess.sanMoves()
+   * // -> ['a3', 'a4', 'b3', 'b4', 'c3', 'c4', 'd3', 'd4', 'e3', 'e4',
+   * //     'f3', 'f4', 'g3', 'g4', 'h3', 'h4', 'Na3', 'Nc3', 'Nf3', 'Nh3']
+   *
+   * chess.sanMoves({ from: 'e2' })
+   * // -> ['e3', 'e4']
+   *
+   * chess.sanMoves({ from: 'e9' }) // invalid square
+   * // -> []
+   * ```
+   */
+  public sanMoves(options?: {
+    legal?: boolean
+    piece?: PieceSymbol
+    from?: Square | number
+    to?: Square | number
+  }): string[] {
+    const moves = generateMoves(this.boardState, options)
     return moves.map((move) => moveToSan(this.boardState, move))
   }
 

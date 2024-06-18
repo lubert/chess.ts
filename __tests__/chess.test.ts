@@ -174,7 +174,7 @@ describe('.moves', () => {
     examples.forEach(({ name, fen, square, moves }) => {
       it(name, () => {
         const chess = new Chess(fen)
-        expect(chess.moves({ square: square as Square })).toEqual(moves)
+        expect(chess.sanMoves({ from: square as Square })).toEqual(moves)
       })
     })
   })
@@ -235,9 +235,7 @@ describe('.moves', () => {
     positions.forEach(({ name, fen, square, moves }) => {
       it(name, () => {
         const chess = new Chess(fen)
-        expect(moves).toEqual(
-          chess.moves({ square: square as Square, verbose: true }),
-        )
+        expect(moves).toEqual(chess.moves({ from: square as Square }))
       })
     })
   })
@@ -493,7 +491,7 @@ describe('.moves', () => {
     examples.forEach(({ fen, moves }) => {
       it(fen, () => {
         const chess = new Chess(fen)
-        expect(chess.moves().sort()).toEqual(moves.sort())
+        expect(chess.sanMoves().sort()).toEqual(moves.sort())
       })
     })
   })
@@ -2143,7 +2141,7 @@ describe('Regression Tests', () => {
     expect(chess.putPiece({ type: 'k', color: 'w' }, 'a1')).toBe(false)
     chess.putPiece({ type: 'q', color: 'w' }, 'a1')
     chess.removePiece('a1')
-    expect(chess.moves().join(' ')).toBe('Kd2 Ke2 Kxf2 Kf1 Kd1')
+    expect(chess.sanMoves().join(' ')).toBe('Kd2 Ke2 Kxf2 Kf1 Kd1')
   })
 
   it('Github Issue #85 (white) - SetUp and FEN should be accepted in loadPgn', () => {
