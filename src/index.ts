@@ -48,6 +48,6 @@ export {
   generateMoves,
   moveToSan,
   isAttacked,
-  isAttackedBy,
-  isThreatenedBy,
+  isAttacking,
+  isThreatening,
 } from './move'

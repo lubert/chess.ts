@@ -824,44 +824,42 @@ export function hexToMove(
 }
 
 /**
- * Checks if a target square is attacked by a square for a board state, and uses
- * the current turn as the attacking color.
+ * Checks if a square is attacking a target square.
  * @param state - Board state
+ * @param square - Attacking square
  * @param targetSquare - Target square
- * @param attackerSquare - Attacker square
  * @public
  */
-export function isAttackedBy(
+export function isAttacking(
   state: Readonly<BoardState>,
+  square: number,
   targetSquare: number,
-  attackerSquare: number,
 ): boolean {
   const moves = generateMoves(state, {
-    from: attackerSquare,
+    from: square,
     to: targetSquare,
   })
   return !!moves.length
 }
 
 /**
- * Checks if a target square is threatened by a square for a position, ignoring
- * the current turn.
+ * Checks if a square is threatening a target square.
  * @param state - Board state
+ * @param square - Attacking square
  * @param targetSquare - Target square
- * @param attackerSquare - Attacker square
  * @public
  */
-export function isThreatenedBy(
+export function isThreatening(
   board: Readonly<Board>,
+  square: number,
   targetSquare: number,
-  attackerSquare: number,
 ): boolean {
-  if (targetSquare & 0x88 || attackerSquare & 0x88) {
+  if (targetSquare & 0x88 || square & 0x88) {
     return false
   }
 
   // Check if there is an attacking piece
-  const byPiece = board[attackerSquare]
+  const byPiece = board[square]
   if (!byPiece) {
     return false
   }
@@ -876,22 +874,22 @@ export function isThreatenedBy(
     case PAWN:
       return PAWN_ATTACK_OFFSETS[byPiece.color]
         .map((offset) => targetSquare + offset)
-        .includes(attackerSquare)
+        .includes(square)
     case KNIGHT:
     case KING:
       return PIECE_OFFSETS[byType]
         .map((offset) => targetSquare + offset)
-        .includes(attackerSquare)
+        .includes(square)
     case BISHOP: {
-      const squares = diagonalSquaresBetween(attackerSquare, targetSquare)
+      const squares = diagonalSquaresBetween(square, targetSquare)
       return !!squares.length && squares.every((sq) => !board[sq])
     }
     case ROOK: {
-      const squares = linearSquaresBetween(attackerSquare, targetSquare)
+      const squares = linearSquaresBetween(square, targetSquare)
       return !!squares.length && squares.every((sq) => !board[sq])
     }
     case QUEEN: {
-      const squares = squaresBetween(attackerSquare, targetSquare)
+      const squares = squaresBetween(square, targetSquare)
       return !!squares.length && squares.every((sq) => !board[sq])
     }
   }

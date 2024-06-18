@@ -26,11 +26,11 @@
 |  [generateMoves(state, options)](./chess.ts.generatemoves.md) | Return all moves for a given board state. |
 |  [hexToMove(state, move)](./chess.ts.hextomove.md) | Converts a HexMove to a Move. |
 |  [isAttacked(state, square, color)](./chess.ts.isattacked.md) | Checks if a square is attacked. If an attacking color is not provided, the opposite color of the piece on the square or the current turn is used. This function does not check if the attacking piece is pinned. |
-|  [isAttackedBy(state, targetSquare, attackerSquare)](./chess.ts.isattackedby.md) | Checks if a target square is attacked by a square for a board state, and uses the current turn as the attacking color. |
+|  [isAttacking(state, square, targetSquare)](./chess.ts.isattacking.md) | Checks if a square is attacking a target square. |
 |  [isColor(color)](./chess.ts.iscolor.md) |  |
 |  [isPieceSymbol(symbol)](./chess.ts.ispiecesymbol.md) |  |
 |  [isSquare(sq)](./chess.ts.issquare.md) |  |
-|  [isThreatenedBy(board, targetSquare, attackerSquare)](./chess.ts.isthreatenedby.md) | Checks if a target square is threatened by a square for a position, ignoring the current turn. |
+|  [isThreatening(board, square, targetSquare)](./chess.ts.isthreatening.md) | Checks if a square is threatening a target square. |
 |  [mapToAscii(charMap, eol)](./chess.ts.maptoascii.md) | Renders a map of squares to characters on an ASCII board. |
 |  [moveToSan(state, move, moves, options)](./chess.ts.movetosan.md) |  |
 |  [rank(i)](./chess.ts.rank.md) | Extracts the zero-based rank of an 0x88 square. |
