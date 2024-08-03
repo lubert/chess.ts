@@ -40,6 +40,7 @@
 |  [sameMinorDiagonal(sq1, sq2)](./chess.ts.sameminordiagonal.md) | Tests if two squares are on the same minor diagonal. |
 |  [sameRank(sq1, sq2)](./chess.ts.samerank.md) | Tests if two squares are on the same rank. |
 |  [sameRankOrFile(sq1, sq2)](./chess.ts.samerankorfile.md) | Tests if two squares are on the same rank or file. |
+|  [toBitState(state)](./chess.ts.tobitstate.md) |  |
 
 ## Variables
 

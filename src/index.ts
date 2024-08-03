@@ -43,6 +43,7 @@ export {
   isPieceSymbol,
   isSquare,
 } from './utils'
+export { toBitState } from './state'
 export {
   hexToMove,
   generateMoves,
