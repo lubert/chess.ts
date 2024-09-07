@@ -45,6 +45,8 @@ import {
   isSquare,
   isDefined,
   rank,
+  canDemote,
+  canPromote,
 } from './utils'
 import { boardToMap, mapToAscii } from './board'
 import { DEFAULT_POSITION, SQUARES, BITS } from './constants'
@@ -1325,4 +1327,63 @@ export class Chess {
     this._currentNode = this._currentNode.parent
     return this._currentNode.model.move || null
   }
+
+  /**
+   * Promotes a variation by moving it up in the list of sibling nodes.
+   */
+  public promoteVariation(key?: number[]|string): void {
+    const node = this.getNode(key);
+    if (node && canPromote(node)) {
+      const parentChildren = node.parent!.children;
+      const currentIndex = node.index;
+      const previousIndex = currentIndex - 1;
+      [parentChildren[currentIndex], parentChildren[previousIndex]] = [parentChildren[previousIndex], parentChildren[currentIndex]];
+    }
+  }
+
+  /**
+   * Demotes a variation by moving it down in the list of sibling nodes.
+   */
+  public demoteVariation(key?: number[]|string): void {
+    const node = this.getNode(key);
+    if (node && canDemote(node)) {
+      const parentChildren = node.parent!.children;
+      const currentIndex = node.index;
+      const nextIndex = currentIndex + 1;
+      [parentChildren[currentIndex], parentChildren[nextIndex]] = [parentChildren[nextIndex], parentChildren[currentIndex]];
+    }
+  }
+
+  /**
+   * Deletes a variation from the tree. If the node has no siblings, it will
+   * traverse up the tree to find the first ancestor with more than one child
+   * and delete the path leading to it.
+   */
+  public deleteVariation(key?: number[]): void {
+    const node = this.getNode(key);
+    if(node)
+    {
+      let ancestor = node.parent;
+      let childLeadingToAncestor = node; // Initialize with the current node
+  
+      // Find the first ancestor with more than one child and not null
+      while (ancestor && ancestor.children.length <= 1) {
+        childLeadingToAncestor = ancestor; // Update the child leading to the ancestor
+        ancestor = ancestor.parent;
+      }
+  
+      if (ancestor && ancestor.children.length > 1) {
+        childLeadingToAncestor.drop();
+      }
+    }
+
+  }
+    /**
+   * Deletes all remaining moves from the given node.
+   */
+    public deleteRemainingMoves(key?: number[]|string): void {
+      const node = this.getNode(key)
+      if(node) node.children.forEach((child) => child.drop())
+    }
+
 }
