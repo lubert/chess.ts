@@ -295,3 +295,4 @@ export const canPromote = (node: TreeNode<HexState | GameState>): boolean => {
 export const canDemote = (node: TreeNode<HexState | GameState>): boolean => {
   return node.parent !== null && node.parent.hasChildren && node.parent.children.length > 1 && node.index < node.parent.children.length - 1;
 }
+

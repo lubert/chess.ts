@@ -21,6 +21,7 @@ import {
   isAttacked,
   isAttacking,
   isThreatening,
+  moveToUci,
 } from './move'
 import { Nag } from './interfaces/nag'
 import { loadPgn, getPgn } from './pgn'
@@ -745,6 +746,7 @@ export class Chess {
     return this.boardState.turn
   }
 
+
   /**
    * Attempts to make a move on the board, returning a move object if the move was
    * legal, otherwise null. The .move function can be called two ways, by passing
@@ -812,19 +814,38 @@ export class Chess {
    */
   public move(
     move: string | PartialMove,
-    options: { dry_run?: boolean; strict?: boolean } = {},
+    options: { forceVariation?: boolean; dry_run?: boolean; strict?: boolean } = {},
   ): Move | null {
+    const findChildMove = () => {
+      return this._currentNode.children.find((child) => {
+        const childMove = nodeMove(child)!
+        return typeof move === 'string'
+          ? childMove.san === move || moveToUci(childMove) === move
+          : moveToUci(childMove) === moveToUci(move)
+      })
+    }
+
+    const processMove = (validMove: HexMove) => {
+      const prettyMove = hexToMove(this.boardState, validMove)
+      if (!options.dry_run) {
+        this.makeMove(validMove)
+      }
+      return prettyMove
+    }
+
+    if (!options.forceVariation) {
+      const child = findChildMove()
+      if (child) {
+        this._currentNode = child
+        return this.currentNode.model.move as Move
+      }
+    }
+
     const validMove = validateMove(this.boardState, move, options)
     if (!validMove) {
       return null
     }
-
-    // Create pretty move before updating the state
-    const prettyMove = hexToMove(this.boardState, validMove)
-    if (!options.dry_run) {
-      this.makeMove(validMove)
-    }
-    return prettyMove
+    return processMove(validMove)
   }
 
   /**
