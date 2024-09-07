@@ -747,6 +747,23 @@ export class Chess {
   }
 
 
+  private findMoveChildNode(move: string | PartialMove, key?:number[]| string)
+  {
+    const node = this.getNode(key)
+    if(node) 
+    {
+      return node.children.find((child) => {
+        const childMove = nodeMove(child)!
+        return typeof move === 'string'
+          ? childMove.san === move || moveToUci(childMove) === move
+          : moveToUci(childMove) === moveToUci(move)
+      })
+     }
+
+    
+
+  }
+
   /**
    * Attempts to make a move on the board, returning a move object if the move was
    * legal, otherwise null. The .move function can be called two ways, by passing
@@ -816,16 +833,12 @@ export class Chess {
     move: string | PartialMove,
     options: { forceVariation?: boolean; dry_run?: boolean; strict?: boolean } = {},
   ): Move | null {
-    const findChildMove = () => {
-      return this._currentNode.children.find((child) => {
-        const childMove = nodeMove(child)!
-        return typeof move === 'string'
-          ? childMove.san === move || moveToUci(childMove) === move
-          : moveToUci(childMove) === moveToUci(move)
-      })
-    }
 
-    const processMove = (validMove: HexMove) => {
+    const processMove = () => {
+      const validMove = validateMove(this.boardState, move, options)
+      if (!validMove) {
+      return null
+    }
       const prettyMove = hexToMove(this.boardState, validMove)
       if (!options.dry_run) {
         this.makeMove(validMove)
@@ -834,18 +847,15 @@ export class Chess {
     }
 
     if (!options.forceVariation) {
-      const child = findChildMove()
+      const child = this.findMoveChildNode(move)
       if (child) {
         this._currentNode = child
         return this.currentNode.model.move as Move
       }
     }
 
-    const validMove = validateMove(this.boardState, move, options)
-    if (!validMove) {
-      return null
-    }
-    return processMove(validMove)
+    
+    return processMove()
   }
 
   /**
