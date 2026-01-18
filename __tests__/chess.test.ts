@@ -1654,6 +1654,57 @@ describe('.getComment, .deleteComment', () => {
     expect(chess.pgn()).toEqual('1. e4 {tactical} ( 1. d4 {positional} )')
   })
 
+  it('parses comments inside variations', () => {
+    // Simple variation comment
+    const chess1 = new Chess()
+    chess1.loadPgn('1. e4 (1. d4 {variation comment}) 1... e5')
+    const comments1 = Object.values(chess1.getComments())
+    expect(comments1).toContain('variation comment')
+
+    // Nested variation comment
+    const chess2 = new Chess()
+    chess2.loadPgn('1. e4 (1. d4 (1. c4 {nested comment})) 1... e5')
+    const comments2 = Object.values(chess2.getComments())
+    expect(comments2).toContain('nested comment')
+
+    // Multiple comments in mainline and variations
+    const chess3 = new Chess()
+    chess3.loadPgn('1. e4 {main} (1. d4 {var1} d5 {var2}) e5 {main2}')
+    const comments3 = Object.values(chess3.getComments())
+    expect(comments3).toHaveLength(4)
+    expect(comments3).toContain('main')
+    expect(comments3).toContain('var1')
+    expect(comments3).toContain('var2')
+    expect(comments3).toContain('main2')
+
+    // Round-trip: parse then output should preserve comments
+    const chess4 = new Chess()
+    chess4.loadPgn('1. e4 (1. d4 {gambit}) e5')
+    expect(chess4.pgn()).toContain('{gambit}')
+  })
+
+  it('handles null moves in variations by converting rest to comment', () => {
+    // Null moves (--) aren't valid chess, so the rest of the variation
+    // should be captured as a comment
+    const chess = new Chess()
+    chess.loadPgn('1. e4 e5 (1...c5 2. Nf3 -- 3. d4) 2. Nf3')
+    const comments = Object.values(chess.getComments())
+    expect(comments).toHaveLength(1)
+    expect(comments[0]).toContain('-- 3. d4')
+  })
+
+  it('parses PGN with non-standard notation (two dots, commas)', () => {
+    // Two dots instead of three for black moves
+    const chess1 = new Chess()
+    chess1.loadPgn('1. e4 e5 2. Nf3 2..Nc6 3. Bb5')
+    expect(chess1.history()).toHaveLength(5)
+
+    // Trailing commas on moves
+    const chess2 = new Chess()
+    chess2.loadPgn('1. e4 e5 (1...c5, 2. Nf3,) 2. Nf3')
+    expect(chess2.history()).toHaveLength(3)
+  })
+
   it('clear comments', () => {
     const test = function (fn: (chess: Chess) => void) {
       const chess = new Chess()

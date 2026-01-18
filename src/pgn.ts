@@ -204,6 +204,18 @@ export function loadPgn(
           }
           currentNode.model.comment = commentTokens.join(' ')
           break
+        } else if (token.includes('}')) {
+          // Handle case like "comment})" where } is followed by other chars
+          const idx = token.indexOf('}')
+          if (idx > 0) {
+            commentTokens.push(token.substring(0, idx))
+          }
+          currentNode.model.comment = commentTokens.join(' ')
+          // Push remaining chars back for processing (e.g., the ")")
+          if (idx < token.length - 1) {
+            moveTokens.unshift(token.substring(idx + 1))
+          }
+          break
         } else if (token === NULL_CHAR) {
           continue
         }
@@ -241,6 +253,31 @@ export function loadPgn(
         header.Result = token
       }
     } else if (NULL_MOVES.includes(token)) {
+      // Null moves (--) aren't valid chess. If inside a variation,
+      // collect the rest as a comment on the current node, then exit the variation.
+      if (parentNodes.length > 0) {
+        const restTokens: string[] = [token]
+        let depth = 1
+        while (moveTokens.length && depth > 0) {
+          const t = moveTokens.shift()!
+          // Count parens (could be at start or end of token)
+          for (const ch of t) {
+            if (ch === '(') depth++
+            if (ch === ')') depth--
+          }
+          restTokens.push(t)
+        }
+        // Remove trailing ) from comment text
+        let commentText = restTokens.join(' ').replace(/\0/g, ' ').trim()
+        commentText = commentText.replace(/\)+$/, '').trim()
+        if (commentText) {
+          currentNode.model.comment = currentNode.model.comment
+            ? currentNode.model.comment + ' ' + commentText
+            : commentText
+        }
+        // Exit the variation
+        currentNode = parentNodes.pop()!
+      }
       continue
     } else if (REGEXP_MOVE_NUMBER.test(token)) {
       continue
@@ -251,8 +288,10 @@ export function loadPgn(
       if (CASTLING_MOVES.includes(token)) {
         token = token.replace(/0/g, 'O')
       }
-      // Remove move number
-      token = token.replace(/\d+\.(\.\.)?/g, '')
+      // Remove move number (handles 1, 2, or 3 dots for compatibility)
+      token = token.replace(/\d+\.{1,3}/g, '')
+      // Strip trailing commas (common in older PGN files)
+      token = token.replace(/,$/g, '')
       const move = sanToMove(boardState, token)
       if (!move) {
         throw new Error(`Invalid move token: "${token}"`)

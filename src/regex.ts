@@ -20,6 +20,6 @@ export const REGEXP_HEADER_VAL = /^\[[A-Za-z]+\s"(.*)" *\]$/
 export const REGEXP_NAG = /([?!]+)/
 
 /**
- * Match move number
+ * Match move number (with or without dots for compatibility)
  */
-export const REGEXP_MOVE_NUMBER = /[0-9]+\.+$/
+export const REGEXP_MOVE_NUMBER = /^[0-9]+\.{0,3}$/
