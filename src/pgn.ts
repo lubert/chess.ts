@@ -290,8 +290,12 @@ export function loadPgn(
       }
       // Remove move number (handles 1, 2, or 3 dots for compatibility)
       token = token.replace(/\d+\.{1,3}/g, '')
+      // Strip leading dots (handles "..Kf8" when "16." was a separate token)
+      token = token.replace(/^\.+/, '')
       // Strip trailing commas (common in older PGN files)
       token = token.replace(/,$/g, '')
+      // Skip if token is now empty (was only dots or move number)
+      if (!token) continue
       const move = sanToMove(boardState, token)
       if (!move) {
         throw new Error(`Invalid move token: "${token}"`)
