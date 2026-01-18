@@ -1683,14 +1683,17 @@ describe('.getComment, .deleteComment', () => {
     expect(chess4.pgn()).toContain('{gambit}')
   })
 
-  it('handles null moves in variations by converting rest to comment', () => {
-    // Null moves (--) aren't valid chess, so the rest of the variation
-    // should be captured as a comment
+  it('handles null moves in variations', () => {
+    // Null moves (--) represent a "pass" - they flip the turn
     const chess = new Chess()
     chess.loadPgn('1. e4 e5 (1...c5 2. Nf3 -- 3. d4) 2. Nf3')
-    const comments = Object.values(chess.getComments())
-    expect(comments).toHaveLength(1)
-    expect(comments[0]).toContain('-- 3. d4')
+    // The variation should be fully parsed including moves after the null move
+    const history = chess.hexTree.flatten('pre')
+    // Should have: root, e4, e5, Nf3 (mainline) + c5, Nf3, --, d4 (variation)
+    // At minimum 8 nodes: root + 7 moves (e4, e5, Nf3 mainline + c5, Nf3, --, d4 variation)
+    expect(history.length).toBeGreaterThanOrEqual(8)
+    // The PGN output should contain d4 (the move after the null move)
+    expect(chess.pgn()).toContain('d4')
   })
 
   it('parses PGN with non-standard notation (two dots, commas)', () => {

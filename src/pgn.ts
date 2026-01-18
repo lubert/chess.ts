@@ -253,31 +253,19 @@ export function loadPgn(
         header.Result = token
       }
     } else if (NULL_MOVES.includes(token)) {
-      // Null moves (--) aren't valid chess. If inside a variation,
-      // collect the rest as a comment on the current node, then exit the variation.
-      if (parentNodes.length > 0) {
-        const restTokens: string[] = [token]
-        let depth = 1
-        while (moveTokens.length && depth > 0) {
-          const t = moveTokens.shift()!
-          // Count parens (could be at start or end of token)
-          for (const ch of t) {
-            if (ch === '(') depth++
-            if (ch === ')') depth--
-          }
-          restTokens.push(t)
-        }
-        // Remove trailing ) from comment text
-        let commentText = restTokens.join(' ').replace(/\0/g, ' ').trim()
-        commentText = commentText.replace(/\)+$/, '').trim()
-        if (commentText) {
-          currentNode.model.comment = currentNode.model.comment
-            ? currentNode.model.comment + ' ' + commentText
-            : commentText
-        }
-        // Exit the variation
-        currentNode = parentNodes.pop()!
+      // Null moves (--) represent a "pass" - handled by sanToMove/makeMove
+      const boardState = currentNode.model.boardState
+      const move = sanToMove(boardState, '--')
+      if (!move) {
+        // Null move not allowed (e.g., in check) - skip it
+        continue
       }
+      const nextState = makeMove(boardState, move)
+      currentNode = currentNode.addModel({
+        boardState: nextState,
+        fen: getFen(nextState),
+        move,
+      })
       continue
     } else if (REGEXP_MOVE_NUMBER.test(token)) {
       continue

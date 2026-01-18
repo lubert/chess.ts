@@ -7,6 +7,7 @@ import {
   FLAGS,
   KING,
   KNIGHT,
+  NULL_MOVES,
   PAWN,
   PAWN_OFFSETS,
   PIECE_OFFSETS,
@@ -563,6 +564,11 @@ export function moveToSan(
 ): string {
   const { addPromotion = true } = options
 
+  // Handle null moves
+  if (move.flags & BITS.NULL_MOVE) {
+    return '--'
+  }
+
   let output = ''
 
   if (move.flags & BITS.KSIDE_CASTLE) {
@@ -656,6 +662,24 @@ export function sanToMove(
   options: { strict?: boolean; matchPromotion?: boolean } = {},
 ): HexMove | null {
   const { strict, matchPromotion = true } = options
+
+  // Handle null moves (pass)
+  if (NULL_MOVES.includes(move)) {
+    // Null moves not allowed when in check
+    if (inCheck(state)) {
+      return null
+    }
+    // Return a null move - king "passes" (from/to are the king's current square)
+    const kingSquare = state.kings[state.turn]
+    return {
+      from: kingSquare,
+      to: kingSquare,
+      color: state.turn,
+      piece: KING,
+      flags: BITS.NULL_MOVE,
+    }
+  }
+
   // strip off any move decorations: e.g Nf3+?! becomes Nf3
   const cleanMove = strippedSan(move)
   const pieceType = inferPieceType(cleanMove)
@@ -1036,6 +1060,17 @@ export function makeMove(
   const state = cloneBoardState(prevState)
   const us = state.turn
   const them = swapColor(us)
+
+  // Handle null moves (pass)
+  if (move.flags & BITS.NULL_MOVE) {
+    state.ep_square = -1
+    state.half_moves++
+    state.turn = them
+    if (state.turn === WHITE) {
+      state.move_number++
+    }
+    return state
+  }
 
   state.board[move.to] = state.board[move.from]
   delete state.board[move.from]

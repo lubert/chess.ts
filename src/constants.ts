@@ -20,7 +20,6 @@ export const KING: PieceSymbol = 'k'
 export const EMPTY = -1
 
 export const NULL_MOVES: string[] = [
-  '...',
   '--',
   'Z0',
   'pass',
@@ -116,6 +115,7 @@ export const FLAGS: Record<FlagKey, string> = {
   PROMOTION: 'p',
   KSIDE_CASTLE: 'k',
   QSIDE_CASTLE: 'q',
+  NULL_MOVE: '-',
 }
 
 /** @public */
@@ -127,6 +127,7 @@ export const BITS: Record<FlagKey, number> = {
   PROMOTION: 16,
   KSIDE_CASTLE: 32,
   QSIDE_CASTLE: 64,
+  NULL_MOVE: 128,
 }
 
 export const RANK_1 = 7
