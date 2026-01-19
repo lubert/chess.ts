@@ -1261,6 +1261,7 @@ export function hexToGameState(
     fen: node.model.fen,
     nags: node.model.nags,
     comment: node.model.comment,
+    startingComment: node.model.startingComment,
     move: move || undefined,
   }
 }

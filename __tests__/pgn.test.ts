@@ -1,4 +1,7 @@
 import { loadPgn } from '../src/pgn';
+import { Chess } from '../src/chess';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 
 describe('pgn', () => {
   describe('loadPgn', () => {
@@ -30,6 +33,110 @@ describe('pgn', () => {
       const { tree, currentNode, header } = loadPgn(pgn)
       expect(currentNode.model.fen).toEqual(fen)
     })
+
+    it('parses comments correctly in Pillsbury vs Tarrasch 1895', () => {
+      const pgn = readFileSync(
+        join(__dirname, 'fixtures/pgn/pillsbury-tarasch-1895.pgn'),
+        'utf-8'
+      )
+      const chess = new Chess()
+      chess.loadPgn(pgn)
+
+      // Move 8 white (cxd5) is at mainline index 14 (0-indexed, 15th ply)
+      // Indices are [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] for 15 mainline moves from root
+      const move8WhiteIndices = Array(15).fill(0)
+      chess.setCurrentNode(move8WhiteIndices)
+      const history = chess.history()
+      expect(history[history.length - 1]).toEqual('cxd5')
+      expect(chess.getComment(move8WhiteIndices)).toEqual(
+        'Depriving Black of the opportunity to play dxc4 when the diagonal b7-g2 would be open for his Queen Bishop.'
+      )
+
+      // The variation introducing comment should be startingComment on Nf6xd5
+      // The variation is an alternative to 8...exd5, so it's a sibling (child of 8.cxd5)
+      // 8.cxd5 is at indices [0,0,...,0] (15 zeros), and the variation Nxd5 is its second child (index 1)
+      const variationIndices = [...Array(15).fill(0), 1]
+      expect(chess.getStartingComment(variationIndices)).toEqual(
+        'The classical continuation more common today is'
+      )
+    })
+
+    it('parses startingComment at beginning of game', () => {
+      const pgn = '{Opening comment} 1. e4 e5'
+      const chess = new Chess()
+      chess.loadPgn(pgn)
+
+      // The startingComment should be on the first move (e4)
+      expect(chess.getStartingComment([0])).toEqual('Opening comment')
+    })
+
+    it('parses startingComment in variation', () => {
+      // Variation after 1. e4: an alternative first move with a starting comment
+      const pgn = '1. e4 ({Queens Pawn} 1. d4) e5'
+      const chess = new Chess()
+      chess.loadPgn(pgn)
+
+      // The variation (1. d4) is the second child of the root node (index 1)
+      // The startingComment "Queens Pawn" should be on that variation's first move
+      expect(chess.getStartingComment([1])).toEqual('Queens Pawn')
+    })
+
+    it('round-trips PGN with startingComment', () => {
+      const pgn = '{Opening} 1. e4 ({Alternative} 1. d4) e5'
+      const chess = new Chess()
+      chess.loadPgn(pgn)
+
+      const exportedPgn = chess.pgn()
+      // Should contain the starting comments
+      expect(exportedPgn).toContain('{Opening}')
+      expect(exportedPgn).toContain('{Alternative}')
+    })
   });
 
+  describe('startingComment methods', () => {
+    it('getStartingComment returns undefined when no starting comment', () => {
+      const chess = new Chess()
+      chess.move('e4')
+      expect(chess.getStartingComment()).toBeUndefined()
+    })
+
+    it('setStartingComment sets starting comment', () => {
+      const chess = new Chess()
+      chess.move('e4')
+      chess.setStartingComment('A bold opening')
+      expect(chess.getStartingComment()).toEqual('A bold opening')
+    })
+
+    it('deleteStartingComment removes and returns starting comment', () => {
+      const chess = new Chess()
+      chess.move('e4')
+      chess.setStartingComment('A bold opening')
+      const deleted = chess.deleteStartingComment()
+      expect(deleted).toEqual('A bold opening')
+      expect(chess.getStartingComment()).toBeUndefined()
+    })
+
+    it('getStartingComments returns all starting comments', () => {
+      const chess = new Chess()
+      chess.move('e4')
+      chess.setStartingComment('First move')
+      chess.move('e5')
+      chess.setStartingComment('Response')
+
+      const comments = chess.getStartingComments('indices')
+      expect(Object.keys(comments).length).toEqual(2)
+    })
+
+    it('deleteComments also removes starting comments', () => {
+      const chess = new Chess()
+      chess.move('e4')
+      chess.setComment('After move comment')
+      chess.setStartingComment('Before move comment')
+
+      chess.deleteComments()
+
+      expect(chess.getComment()).toBeUndefined()
+      expect(chess.getStartingComment()).toBeUndefined()
+    })
+  })
 })

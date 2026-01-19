@@ -1078,6 +1078,61 @@ export class Chess {
   }
 
   /**
+   * Retrieve the starting comment (comment before the move) if it exists.
+   *
+   * @param [key] - FEN string or node indices, defaults to the current position
+   */
+  public getStartingComment(key?: string | number[]): string | undefined {
+    const node = this.getNode(key)
+    return node?.model.startingComment
+  }
+
+  /**
+   * Set a starting comment (comment before the move) on a position.
+   *
+   * @param comment - Comment
+   * @param key - FEN string or node indices, defaults to the current position
+   */
+  public setStartingComment(comment: string, key?: string | number[]): boolean {
+    const node = this.getNode(key)
+    if (!node) return false
+
+    node.model.startingComment = this.cleanComment(comment)
+    return true
+  }
+
+  /**
+   * Delete and return the starting comment for a position, if it exists.
+   *
+   * @param key - FEN string or node indices, defaults to the current position
+   */
+  public deleteStartingComment(key?: string | number[]): string | undefined {
+    const node = this.getNode(key)
+    if (!node) return
+
+    const comment = node.model.startingComment
+    delete node.model.startingComment
+    return comment
+  }
+
+  /**
+   * Retrieve starting comments for all positions, keyed by FEN string or indices.
+   *
+   * @param key - Key by 'fen' or node 'indices'
+   */
+  public getStartingComments(key: 'fen' | 'indices' = 'fen'): CommentMap {
+    const comments: CommentMap = {}
+    this._tree.breadth((node) => {
+      const { fen, startingComment } = node.model
+      if (startingComment) {
+        const k = key === 'fen' ? fen : node.indices.join(',')
+        comments[k] = startingComment
+      }
+    })
+    return comments
+  }
+
+  /**
    * Comment on a position, if it exists.
    *
    * @example
@@ -1155,6 +1210,9 @@ export class Chess {
     this._tree.breadth(({ model }) => {
       if (model.comment) {
         delete model.comment
+      }
+      if (model.startingComment) {
+        delete model.startingComment
       }
     })
   }

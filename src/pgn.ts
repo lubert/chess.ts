@@ -52,7 +52,13 @@ export function pgnMoves(node: TreeNode<HexState>): string[] {
   }
 
   const formatMove = (state: HexState, isVariation = false) => {
-    const { move, comment, nags } = state
+    const { move, comment, nags, startingComment } = state
+
+    // Output starting comment BEFORE the move
+    if (startingComment) {
+      tokens.push(`{${startingComment}}`)
+    }
+
     if (move) {
       const isFirstMove = !node.model.move
       const san = moveToSan(boardState, move)
@@ -68,7 +74,7 @@ export function pgnMoves(node: TreeNode<HexState>): string[] {
         tokens.push(`${san}${nagStr}`)
       }
     }
-    // Comment
+    // Comment after the move
     if (comment) tokens.push(`{${comment}}`)
   }
 
@@ -169,6 +175,12 @@ export function loadPgn(
   const tree = new TreeNode<HexState>({ fen, boardState })
   const parentNodes: TreeNode<HexState>[] = []
   let currentNode = tree
+  // Track pending starting comment (comment before a move)
+  let pendingStartingComment: string | undefined
+  // Track if we just entered a variation (comment after '(' should be startingComment)
+  let inVariationStart = false
+  // Track if we're at root with no moves yet
+  let atRootNoMoves = true
 
   while (moveTokens.length) {
     let token = moveTokens.shift()!
@@ -202,7 +214,6 @@ export function loadPgn(
           if (token.length > 1) {
             commentTokens.push(token.substring(0, token.length - 1))
           }
-          currentNode.model.comment = commentTokens.join(' ')
           break
         } else if (token.includes('}')) {
           // Handle case like "comment})" where } is followed by other chars
@@ -210,7 +221,6 @@ export function loadPgn(
           if (idx > 0) {
             commentTokens.push(token.substring(0, idx))
           }
-          currentNode.model.comment = commentTokens.join(' ')
           // Push remaining chars back for processing (e.g., the ")")
           if (idx < token.length - 1) {
             moveTokens.unshift(token.substring(idx + 1))
@@ -221,17 +231,27 @@ export function loadPgn(
         }
         commentTokens.push(token)
       }
+      const commentText = commentTokens.join(' ')
+      // If we're in a variation start or at root with no moves, this is a starting comment
+      if (inVariationStart || atRootNoMoves) {
+        pendingStartingComment = commentText
+      } else {
+        currentNode.model.comment = commentText
+      }
     } else if (token.startsWith('(')) {
       // Start variation
       if (!currentNode.parent) throw new Error('Missing parent')
       if (token.length > 1) moveTokens.unshift(token.substring(1))
       parentNodes.push(currentNode)
       currentNode = currentNode.parent
+      inVariationStart = true
     } else if (token.startsWith(')')) {
       // End variation and return to original node
       if (!parentNodes.length) throw new Error('Mismatched parentheses')
       if (token.length > 1) moveTokens.unshift(token.substring(1))
       currentNode = parentNodes.pop()!
+      inVariationStart = false
+      pendingStartingComment = undefined
     } else if (token.includes(')')) {
       moveTokens.unshift(...splitStr(token, ')'))
     } else if (token.startsWith('$')) {
@@ -265,7 +285,11 @@ export function loadPgn(
         boardState: nextState,
         fen: getFen(nextState),
         move,
+        startingComment: pendingStartingComment,
       })
+      pendingStartingComment = undefined
+      inVariationStart = false
+      atRootNoMoves = false
       continue
     } else if (REGEXP_MOVE_NUMBER.test(token)) {
       continue
@@ -294,7 +318,11 @@ export function loadPgn(
         fen: getFen(nextState),
         nags: extractNags(token),
         move,
+        startingComment: pendingStartingComment,
       })
+      pendingStartingComment = undefined
+      inVariationStart = false
+      atRootNoMoves = false
     }
   }
   return { tree, currentNode, header }
