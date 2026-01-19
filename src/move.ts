@@ -1264,3 +1264,7 @@ export function hexToGameState(
     move: move || undefined,
   }
 }
+export function moveToUci(move:PartialMove)
+{
+  return move.from+ move.to + move.promotion
+}
