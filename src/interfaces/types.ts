@@ -10,6 +10,7 @@ export type GameState = {
   move?: Move
   nags?: number[]
   comment?: string
+  startingComment?: string
 }
 
 /**
@@ -152,6 +153,7 @@ export type HexState = {
   nags?: number[] // Array instead of set for easier serialization
   move?: HexMove
   comment?: string
+  startingComment?: string
 }
 
 export type HeaderMap = Partial<Record<string, string>>

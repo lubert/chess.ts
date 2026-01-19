@@ -28,6 +28,7 @@ export function cloneHexState(state: HexState): HexState {
     nags: state.nags?.slice(),
     move: state.move ? cloneMove(state.move) : undefined,
     comment: state.comment,
+    startingComment: state.startingComment,
   }
 }
 
