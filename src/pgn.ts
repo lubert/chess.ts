@@ -47,7 +47,7 @@ export function pgnMoves(node: TreeNode<HexState>): string[] {
   const { boardState } = node.model
 
   // Special case for initial commented position
-  if (!node.parent && node.model.comment) {
+  if (node.isRoot && node.model.comment) {
     tokens.push(`{${node.model.comment}}`)
   }
 

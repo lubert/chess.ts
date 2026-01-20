@@ -1245,7 +1245,7 @@ export function validateMove(
   return null
 }
 
-export function nodeMove(node: TreeNode<HexState>): Move | null {
+export function nodeMove(node: Readonly<TreeNode<HexState>>): Move | null {
   // Need a parent board state to return a valid move
   if (node.model.move && node.parent?.model) {
     return hexToMove(node.parent.model.boardState, node.model.move)
@@ -1254,7 +1254,7 @@ export function nodeMove(node: TreeNode<HexState>): Move | null {
 }
 
 export function hexToGameState(
-  node: TreeNode<HexState>,
+  node: Readonly<TreeNode<HexState>>,
 ): Omit<GameState, 'isCurrent'> {
   const move = nodeMove(node)
   return {

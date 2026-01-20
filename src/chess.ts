@@ -958,7 +958,7 @@ export class Chess {
    * Redo mainline move.
    */
   public redo(): Move | null {
-    if (this._currentNode.children.length) {
+    if (this._currentNode.hasChildren) {
       this._currentNode = this._currentNode.children[0]
     }
     return nodeMove(this._currentNode)
@@ -968,7 +968,7 @@ export class Chess {
    * Redo all mainline moves.
    */
   public redoAll(): Move[] {
-    while (this._currentNode.children.length) {
+    while (this._currentNode.hasChildren) {
       this._currentNode = this._currentNode.children[0]
     }
     return this.path.map(nodeMove).filter(isDefined)
@@ -1338,9 +1338,7 @@ export class Chess {
     const clone = new Chess()
     clone._tree = this._tree.clone().map((node) => cloneHexState(node.model))
     clone._currentNode =
-      clone._tree.breadth(
-        ({ model }) => model.fen === this._currentNode.model.fen,
-      ) || clone._tree
+      clone._tree.fetch(this._currentNode.indices) || clone._tree
     clone.header = { ...this.header }
     return clone
   }
@@ -1371,7 +1369,7 @@ export class Chess {
   protected getNode(key?: string | number[]): TreeNode<HexState> | null {
     if (!key) return this._currentNode
     if (Array.isArray(key)) return this._tree.fetch(key)
-    return this._tree.breadth(({ model }) => model.fen === key)
+    return this._tree.find(({ model }) => model.fen === key)
   }
 
   /** @internal */
@@ -1389,7 +1387,7 @@ export class Chess {
    */
   protected updateSetup(): void {
     const fen = getFen(this.boardState)
-    if (this._currentNode.parent) return
+    if (!this._currentNode.isRoot) return
 
     if (fen !== DEFAULT_POSITION) {
       this.header['SetUp'] = '1'
@@ -1412,8 +1410,8 @@ export class Chess {
 
   /** @internal */
   protected undoMove(): HexMove | null {
-    if (!this._currentNode.parent) return null
-    this._currentNode = this._currentNode.parent
+    if (this._currentNode.isRoot) return null
+    this._currentNode = this._currentNode.parent!
     return this._currentNode.model.move || null
   }
 
