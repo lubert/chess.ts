@@ -831,22 +831,23 @@ export class Chess {
    */
   public move(
     move: string | PartialMove,
-    options: { forceVariation?: boolean; dry_run?: boolean; strict?: boolean } = {},
+    options: { asVariation?: boolean; dry_run?: boolean; strict?: boolean } = {},
   ): Move | null {
+    const asVariation = options.asVariation ?? false
 
     const processMove = () => {
       const validMove = validateMove(this.boardState, move, options)
       if (!validMove) {
-      return null
-    }
+        return null
+      }
       const prettyMove = hexToMove(this.boardState, validMove)
       if (!options.dry_run) {
-        this.makeMove(validMove)
+        this.makeMove(validMove, asVariation)
       }
       return prettyMove
     }
 
-    if (!options.forceVariation) {
+    if (!asVariation) {
       const child = this.findMoveChildNode(move)
       if (child) {
         this._currentNode = child
@@ -854,7 +855,6 @@ export class Chess {
       }
     }
 
-    
     return processMove()
   }
 
@@ -1399,13 +1399,18 @@ export class Chess {
   }
 
   /** @internal */
-  protected makeMove(move: HexMove): void {
+  protected makeMove(move: HexMove, asVariation = false): void {
     const boardState = makeMove(this.boardState, move)
-    this._currentNode = this._currentNode.addModel({
+    const parent = this._currentNode
+    const model = {
       fen: getFen(boardState),
       boardState,
       move,
-    })
+    }
+    // If not a variation, insert at index 0 to make it the mainline
+    // Otherwise append at end as a variation
+    const insertIndex = asVariation ? undefined : 0
+    this._currentNode = parent.addModel(model, insertIndex)
   }
 
   /** @internal */
@@ -1421,10 +1426,7 @@ export class Chess {
   public promoteVariation(key?: number[]|string): void {
     const node = this.getNode(key);
     if (node && canPromote(node)) {
-      const parentChildren = node.parent!.children;
-      const currentIndex = node.index;
-      const previousIndex = currentIndex - 1;
-      [parentChildren[currentIndex], parentChildren[previousIndex]] = [parentChildren[previousIndex], parentChildren[currentIndex]];
+      node.parent!.swap(node.index, node.index - 1);
     }
   }
 
@@ -1434,10 +1436,7 @@ export class Chess {
   public demoteVariation(key?: number[]|string): void {
     const node = this.getNode(key);
     if (node && canDemote(node)) {
-      const parentChildren = node.parent!.children;
-      const currentIndex = node.index;
-      const nextIndex = currentIndex + 1;
-      [parentChildren[currentIndex], parentChildren[nextIndex]] = [parentChildren[nextIndex], parentChildren[currentIndex]];
+      node.parent!.swap(node.index, node.index + 1);
     }
   }
 

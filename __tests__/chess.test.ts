@@ -46,21 +46,6 @@ describe('gameTree', () => {
       children: [
         {
           model: {
-            fen: 'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1',
-            comment: 'tactical',
-            move: {
-              to: 'e4',
-              from: 'e2',
-              color: 'w',
-              flags: 'b',
-              piece: 'p',
-              san: 'e4',
-            },
-          },
-          children: [],
-        },
-        {
-          model: {
             fen: 'rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b KQkq d3 0 1',
             comment: 'positional',
             move: {
@@ -74,9 +59,33 @@ describe('gameTree', () => {
           },
           children: [],
         },
+        {
+          model: {
+            fen: 'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1',
+            comment: 'tactical',
+            move: {
+              to: 'e4',
+              from: 'e2',
+              color: 'w',
+              flags: 'b',
+              piece: 'p',
+              san: 'e4',
+            },
+          },
+          children: [],
+        },
       ],
     }
     expect(chess.tree.toObject()).toEqual(expected)
+  })
+
+  it('follows existing child when replaying the same move', () => {
+    const chess = new Chess()
+    chess.move('e4')
+    chess.undo()
+    chess.move('e4')
+    expect(chess.tree.children.length).toBe(1)
+    expect(chess.fen()).toBe('rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1')
   })
 })
 
@@ -1650,7 +1659,7 @@ describe('.getComment, .deleteComment', () => {
       [fen1]: 'tactical',
       [fen2]: 'positional',
     })
-    expect(chess.pgn()).toEqual('1. e4 {tactical} ( 1. d4 {positional} )')
+    expect(chess.pgn()).toEqual('1. d4 {positional} ( 1. e4 {tactical} )')
   })
 
   it('parses comments inside variations', () => {
