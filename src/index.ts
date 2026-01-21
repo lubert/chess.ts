@@ -3,9 +3,12 @@ export {
   BaseState,
   BitBoard,
   BitState,
+  Board,
   BoardState,
   Color,
   CommentMap,
+  GameState,
+  HexState,
   Move,
   PartialMove,
   Piece,
@@ -42,9 +45,11 @@ export {
   isColor,
   isPieceSymbol,
   isSquare,
+  squareToBit,
 } from './utils'
-export { toBitState } from './state'
+export { toBitState, fromBitState } from './state'
 export {
+  getFen,
   hexToMove,
   generateMoves,
   moveToSan,

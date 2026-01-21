@@ -3,7 +3,15 @@
   "version": "0.16.2",
   "license": "BSD-2-Clause",
   "main": "dist/index.js",
+  "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
   "files": [
     "dist/"
   ],
@@ -27,11 +35,12 @@
     "prettier": "^3.2.5",
     "ts-jest": "^29.1.2",
     "ts-node": "^10.9.2",
+    "tsup": "^8.5.1",
     "typescript": "^5.3.3"
   },
   "scripts": {
     "api": "npm run build && api-extractor run --local --verbose",
-    "build": "tsc",
+    "build": "tsup",
     "build:docs": "npm run api && api-documenter markdown --input ./temp --output ./docs",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "prepare": "npm run build",

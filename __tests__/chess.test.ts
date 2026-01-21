@@ -14,8 +14,7 @@ import {
   BLACK,
 } from '../src/constants'
 import { algebraic } from '../src/utils'
-import { PieceSymbol, Move, PartialMove } from '../src/interfaces/types'
-import { Square } from '../dist/interfaces/types'
+import { PieceSymbol, Move, PartialMove, Square } from '../src/interfaces/types'
 
 const SQUARES_LIST: string[] = []
 for (let i = SQUARES.a8; i <= SQUARES.h1; i++) {
