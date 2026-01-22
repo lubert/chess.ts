@@ -47,6 +47,6 @@
     "test": "jest"
   },
   "dependencies": {
-    "treenode.ts": "^0.8.0"
+    "treenode.ts": "^0.9.0"
   }
 }
