@@ -1331,7 +1331,7 @@ describe('.loadPgn', () => {
       {
         name: 'Bracket comments and shallow variation',
         pgn: "1. e4 ( 1. d4 { Queen's pawn } d5 ( 1... Nf6 ) ) e5",
-        expectedPgn: "1. e4 ( 1. d4 {Queen's pawn} d5 ( 1...Nf6 ) ) e5",
+        expectedPgn: "1. e4 (1. d4 {Queen's pawn} d5 (1...Nf6)) 1...e5",
       },
       {
         name: 'Bracket comments and extended variations',
@@ -1457,7 +1457,7 @@ describe('.loadPgn', () => {
       {
         name: 'bracket comments',
         input: '1. e4 {good move} e5 {classical response}',
-        output: '1. e4 {good move} e5 {classical response}',
+        output: '1. e4 {good move} 1...e5 {classical response}',
       },
       {
         name: 'semicolon comments',
@@ -1467,12 +1467,12 @@ describe('.loadPgn', () => {
       {
         name: 'bracket and semicolon comments',
         input: '1. e4 {good!} e5; standard response\n 2. Nf3 Nc6 {common}',
-        output: '1. e4 {good!} e5 {standard response} 2. Nf3 Nc6 {common}',
+        output: '1. e4 {good!} 1...e5 {standard response} 2. Nf3 Nc6 {common}',
       },
       {
         name: 'bracket comments with newlines',
         input: '1. e4 {good\nmove} e5 {classical\nresponse}',
-        output: '1. e4 {good move} e5 {classical response}',
+        output: '1. e4 {good move} 1...e5 {classical response}',
       },
       {
         name: 'initial comment',
@@ -1497,7 +1497,7 @@ describe('.loadPgn', () => {
       {
         name: 'semicolon in bracket comment',
         input: '1. e4 { a classic; well-studied } e5',
-        output: '1. e4 {a classic; well-studied} e5',
+        output: '1. e4 {a classic; well-studied} 1...e5',
       },
       {
         name: 'bracket in semicolon comment',
@@ -1560,7 +1560,7 @@ describe('.getComment, .deleteComment', () => {
     expect(chess.getComment()).toBeUndefined()
     expect(chess.getComment([0])).toEqual(comment)
     expect(chess.getComments()).toEqual({ [e4Fen]: comment })
-    expect(chess.pgn()).toEqual(`1. e4 {${comment}} e5`)
+    expect(chess.pgn()).toEqual(`1. e4 {${comment}} 1...e5`)
   })
 
   it('comment for last move', () => {
@@ -1611,7 +1611,7 @@ describe('.getComment, .deleteComment', () => {
       [e6Fen]: 'dubious move',
     })
     expect(chess.pgn()).toEqual(
-      '{starting position} 1. e4 {good move} e6 {dubious move}',
+      '{starting position} 1. e4 {good move} 1...e6 {dubious move}',
     )
   })
 
@@ -1635,7 +1635,7 @@ describe('.getComment, .deleteComment', () => {
       [e6Fen]: 'dubious move',
     })
     expect(chess.deleteComment([0, 0])).toEqual('dubious move')
-    expect(chess.pgn()).toEqual('{starting position} 1. e4 {good move} e6')
+    expect(chess.pgn()).toEqual('{starting position} 1. e4 {good move} 1...e6')
     expect(chess.deleteComment()).toBeUndefined()
     chess.deleteComments()
     expect(chess.getComments()).toEqual({})
@@ -1656,7 +1656,7 @@ describe('.getComment, .deleteComment', () => {
       [fen1]: 'tactical',
       [fen2]: 'positional',
     })
-    expect(chess.pgn()).toEqual('1. d4 {positional} ( 1. e4 {tactical} )')
+    expect(chess.pgn()).toEqual('1. d4 {positional} (1. e4 {tactical})')
   })
 
   it('parses comments inside variations', () => {

@@ -265,6 +265,7 @@ export function isFlagKey(key: string): key is FlagKey {
     'PROMOTION',
     'KSIDE_CASTLE',
     'QSIDE_CASTLE',
+    'NULL_MOVE',
   ]
   return keys.indexOf(key) !== -1
 }

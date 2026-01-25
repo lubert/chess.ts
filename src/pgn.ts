@@ -41,8 +41,10 @@ export function pgnHeader(header: HeaderMap): string[] {
     .map(([key, val]) => `[${key} "${val}"]`)
 }
 
-export function pgnMoves(node: TreeNode<HexState>): string[] {
-  // 3. e4 {comment} (variation) e5 {comment} (variation)
+export function pgnMoves(
+  node: TreeNode<HexState>,
+  afterAnnotation = false,
+): string[] {
   const tokens: string[] = []
   const { boardState } = node.model
 
@@ -51,7 +53,11 @@ export function pgnMoves(node: TreeNode<HexState>): string[] {
     tokens.push(`{${node.model.comment}}`)
   }
 
-  const formatMove = (state: HexState, isVariation = false) => {
+  const formatMove = (
+    state: HexState,
+    isVariation = false,
+    hasInterveningAnnotation = false,
+  ) => {
     const { move, comment, nags, startingComment } = state
 
     // Output starting comment BEFORE the move
@@ -67,8 +73,11 @@ export function pgnMoves(node: TreeNode<HexState>): string[] {
       // Move
       if (move.color === WHITE) {
         tokens.push(`${boardState.move_number}. ${san}${nagStr}`)
-      } else if (isFirstMove || isVariation) {
-        // Special case for first move black
+      } else if (isFirstMove || isVariation || hasInterveningAnnotation) {
+        // Black move needs number indication when:
+        // - It's the first move of the game
+        // - It's the start of a variation
+        // - There's intervening annotation (variation or comment) before it
         tokens.push(`${boardState.move_number}...${san}${nagStr}`)
       } else {
         tokens.push(`${san}${nagStr}`)
@@ -79,17 +88,37 @@ export function pgnMoves(node: TreeNode<HexState>): string[] {
   }
 
   const [mainline, ...variations] = node.children
+
   if (mainline) {
-    formatMove(mainline.model)
+    formatMove(mainline.model, false, afterAnnotation)
+
     variations.forEach((variation) => {
       tokens.push('(')
       formatMove(variation.model, true)
       tokens.push(...pgnMoves(variation))
       tokens.push(')')
     })
-    tokens.push(...pgnMoves(mainline))
+    // After variations or comments, the next black move needs number indication
+    const hasInterveningAnnotation =
+      variations.length > 0 || mainline.model.comment !== undefined
+    tokens.push(...pgnMoves(mainline, hasInterveningAnnotation))
   }
   return tokens
+}
+
+// Join PGN tokens with proper spacing (no space after '(' or before ')')
+function joinPgnTokens(tokens: string[]): string {
+  let result = ''
+  for (let i = 0; i < tokens.length; i++) {
+    const token = tokens[i]
+    const prevToken = i > 0 ? tokens[i - 1] : ''
+    // Add space unless after '(' or before ')'
+    if (i > 0 && prevToken !== '(' && token !== ')') {
+      result += ' '
+    }
+    result += token
+  }
+  return result
 }
 
 export function getPgn(
@@ -105,7 +134,7 @@ export function getPgn(
     pgn += pgnHeader(header).join(newline) + newline + newline
   }
   const moves = pgnMoves(tree)
-  pgn += moves.join(' ')
+  pgn += joinPgnTokens(moves)
   if (header.Result) pgn += ' ' + header.Result
   return pgn.trim()
 }
@@ -239,7 +268,7 @@ export function loadPgn(
         currentNode.model.comment = commentText
       }
     } else if (token.startsWith('(')) {
-      // Start variation
+      // Start variation - go to parent position to add alternative move
       if (!currentNode.parent) throw new Error('Missing parent')
       if (token.length > 1) moveTokens.unshift(token.substring(1))
       parentNodes.push(currentNode)
