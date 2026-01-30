@@ -53,6 +53,11 @@ export function boardToMap(
   return charMap
 }
 
+const BIT_SHIFT: bigint[] = new Array(64)
+for (let i = 0; i < 64; i++) {
+  BIT_SHIFT[i] = BigInt(1) << BigInt(i)
+}
+
 export function toBitBoard(board: Board): BitBoard {
   const bitboard: BitBoard = {
     w: {
@@ -72,13 +77,12 @@ export function toBitBoard(board: Board): BitBoard {
       k: BigInt(0),
     },
   }
-  const squares = Object.keys(SQUARES) as Square[]
-  for (let i = 0; i < squares.length; i++) {
-    const key = squares[i]
-    const sq = BIT_SQUARES[key]
-    const piece = board[SQUARES[key]]
+  for (let i = 0; i < 128; i++) {
+    if (i & 0x88) continue
+    const piece = board[i]
     if (piece) {
-      bitboard[piece.color][piece.type] |= BigInt(1) << BigInt(sq)
+      const bit = (i >> 4) * 8 + (i & 7)
+      bitboard[piece.color][piece.type] |= BIT_SHIFT[bit]
     }
   }
   return bitboard
