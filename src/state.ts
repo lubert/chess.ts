@@ -24,7 +24,6 @@ export function defaultBoardState(): BoardState {
 export function cloneHexState(state: HexState): HexState {
   return {
     boardState: cloneBoardState(state.boardState),
-    fen: state.fen,
     nags: state.nags?.slice(),
     move: state.move ? cloneMove(state.move) : undefined,
     comment: state.comment,

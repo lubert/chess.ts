@@ -96,6 +96,10 @@ export class Chess {
     return this._tree
   }
 
+  public get currentHexNode(): Readonly<TreeNode<HexState>> {
+    return this._currentNode
+  }
+
   /** @public */
   public get tree(): Readonly<TreeNode<GameState>> {
     return this._tree.map((node) => hexToGameState(node))
@@ -151,7 +155,7 @@ export class Chess {
       return false
     }
 
-    this._tree = new TreeNode<HexState>({ boardState, fen })
+    this._tree = new TreeNode<HexState>({ boardState })
     this._currentNode = this._tree
     this.updateSetup()
     return true
@@ -170,7 +174,6 @@ export class Chess {
   public clear(keepHeaders = false): void {
     this._tree = new TreeNode<HexState>({
       boardState: defaultBoardState(),
-      fen: DEFAULT_POSITION,
     })
     if (!keepHeaders) this.header = {}
     this._currentNode = this._tree
@@ -1101,9 +1104,12 @@ export class Chess {
   public getComments(key: 'fen' | 'indices' = 'fen'): CommentMap {
     const comments: CommentMap = {}
     this._tree.breadth((node) => {
-      const { fen, comment } = node.model
+      const { comment } = node.model
       if (comment) {
-        const k = key === 'fen' ? fen : node.indices.join(',')
+        const k =
+          key === 'fen'
+            ? getFen(node.model.boardState)
+            : node.indices.join(',')
         comments[k] = comment
       }
     })
@@ -1156,9 +1162,12 @@ export class Chess {
   public getStartingComments(key: 'fen' | 'indices' = 'fen'): CommentMap {
     const comments: CommentMap = {}
     this._tree.breadth((node) => {
-      const { fen, startingComment } = node.model
+      const { startingComment } = node.model
       if (startingComment) {
-        const k = key === 'fen' ? fen : node.indices.join(',')
+        const k =
+          key === 'fen'
+            ? getFen(node.model.boardState)
+            : node.indices.join(',')
         comments[k] = startingComment
       }
     })
@@ -1403,7 +1412,6 @@ export class Chess {
     const boardState = makeMove(this.boardState, move)
     const parent = this._currentNode
     const model = {
-      fen: getFen(boardState),
       boardState,
       move,
     }

@@ -1258,7 +1258,7 @@ export function hexToGameState(
 ): Omit<GameState, 'isCurrent'> {
   const move = nodeMove(node)
   return {
-    fen: node.model.fen,
+    fen: getFen(node.model.boardState),
     nags: node.model.nags,
     comment: node.model.comment,
     startingComment: node.model.startingComment,

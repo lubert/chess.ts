@@ -8,7 +8,7 @@ import {
   NULL_MOVES,
   CASTLING_MOVES,
 } from './constants'
-import { loadFen, sanToMove, makeMove, getFen, moveToSan, extractMove } from './move'
+import { loadFen, sanToMove, makeMove, moveToSan, extractMove } from './move'
 import {
   REGEXP_HEADER_KEY,
   REGEXP_HEADER_VAL,
@@ -201,7 +201,7 @@ export function loadPgn(
   }
 
   // Build move tree
-  const tree = new TreeNode<HexState>({ fen, boardState })
+  const tree = new TreeNode<HexState>({ boardState })
   const parentNodes: TreeNode<HexState>[] = []
   let currentNode = tree
   // Track pending starting comment (comment before a move)
@@ -312,7 +312,6 @@ export function loadPgn(
       const nextState = makeMove(boardState, move)
       currentNode = currentNode.addModel({
         boardState: nextState,
-        fen: getFen(nextState),
         san: '--',
         move,
         startingComment: pendingStartingComment,
@@ -346,7 +345,6 @@ export function loadPgn(
       const parsed = extractMove(token)
       currentNode = currentNode.addModel({
         boardState: nextState,
-        fen: getFen(nextState),
         nags: extractNags(token),
         move,
         san: parsed.san,
