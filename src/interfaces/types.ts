@@ -149,7 +149,6 @@ export type FlagKey =
 
 export type HexState = {
   boardState: BoardState
-  fen: string
   nags?: number[] // Array instead of set for easier serialization
   move?: HexMove
   comment?: string
@@ -164,6 +163,7 @@ export type HexMove = {
   color: Color
   flags: number
   piece: PieceSymbol
+  san?: string
   captured?: PieceSymbol
   promotion?: PieceSymbol
 }

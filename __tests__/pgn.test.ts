@@ -1,6 +1,6 @@
 import { loadPgn } from '../src/pgn'
 import { Chess } from '../src/chess'
-import { moveToSan } from '../src/move'
+import { moveToSan, getFen } from '../src/move'
 
 describe('pgn', () => {
   describe('loadPgn', () => {
@@ -30,7 +30,7 @@ describe('pgn', () => {
 37. Qe4 Nf6 38. Rxf6 gxf6 39. Rxf6 Kg8 40. Bc4 Kh8 41. Qf4 1-0`
 
       const { tree, currentNode, header } = loadPgn(pgn)
-      expect(currentNode.model.fen).toEqual(fen)
+      expect(getFen(currentNode.model.boardState)).toEqual(fen)
     })
 
     it('parses startingComment at beginning of game', () => {

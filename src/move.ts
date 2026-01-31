@@ -290,6 +290,7 @@ export function cloneMove(move: Readonly<HexMove>): HexMove {
     color: move.color,
     flags: move.flags,
     piece: move.piece,
+    san: move.san,
     captured: move.captured,
     promotion: move.promotion,
   }
@@ -606,7 +607,7 @@ export function moveToSan(
   return output
 }
 
-export function extractMove(move: string): ParsedMove {
+function extractMove(move: string): ParsedMove {
   const cleaned = move.replace(REGEXP_NAG, '')
   const matches: Partial<RegExpMatchArray> | null = cleaned.match(REGEXP_MOVE)
   if (!matches) return {}
@@ -677,6 +678,7 @@ export function sanToMove(
       color: state.turn,
       piece: KING,
       flags: BITS.NULL_MOVE,
+      san: '--',
     }
   }
 
@@ -686,13 +688,63 @@ export function sanToMove(
   const toSq = inferSquare(cleanMove, state)
   let moves = generateMoves(state, { piece: pieceType, to: toSq })
 
-  // strict parser
+  // Structural matching: parse the SAN and match against candidate moves
+  // without converting back to SAN via moveToSan.
+  // Skip for castling moves — extractMove doesn't parse them usefully.
+  if (moves.length > 0 && cleanMove !== 'O-O' && cleanMove !== 'O-O-O') {
+    const parsed = extractMove(move)
+    let candidates = moves
+
+    // Filter by promotion if specified
+    if (matchPromotion && parsed.promotion) {
+      candidates = candidates.filter(
+        (m) => m.promotion === parsed.promotion,
+      )
+    }
+
+    // Filter by target square
+    if (parsed.to) {
+      const toIdx = SQUARES[parsed.to]
+      candidates = candidates.filter((m) => m.to === toIdx)
+    }
+
+    // Filter by source square or disambiguator
+    if (parsed.from) {
+      candidates = candidates.filter(
+        (m) => algebraic(m.from) === parsed.from,
+      )
+    } else if (parsed.disambiguator) {
+      candidates = candidates.filter((m) => {
+        const fromSq = algebraic(m.from)
+        return (
+          fromSq !== undefined &&
+          (fromSq[0] === parsed.disambiguator ||
+            fromSq[1] === parsed.disambiguator)
+        )
+      })
+    }
+
+    // Validate check indicator if present — reject if PGN says check but move doesn't give check
+    if (candidates.length === 1 && parsed.check) {
+      const newState = makeMove(state, candidates[0])
+      if (!inCheck(newState)) candidates = []
+    }
+
+    if (candidates.length === 1) {
+      candidates[0].san = moveToSan(state, candidates[0], moves)
+      return candidates[0]
+    }
+  }
+
+  // Fall back to SAN round-trip for edge cases
   let strippedMoves = []
   for (let i = 0, len = moves.length; i < len; i++) {
-    const san = strippedSan(
-      moveToSan(state, moves[i], moves, { addPromotion: matchPromotion }),
-    )
-    if (cleanMove === san) return moves[i]
+    const fullSan = moveToSan(state, moves[i], moves, { addPromotion: matchPromotion })
+    const san = strippedSan(fullSan)
+    if (cleanMove === san) {
+      moves[i].san = fullSan
+      return moves[i]
+    }
     strippedMoves.push(san)
   }
 
@@ -787,6 +839,7 @@ export function sanToMove(
         cleanMove.toLowerCase() ===
         strippedMoves[i].replace('x', '').toLowerCase()
       ) {
+        moves[i].san = moveToSan(state, moves[i], moves)
         return moves[i]
       }
       // hand-compare move properties with the results from our permissive regex
@@ -798,6 +851,7 @@ export function sanToMove(
         !promotion ||
         promotion.toLowerCase() == moves[i].promotion)
     ) {
+      moves[i].san = moveToSan(state, moves[i], moves)
       return moves[i]
     } else if (overlyDisambiguated) {
       /*
@@ -812,6 +866,7 @@ export function sanToMove(
         (from == square?.[0] || from == square?.[1]) &&
         (!promotion || promotion.toLowerCase() == moves[i].promotion)
       ) {
+        moves[i].san = moveToSan(state, moves[i], moves)
         return moves[i]
       }
     }
@@ -841,7 +896,7 @@ export function hexToMove(
     color: move.color,
     flags,
     piece: move.piece,
-    san: moveToSan(state, move),
+    san: move.san ?? moveToSan(state, move),
     captured: move.captured,
     promotion: move.promotion,
   }
@@ -1258,7 +1313,7 @@ export function hexToGameState(
 ): Omit<GameState, 'isCurrent'> {
   const move = nodeMove(node)
   return {
-    fen: node.model.fen,
+    fen: getFen(node.model.boardState),
     nags: node.model.nags,
     comment: node.model.comment,
     startingComment: node.model.startingComment,
