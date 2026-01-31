@@ -8,7 +8,7 @@ import {
   NULL_MOVES,
   CASTLING_MOVES,
 } from './constants'
-import { loadFen, sanToMove, makeMove, moveToSan, extractMove } from './move'
+import { loadFen, sanToMove, makeMove, moveToSan } from './move'
 import {
   REGEXP_HEADER_KEY,
   REGEXP_HEADER_VAL,
@@ -67,7 +67,7 @@ export function pgnMoves(
 
     if (move) {
       const isFirstMove = !node.model.move
-      const san = moveToSan(boardState, move)
+      const san = move.san ?? moveToSan(boardState, move)
       const nagStr =
         nags && nags.length ? ' ' + nags.map((nag) => `$${nag}`).join(' ') : ''
       // Move
@@ -312,7 +312,6 @@ export function loadPgn(
       const nextState = makeMove(boardState, move)
       currentNode = currentNode.addModel({
         boardState: nextState,
-        san: '--',
         move,
         startingComment: pendingStartingComment,
       })
@@ -342,12 +341,10 @@ export function loadPgn(
         throw new Error(`Invalid move token: "${token}"`)
       }
       const nextState = makeMove(boardState, move)
-      const parsed = extractMove(token)
       currentNode = currentNode.addModel({
         boardState: nextState,
         nags: extractNags(token),
         move,
-        san: parsed.san,
         startingComment: pendingStartingComment,
       })
       pendingStartingComment = undefined

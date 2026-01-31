@@ -677,6 +677,7 @@ export function sanToMove(
       color: state.turn,
       piece: KING,
       flags: BITS.NULL_MOVE,
+      san: '--',
     }
   }
 
@@ -727,16 +728,21 @@ export function sanToMove(
       if (!inCheck(newState)) candidates = []
     }
 
-    if (candidates.length === 1) return candidates[0]
+    if (candidates.length === 1) {
+      candidates[0].san = moveToSan(state, candidates[0], moves)
+      return candidates[0]
+    }
   }
 
   // Fall back to SAN round-trip for edge cases
   let strippedMoves = []
   for (let i = 0, len = moves.length; i < len; i++) {
-    const san = strippedSan(
-      moveToSan(state, moves[i], moves, { addPromotion: matchPromotion }),
-    )
-    if (cleanMove === san) return moves[i]
+    const fullSan = moveToSan(state, moves[i], moves, { addPromotion: matchPromotion })
+    const san = strippedSan(fullSan)
+    if (cleanMove === san) {
+      moves[i].san = fullSan
+      return moves[i]
+    }
     strippedMoves.push(san)
   }
 
@@ -831,6 +837,7 @@ export function sanToMove(
         cleanMove.toLowerCase() ===
         strippedMoves[i].replace('x', '').toLowerCase()
       ) {
+        moves[i].san = moveToSan(state, moves[i], moves)
         return moves[i]
       }
       // hand-compare move properties with the results from our permissive regex
@@ -842,6 +849,7 @@ export function sanToMove(
         !promotion ||
         promotion.toLowerCase() == moves[i].promotion)
     ) {
+      moves[i].san = moveToSan(state, moves[i], moves)
       return moves[i]
     } else if (overlyDisambiguated) {
       /*
@@ -856,6 +864,7 @@ export function sanToMove(
         (from == square?.[0] || from == square?.[1]) &&
         (!promotion || promotion.toLowerCase() == moves[i].promotion)
       ) {
+        moves[i].san = moveToSan(state, moves[i], moves)
         return moves[i]
       }
     }
@@ -885,7 +894,7 @@ export function hexToMove(
     color: move.color,
     flags,
     piece: move.piece,
-    san: moveToSan(state, move),
+    san: move.san ?? moveToSan(state, move),
     captured: move.captured,
     promotion: move.promotion,
   }

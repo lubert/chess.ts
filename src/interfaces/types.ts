@@ -151,7 +151,6 @@ export type HexState = {
   boardState: BoardState
   nags?: number[] // Array instead of set for easier serialization
   move?: HexMove
-  san?: string
   comment?: string
   startingComment?: string
 }
@@ -164,6 +163,7 @@ export type HexMove = {
   color: Color
   flags: number
   piece: PieceSymbol
+  san?: string
   captured?: PieceSymbol
   promotion?: PieceSymbol
 }
