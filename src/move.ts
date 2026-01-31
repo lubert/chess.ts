@@ -290,6 +290,7 @@ export function cloneMove(move: Readonly<HexMove>): HexMove {
     color: move.color,
     flags: move.flags,
     piece: move.piece,
+    san: move.san,
     captured: move.captured,
     promotion: move.promotion,
   }
@@ -606,7 +607,7 @@ export function moveToSan(
   return output
 }
 
-export function extractMove(move: string): ParsedMove {
+function extractMove(move: string): ParsedMove {
   const cleaned = move.replace(REGEXP_NAG, '')
   const matches: Partial<RegExpMatchArray> | null = cleaned.match(REGEXP_MOVE)
   if (!matches) return {}
@@ -688,8 +689,9 @@ export function sanToMove(
   let moves = generateMoves(state, { piece: pieceType, to: toSq })
 
   // Structural matching: parse the SAN and match against candidate moves
-  // without converting back to SAN via moveToSan
-  if (moves.length > 0) {
+  // without converting back to SAN via moveToSan.
+  // Skip for castling moves — extractMove doesn't parse them usefully.
+  if (moves.length > 0 && cleanMove !== 'O-O' && cleanMove !== 'O-O-O') {
     const parsed = extractMove(move)
     let candidates = moves
 
@@ -722,7 +724,7 @@ export function sanToMove(
       })
     }
 
-    // Validate check indicator if present
+    // Validate check indicator if present — reject if PGN says check but move doesn't give check
     if (candidates.length === 1 && parsed.check) {
       const newState = makeMove(state, candidates[0])
       if (!inCheck(newState)) candidates = []
