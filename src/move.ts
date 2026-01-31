@@ -686,7 +686,51 @@ export function sanToMove(
   const toSq = inferSquare(cleanMove, state)
   let moves = generateMoves(state, { piece: pieceType, to: toSq })
 
-  // strict parser
+  // Structural matching: parse the SAN and match against candidate moves
+  // without converting back to SAN via moveToSan
+  if (moves.length > 0) {
+    const parsed = extractMove(move)
+    let candidates = moves
+
+    // Filter by promotion if specified
+    if (matchPromotion && parsed.promotion) {
+      candidates = candidates.filter(
+        (m) => m.promotion === parsed.promotion,
+      )
+    }
+
+    // Filter by target square
+    if (parsed.to) {
+      const toIdx = SQUARES[parsed.to]
+      candidates = candidates.filter((m) => m.to === toIdx)
+    }
+
+    // Filter by source square or disambiguator
+    if (parsed.from) {
+      candidates = candidates.filter(
+        (m) => algebraic(m.from) === parsed.from,
+      )
+    } else if (parsed.disambiguator) {
+      candidates = candidates.filter((m) => {
+        const fromSq = algebraic(m.from)
+        return (
+          fromSq !== undefined &&
+          (fromSq[0] === parsed.disambiguator ||
+            fromSq[1] === parsed.disambiguator)
+        )
+      })
+    }
+
+    // Validate check indicator if present
+    if (candidates.length === 1 && parsed.check) {
+      const newState = makeMove(state, candidates[0])
+      if (!inCheck(newState)) candidates = []
+    }
+
+    if (candidates.length === 1) return candidates[0]
+  }
+
+  // Fall back to SAN round-trip for edge cases
   let strippedMoves = []
   for (let i = 0, len = moves.length; i < len; i++) {
     const san = strippedSan(
