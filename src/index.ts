@@ -31,6 +31,8 @@ export {
   BIT_SQUARES as BITSQUARES,
   FLAGS,
   BITS,
+  FILE_MASKS,
+  RANK_MASKS,
 } from './constants'
 export {
   rank,
@@ -46,6 +48,9 @@ export {
   isPieceSymbol,
   isSquare,
   squareToBit,
+  bitToSquare,
+  bitToAlgebraic,
+  getBitIndices,
 } from './utils'
 export { toBitState, fromBitState } from './state'
 export {

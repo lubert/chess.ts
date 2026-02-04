@@ -228,11 +228,27 @@ export function toSquare(obj: unknown): Square | undefined {
   return
 }
 
+/**
+ * Converts a bit index (0-63) to a 0x88 square index.
+ * @public
+ */
 export function bitToSquare(sq: number): number {
   if (sq === -1) return -1
   return (sq & 7) + 16 * (sq >> 3)
 }
 
+/**
+ * Converts a bit index (0-63) to algebraic notation.
+ * @public
+ */
+export function bitToAlgebraic(bit: number): Square | undefined {
+  return algebraic(bitToSquare(bit))
+}
+
+/**
+ * Converts a 0x88 square index to a bit index (0-63).
+ * @public
+ */
 export function squareToBit(sq: number): number {
   if (sq === -1) return -1
   const row = Math.floor(sq / 16)
@@ -240,6 +256,12 @@ export function squareToBit(sq: number): number {
   return row * 8 + column
 }
 
+/**
+ * Returns the indices of all set bits in a bigint.
+ * @param n - The bigint to extract bit indices from
+ * @param first - If true, return only the first set bit
+ * @public
+ */
 export function getBitIndices(n: bigint, first = false): number[] {
   const indices = []
   let pos = 0

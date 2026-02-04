@@ -176,6 +176,43 @@ export const BIT_SQUARES: Record<Square, number> = {
   a1: 56, b1: 57, c1: 58, d1: 59, e1: 60, f1: 61, g1: 62, h1: 63,
 }
 
+type File = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h'
+type Rank = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8
+
+/**
+ * Pre-computed bitmasks for each file (column).
+ * Each mask has all 8 squares on that file set.
+ * @public
+ */
+// prettier-ignore
+export const FILE_MASKS: Record<File, bigint> = {
+  a: 0x0101010101010101n,
+  b: 0x0202020202020202n,
+  c: 0x0404040404040404n,
+  d: 0x0808080808080808n,
+  e: 0x1010101010101010n,
+  f: 0x2020202020202020n,
+  g: 0x4040404040404040n,
+  h: 0x8080808080808080n,
+}
+
+/**
+ * Pre-computed bitmasks for each rank (row).
+ * Each mask has all 8 squares on that rank set.
+ * @public
+ */
+// prettier-ignore
+export const RANK_MASKS: Record<Rank, bigint> = {
+  8: 0x00000000000000FFn,
+  7: 0x000000000000FF00n,
+  6: 0x0000000000FF0000n,
+  5: 0x00000000FF000000n,
+  4: 0x000000FF00000000n,
+  3: 0x0000FF0000000000n,
+  2: 0x00FF000000000000n,
+  1: 0xFF00000000000000n,
+}
+
 export const ROOKS: Record<Color, { square: number; flag: number }[]> = {
   w: [
     { square: SQUARES.a1, flag: BITS.QSIDE_CASTLE },
