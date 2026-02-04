@@ -37,7 +37,7 @@ export function isMainline(node: TreeNode<HexState>): boolean {
 
 export function pgnHeader(header: HeaderMap): string[] {
   return Object.entries(header)
-    .filter(([_, val]) => val !== undefined && val !== null)
+    .filter(([, val]) => val !== undefined && val !== null)
     .map(([key, val]) => `[${key} "${val}"]`)
 }
 
