@@ -146,6 +146,8 @@ export type FlagKey =
   | 'KSIDE_CASTLE'
   | 'QSIDE_CASTLE'
   | 'NULL_MOVE'
+  | 'CHECK'
+  | 'CHECKMATE'
 
 export type HexState = {
   boardState: BoardState

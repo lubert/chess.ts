@@ -116,6 +116,8 @@ export const FLAGS: Record<FlagKey, string> = {
   KSIDE_CASTLE: 'k',
   QSIDE_CASTLE: 'q',
   NULL_MOVE: '-',
+  CHECK: '+',
+  CHECKMATE: '#',
 }
 
 /** @public */
@@ -128,6 +130,8 @@ export const BITS: Record<FlagKey, number> = {
   KSIDE_CASTLE: 32,
   QSIDE_CASTLE: 64,
   NULL_MOVE: 128,
+  CHECK: 256,
+  CHECKMATE: 512,
 }
 
 export const RANK_1 = 7
