@@ -1409,6 +1409,9 @@ export class Chess {
 
   /** @internal */
   protected makeMove(move: HexMove, asVariation = false): void {
+    if (!move.san) {
+      move.san = moveToSan(this.boardState, move)
+    }
     const boardState = makeMove(this.boardState, move)
     const parent = this._currentNode
     const model = {
