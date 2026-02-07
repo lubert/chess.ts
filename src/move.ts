@@ -449,74 +449,6 @@ function computePositionInfo(state: Readonly<BoardState>): PositionInfo {
 }
 
 /**
- * Variant of isAttacked that skips the king's own square during slider ray scans.
- * This ensures sliders "see through" the king for king move validation.
- * @internal
- */
-function isSquareAttackedForKing(
-  state: Readonly<BoardState>,
-  square: number,
-  kingSq: number,
-  attackerColor: Color,
-): boolean {
-  if (square & 0x88) return false
-
-  // Pawn
-  const pawnOffsets = PAWN_ATTACK_OFFSETS[attackerColor]
-  for (let i = 0; i < pawnOffsets.length; i++) {
-    const offset = pawnOffsets[i]
-    const p = state.board[square + offset]
-    if (p && p.color === attackerColor && p.type === PAWN) {
-      return true
-    }
-  }
-
-  // One square (king + adjacent pieces)
-  for (let i = 0; i < DIRECTIONS.length; i++) {
-    const offset = DIRECTIONS[i]
-    const p = state.board[square + offset]
-    if (p && p.color === attackerColor) {
-      if (i < 4 && (p.type === ROOK || p.type === QUEEN || p.type === KING))
-        return true
-      if (i >= 4 && (p.type === BISHOP || p.type === QUEEN || p.type === KING))
-        return true
-    }
-  }
-
-  // Knight
-  for (let i = 0; i < PIECE_OFFSETS[KNIGHT].length; i++) {
-    const offset = PIECE_OFFSETS[KNIGHT][i]
-    const p = state.board[square + offset]
-    if (p && p.color === attackerColor && p.type === KNIGHT) {
-      return true
-    }
-  }
-
-  // Multi square sliders — skip the king's own square
-  for (let i = 0; i < DIRECTIONS.length; i++) {
-    const offset = DIRECTIONS[i]
-    let sq = square + offset
-    while ((sq & 0x88) === 0) {
-      if (sq === kingSq) {
-        sq += offset
-        continue
-      }
-      const p = state.board[sq]
-      if (p) {
-        if (p.color === attackerColor) {
-          if (i < 4 && (p.type === ROOK || p.type === QUEEN)) return true
-          if (i >= 4 && (p.type === BISHOP || p.type === QUEEN)) return true
-        }
-        break
-      }
-      sq += offset
-    }
-  }
-
-  return false
-}
-
-/**
  * Check if a move stays along the pin ray.
  * A pinned piece can move toward or away from the pinner.
  * @internal
@@ -830,7 +762,7 @@ export function generateMoves(
 
         if (
           posInfo
-            ? !isSquareAttackedForKing(state, toSq, kingSq, them)
+            ? !isAttacked(state, toSq, them, kingSq)
             : true
         ) {
           if (p) {
@@ -915,7 +847,7 @@ function generateKingMoves(
     const p = state.board[toSq]
     if (p && p.color === state.turn) continue
 
-    if (!isSquareAttackedForKing(state, toSq, kingSq, them)) {
+    if (!isAttacked(state, toSq, them, kingSq)) {
       if (p) {
         moves.push({
           piece: KING,
@@ -1375,12 +1307,15 @@ export function isThreatening(
  * @param state - Board state
  * @param square - Square to check
  * @param color - Color of the attacking side
+ * @param skipSq - Optional square to skip in slider rays (used for king move
+ *   validation so sliders "see through" the king's current square)
  * @public
  */
 export function isAttacked(
   state: Readonly<BoardState>,
   square: number,
   color: Color = swapColor(state.board[square]?.color || state.turn),
+  skipSq: number = -1,
 ): boolean {
   if (square & 0x88) return false
 
@@ -1420,6 +1355,10 @@ export function isAttacked(
     const offset = DIRECTIONS[i]
     let sq = square + offset
     while ((sq & 0x88) === 0) {
+      if (sq === skipSq) {
+        sq += offset
+        continue
+      }
       const p = state.board[sq]
       if (p) {
         if (p.color === color) {
