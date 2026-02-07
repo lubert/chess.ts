@@ -559,7 +559,7 @@ export function generateMoves(
  */
 export function moveToSan(
   state: Readonly<BoardState>,
-  move: Readonly<HexMove>,
+  move: HexMove,
   moves: HexMove[] = generateMoves(state, { piece: move.piece }),
   options: { addPromotion?: boolean } = {},
 ): string {
@@ -598,8 +598,10 @@ export function moveToSan(
   const newState = makeMove(state, move)
   if (inCheck(newState)) {
     if (inCheckmate(newState)) {
+      move.flags |= BITS.CHECKMATE
       output += '#'
     } else {
+      move.flags |= BITS.CHECK
       output += '+'
     }
   }
@@ -881,8 +883,12 @@ export function sanToMove(
  */
 export function hexToMove(
   state: Readonly<BoardState>,
-  move: Readonly<HexMove>,
+  move: HexMove,
 ): Move {
+  if (!move.san) {
+    move.san = moveToSan(state, move)
+  }
+
   let flags = ''
   for (const flag in BITS) {
     if (isFlagKey(flag) && BITS[flag] & move.flags) {
@@ -896,7 +902,7 @@ export function hexToMove(
     color: move.color,
     flags,
     piece: move.piece,
-    san: move.san ?? moveToSan(state, move),
+    san: move.san,
     captured: move.captured,
     promotion: move.promotion,
   }

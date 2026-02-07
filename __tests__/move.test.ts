@@ -2,6 +2,49 @@ import { generateMoves, isAttacking, loadFen } from '../src/move'
 import { SQUARES } from '../src/constants'
 import { Chess } from '../src/chess'
 
+describe('check and checkmate flags', () => {
+  it('should set CHECK flag when move gives check', () => {
+    const chess = new Chess()
+    chess.move('e4')
+    chess.move('e5')
+    chess.move('Qh5')
+    chess.move('Nc6')
+    const move = chess.move('Qxf7')
+    expect(move?.san).toBe('Qxf7+')
+    expect(move?.flags).toContain('+')
+    expect(move?.flags).not.toContain('#')
+  })
+
+  it('should set CHECKMATE flag when move gives checkmate', () => {
+    const chess = new Chess()
+    chess.move('f3')
+    chess.move('e5')
+    chess.move('g4')
+    const move = chess.move('Qh4')
+    expect(move?.san).toBe('Qh4#')
+    expect(move?.flags).toContain('#')
+    expect(move?.flags).not.toContain('+')
+  })
+
+  it('should set CHECK flag when using object move input', () => {
+    const chess = new Chess()
+    chess.move('e4')
+    chess.move('e5')
+    chess.move('Qh5')
+    chess.move('Nc6')
+    const move = chess.move({ from: 'h5', to: 'f7' })
+    expect(move?.san).toBe('Qxf7+')
+    expect(move?.flags).toContain('+')
+  })
+
+  it('should not set CHECK/CHECKMATE flags for non-check moves', () => {
+    const chess = new Chess()
+    const move = chess.move('e4')
+    expect(move?.flags).not.toContain('+')
+    expect(move?.flags).not.toContain('#')
+  })
+})
+
 describe('generateMoves', () => {
   describe('castling', () => {
     it('should not generate moves where the to square does not match', () => {

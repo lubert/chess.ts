@@ -1,5 +1,5 @@
 import { TreeNode } from 'treenode.ts'
-import { BLACK, WHITE } from './constants'
+import { BITS, BLACK, WHITE } from './constants'
 import { Color, FlagKey, GameState, HexState, Piece, PieceSymbol, Square } from './interfaces/types'
 
 /**
@@ -279,17 +279,7 @@ export function getBitIndices(n: bigint, first = false): number[] {
 }
 
 export function isFlagKey(key: string): key is FlagKey {
-  const keys = [
-    'NORMAL',
-    'CAPTURE',
-    'BIG_PAWN',
-    'EP_CAPTURE',
-    'PROMOTION',
-    'KSIDE_CASTLE',
-    'QSIDE_CASTLE',
-    'NULL_MOVE',
-  ]
-  return keys.indexOf(key) !== -1
+  return key in BITS
 }
 
 export function isDefined<T>(value: T | null | undefined): value is T {
