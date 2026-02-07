@@ -174,8 +174,8 @@ export function loadPgn(
 
   // Process lines
   let state: 'header' | 'moves' = 'header'
-  while (lines.length) {
-    const line = lines.shift()!
+  for (let li = 0; li < lines.length; li++) {
+    const line = lines[li]
     if (state === 'header') {
       // Skip empty lines and comments
       if (!line || line.startsWith('%')) continue
@@ -212,15 +212,29 @@ export function loadPgn(
   // Track if we're at root with no moves yet
   let atRootNoMoves = true
 
-  while (moveTokens.length) {
-    let token = moveTokens.shift()!
+  let mi = 0
+  const pending: string[] = []
+
+  const nextToken = (): string | undefined => {
+    if (pending.length) return pending.pop()!
+    if (mi < moveTokens.length) return moveTokens[mi++]
+    return undefined
+  }
+  const pushBack = (t: string) => {
+    pending.push(t)
+  }
+  const pushBackMultiple = (ts: string[]) => {
+    // Push in reverse so first element comes out first via pop()
+    for (let i = ts.length - 1; i >= 0; i--) pending.push(ts[i])
+  }
+
+  for (let token = nextToken(); token !== undefined; token = nextToken()) {
     if (!token) continue
 
     if (token.startsWith(';')) {
-      if (token.length > 1) moveTokens.unshift(token.substring(1))
+      if (token.length > 1) pushBack(token.substring(1))
       const commentTokens: string[] = []
-      while (moveTokens.length) {
-        token = moveTokens.shift()!
+      for (token = nextToken(); token !== undefined; token = nextToken()) {
         if (token === NULL_CHAR) {
           if (commentTokens.length) {
             currentNode.model.comment = commentTokens.join(' ')
@@ -234,12 +248,11 @@ export function loadPgn(
         currentNode.model.comment = commentTokens.join(' ')
       }
     } else if (token.includes(';')) {
-      moveTokens.unshift(...splitStr(token, ';'))
+      pushBackMultiple(splitStr(token, ';'))
     } else if (token.startsWith('{')) {
-      if (token.length > 1) moveTokens.unshift(token.substring(1))
+      if (token.length > 1) pushBack(token.substring(1))
       const commentTokens: string[] = []
-      while (moveTokens.length) {
-        token = moveTokens.shift()!
+      for (token = nextToken(); token !== undefined; token = nextToken()) {
         if (token.endsWith('}')) {
           if (token.length > 1) {
             commentTokens.push(token.substring(0, token.length - 1))
@@ -253,7 +266,7 @@ export function loadPgn(
           }
           // Push remaining chars back for processing (e.g., the ")")
           if (idx < token.length - 1) {
-            moveTokens.unshift(token.substring(idx + 1))
+            pushBack(token.substring(idx + 1))
           }
           break
         } else if (token === NULL_CHAR) {
@@ -271,19 +284,19 @@ export function loadPgn(
     } else if (token.startsWith('(')) {
       // Start variation - go to parent position to add alternative move
       if (!currentNode.parent) throw new Error('Missing parent')
-      if (token.length > 1) moveTokens.unshift(token.substring(1))
+      if (token.length > 1) pushBack(token.substring(1))
       parentNodes.push(currentNode)
       currentNode = currentNode.parent
       inVariationStart = true
     } else if (token.startsWith(')')) {
       // End variation and return to original node
       if (!parentNodes.length) throw new Error('Mismatched parentheses')
-      if (token.length > 1) moveTokens.unshift(token.substring(1))
+      if (token.length > 1) pushBack(token.substring(1))
       currentNode = parentNodes.pop()!
       inVariationStart = false
       pendingStartingComment = undefined
     } else if (token.includes(')')) {
-      moveTokens.unshift(...splitStr(token, ')'))
+      pushBackMultiple(splitStr(token, ')'))
     } else if (token.startsWith('$')) {
       addNag(currentNode, parseInt(token.substring(1), 10))
     } else if (token === '!') {
@@ -330,12 +343,8 @@ export function loadPgn(
       if (CASTLING_MOVES.includes(token)) {
         token = token.replace(/0/g, 'O')
       }
-      // Remove move number (handles 1, 2, or 3 dots for compatibility)
-      token = token.replace(/\d+\.{1,3}/g, '')
-      // Strip leading dots (handles "..Kf8" when "16." was a separate token)
-      token = token.replace(/^\.+/, '')
-      // Strip trailing commas (common in older PGN files)
-      token = token.replace(/,$/g, '')
+      // Strip move numbers, leading dots, and trailing commas in one pass
+      token = token.replace(/^\d+\.{1,3}|^\.+|,$/g, '')
       // Skip if token is now empty (was only dots or move number)
       if (!token) continue
       const move = sanToMove(boardState, token)

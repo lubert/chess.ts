@@ -67,6 +67,13 @@ import { REGEXP_MOVE, REGEXP_NAG } from './regex'
 import { validateFen } from './fen'
 import { cloneBoardState, defaultBoardState } from './state'
 
+// Scratch buffers to avoid per-call allocations
+const _pinBuf = new Int8Array(128)
+const _checkMaskBuf = new Uint8Array(128)
+
+const SECOND_RANK: Record<string, number> = { b: RANK_7, w: RANK_2 }
+const PROMOTION_PIECES: PieceSymbol[] = [QUEEN, ROOK, BISHOP, KNIGHT]
+
 /** Encode a piece symbol + color into a single byte for Uint8Array board */
 export function encodePiece(type: PieceSymbol, color: Color): number {
   return COLOR_NUM[color] | PIECE_TYPE_NUM[type]
@@ -403,7 +410,8 @@ function computePositionInfo(state: Readonly<BoardState>): PositionInfo {
   const usBit = COLOR_NUM[us]
   const themBit = usBit ^ 8
   const kingSq = state.kings[us]
-  const pins = new Int8Array(128)
+  const pins = _pinBuf
+  pins.fill(0)
   let checkerCount = 0
   let checkerSq = -1
   let checkerRay = 0
@@ -522,7 +530,8 @@ function computeCheckMask(
   checkerRay: number,
   kingSq: number,
 ): Uint8Array {
-  const mask = new Uint8Array(128)
+  const mask = _checkMaskBuf
+  mask.fill(0)
   // Can always capture the checker
   mask[checkerSq] = 1
 
@@ -562,7 +571,7 @@ export function generateMoves(
   const them = swapColor(state.turn)
   const usBit = COLOR_NUM[state.turn]
   const themBit = usBit ^ 8
-  const second_rank: { [key: string]: number } = { b: RANK_7, w: RANK_2 }
+  const second_rank = SECOND_RANK
   const kingSq = state.kings[state.turn]
 
   // Parse from/to filters early so the double-check path can use them
@@ -626,7 +635,7 @@ export function generateMoves(
     // Pawn promotion
     const r = rank(to)
     if (piece === PAWN && (r === RANK_8 || r === RANK_1)) {
-      const promotions = [QUEEN, ROOK, BISHOP, KNIGHT]
+      const promotions = PROMOTION_PIECES
       promotions.forEach((promotion) => {
         moves.push({
           piece,
@@ -861,6 +870,157 @@ export function generateMoves(
   return moves
 }
 
+/**
+ * Returns true if the side to move has at least one legal move.
+ * @internal
+ */
+function hasLegalMove(state: Readonly<BoardState>): boolean {
+  const usBit = COLOR_NUM[state.turn]
+  const themBit = usBit ^ 8
+  const them = swapColor(state.turn)
+  const kingSq = state.kings[state.turn]
+
+  const posInfo = computePositionInfo(state)
+
+  // Double check: only king moves are legal
+  if (posInfo.checkerCount >= 2) {
+    for (let j = 0; j < PIECE_OFFSETS[KING].length; j++) {
+      const toSq = kingSq + PIECE_OFFSETS[KING][j]
+      if (toSq & 0x88) continue
+      const p = state.board[toSq]
+      if (p && decodePieceColor(p) === usBit) continue
+      if (!isAttacked(state, toSq, them, kingSq)) return true
+    }
+    return false
+  }
+
+  const checkMask =
+    posInfo.checkerCount === 1
+      ? computeCheckMask(posInfo.checkerSq, posInfo.checkerRay, kingSq)
+      : null
+
+  // Non-king pieces
+  for (let fromSq = SQUARES.a8; fromSq <= SQUARES.h1; fromSq++) {
+    if (fromSq & 0x88) {
+      fromSq += 7
+      continue
+    }
+
+    const encoded = state.board[fromSq]
+    if (!encoded || decodePieceColor(encoded) !== usBit) continue
+
+    const pt = decodePieceType(encoded)
+    if (pt === PT_KING) continue
+
+    const pinDir = posInfo.pins[fromSq]
+
+    if (pt === PT_PAWN) {
+      // Single push
+      const toSq1 = fromSq + PAWN_OFFSETS[state.turn][0]
+      if (!state.board[toSq1]) {
+        if (!checkMask || checkMask[toSq1]) {
+          if (!pinDir || canMoveAlongPin(pinDir, fromSq, toSq1)) return true
+        }
+        // Double push
+        if (SECOND_RANK[state.turn] === rank(fromSq)) {
+          const toSq2 = fromSq + PAWN_OFFSETS[state.turn][1]
+          if (!state.board[toSq2]) {
+            if (!checkMask || checkMask[toSq2]) {
+              if (!pinDir || canMoveAlongPin(pinDir, fromSq, toSq2)) return true
+            }
+          }
+        }
+      }
+      // Pawn captures
+      for (let j = 2; j < 4; j++) {
+        const toSq = fromSq + PAWN_OFFSETS[state.turn][j]
+        if (toSq & 0x88) continue
+        const p = state.board[toSq]
+        if (p && decodePieceColor(p) === themBit) {
+          if (!checkMask || checkMask[toSq]) {
+            if (!pinDir || canMoveAlongPin(pinDir, fromSq, toSq)) return true
+          }
+        } else if (toSq === state.ep_square) {
+          const capturedPawnSq =
+            state.ep_square + (state.turn === WHITE ? 16 : -16)
+          if (checkMask && !checkMask[toSq] && !checkMask[capturedPawnSq])
+            continue
+          if (pinDir && !canMoveAlongPin(pinDir, fromSq, toSq)) continue
+          const epMove: HexMove = {
+            piece: PAWN,
+            color: state.turn,
+            from: fromSq,
+            to: state.ep_square,
+            captured: PAWN,
+            flags: BITS.EP_CAPTURE,
+          }
+          if (isLegal(state, epMove)) return true
+        }
+      }
+    } else {
+      // Non-king, non-pawn
+      if (pinDir && pt === PT_KNIGHT) continue
+      const symbol = NUM_PIECE_TYPE[pt]!
+      for (let j = 0, len = PIECE_OFFSETS[symbol].length; j < len; j++) {
+        const offset = PIECE_OFFSETS[symbol][j]
+        let toSq = fromSq + offset
+        while (!(toSq & 0x88)) {
+          const p = state.board[toSq]
+          if (!p) {
+            if (!checkMask || checkMask[toSq]) {
+              if (!pinDir || canMoveAlongPin(pinDir, fromSq, toSq)) return true
+            }
+          } else {
+            if (decodePieceColor(p) !== usBit) {
+              if (!checkMask || checkMask[toSq]) {
+                if (!pinDir || canMoveAlongPin(pinDir, fromSq, toSq))
+                  return true
+              }
+            }
+            break
+          }
+          if (pt === PT_KNIGHT) break
+          toSq += offset
+        }
+      }
+    }
+  }
+
+  // King moves
+  for (let j = 0; j < PIECE_OFFSETS[KING].length; j++) {
+    const toSq = kingSq + PIECE_OFFSETS[KING][j]
+    if (toSq & 0x88) continue
+    const p = state.board[toSq]
+    if (p && decodePieceColor(p) === usBit) continue
+    if (!isAttacked(state, toSq, them, kingSq)) return true
+  }
+
+  // Castling (only if not in check)
+  if (posInfo.checkerCount === 0) {
+    if (state.castling[state.turn] & BITS.KSIDE_CASTLE) {
+      if (
+        !state.board[kingSq + 1] &&
+        !state.board[kingSq + 2] &&
+        !isAttacked(state, kingSq + 1) &&
+        !isAttacked(state, kingSq + 2)
+      )
+        return true
+    }
+    if (state.castling[state.turn] & BITS.QSIDE_CASTLE) {
+      if (
+        !state.board[kingSq - 1] &&
+        !state.board[kingSq - 2] &&
+        !state.board[kingSq - 3] &&
+        !isAttacked(state, kingSq - 1) &&
+        !isAttacked(state, kingSq - 2)
+      )
+        return true
+    }
+  }
+
+  return false
+}
+
 /*
  * Convert a move from 0x88 coordinates to Standard Algebraic Notation (SAN)
  * @public
@@ -1004,31 +1164,31 @@ export function sanToMove(
   // Skip for castling moves — extractMove doesn't parse them usefully.
   if (moves.length > 0 && cleanMove !== 'O-O' && cleanMove !== 'O-O-O') {
     const parsed = extractMove(move)
-    let candidates = moves
+    const toIdx = parsed.to ? SQUARES[parsed.to] : undefined
+    let candidates: HexMove[] = []
 
-    // Filter by promotion if specified
-    if (matchPromotion && parsed.promotion) {
-      candidates = candidates.filter((m) => m.promotion === parsed.promotion)
-    }
-
-    // Filter by target square
-    if (parsed.to) {
-      const toIdx = SQUARES[parsed.to]
-      candidates = candidates.filter((m) => m.to === toIdx)
-    }
-
-    // Filter by source square or disambiguator
-    if (parsed.from) {
-      candidates = candidates.filter((m) => algebraic(m.from) === parsed.from)
-    } else if (parsed.disambiguator) {
-      candidates = candidates.filter((m) => {
+    // Single-pass filter instead of chained .filter() calls
+    for (let i = 0, len = moves.length; i < len; i++) {
+      const m = moves[i]
+      if (
+        matchPromotion &&
+        parsed.promotion &&
+        m.promotion !== parsed.promotion
+      )
+        continue
+      if (toIdx !== undefined && m.to !== toIdx) continue
+      if (parsed.from) {
+        if (algebraic(m.from) !== parsed.from) continue
+      } else if (parsed.disambiguator) {
         const fromSq = algebraic(m.from)
-        return (
-          fromSq !== undefined &&
-          (fromSq[0] === parsed.disambiguator ||
-            fromSq[1] === parsed.disambiguator)
+        if (
+          fromSq === undefined ||
+          (fromSq[0] !== parsed.disambiguator &&
+            fromSq[1] !== parsed.disambiguator)
         )
-      })
+          continue
+      }
+      candidates.push(m)
     }
 
     // Validate check indicator if present — reject if PGN says check but move doesn't give check
@@ -1337,19 +1497,6 @@ export function isAttacked(
     }
   }
 
-  // One square
-  for (let i = 0; i < DIRECTIONS.length; i++) {
-    const offset = DIRECTIONS[i]
-    const p = state.board[square + offset]
-    if (p && decodePieceColor(p) === colorBit) {
-      const pt = decodePieceType(p)
-      if (i < 4 && (pt === PT_ROOK || pt === PT_QUEEN || pt === PT_KING))
-        return true
-      if (i >= 4 && (pt === PT_BISHOP || pt === PT_QUEEN || pt === PT_KING))
-        return true
-    }
-  }
-
   // Knight
   for (let i = 0; i < PIECE_OFFSETS[KNIGHT].length; i++) {
     const offset = PIECE_OFFSETS[KNIGHT][i]
@@ -1363,25 +1510,29 @@ export function isAttacked(
     }
   }
 
-  // Multi square
-  for (let i = 0; i < DIRECTIONS.length; i++) {
+  // Sliding + one-square (king) in a single pass per direction
+  for (let i = 0; i < 8; i++) {
     const offset = DIRECTIONS[i]
     let sq = square + offset
+    let dist = 0
     while ((sq & 0x88) === 0) {
       if (sq === skipSq) {
         sq += offset
+        dist++
         continue
       }
       const p = state.board[sq]
       if (p) {
         if (decodePieceColor(p) === colorBit) {
           const pt = decodePieceType(p)
+          if (dist === 0 && pt === PT_KING) return true
           if (i < 4 && (pt === PT_ROOK || pt === PT_QUEEN)) return true
           if (i >= 4 && (pt === PT_BISHOP || pt === PT_QUEEN)) return true
         }
         break
       }
       sq += offset
+      dist++
     }
   }
 
@@ -1400,11 +1551,11 @@ export function inCheck(state: Readonly<BoardState>): boolean {
 }
 
 export function inCheckmate(state: Readonly<BoardState>): boolean {
-  return inCheck(state) && generateMoves(state).length === 0
+  return inCheck(state) && !hasLegalMove(state)
 }
 
 export function inStalemate(state: Readonly<BoardState>): boolean {
-  return !inCheck(state) && generateMoves(state).length === 0
+  return !inCheck(state) && !hasLegalMove(state)
 }
 
 export function insufficientMaterial(state: Readonly<BoardState>): boolean {
