@@ -47,13 +47,13 @@ export function fromBitState(state: BitState): BoardState {
       const pt = PIECE_TYPE_NUM[piece as PieceSymbol]
       let bits = state.board[color][piece]
       let pos = 0
-      while (bits > BigInt(0)) {
-        if (bits & BigInt(1)) {
+      while (bits > 0n) {
+        if (bits & 1n) {
           const sq = bitToSquare(pos)
           board[sq] = colorBit | pt
           if (piece === 'k') kings[color] = sq
         }
-        bits >>= BigInt(1)
+        bits >>= 1n
         pos++
       }
     }
