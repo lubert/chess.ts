@@ -251,7 +251,7 @@ export function walkPgn(pgn: string, options: WalkPgnOptions): HeaderMap {
   const addPendingNag = (nag: number) => {
     if (!pendingMoveInfo) return
     if (!pendingMoveInfo.nags) pendingMoveInfo.nags = [nag]
-    else pendingMoveInfo.nags.push(nag)
+    else if (!pendingMoveInfo.nags.includes(nag)) pendingMoveInfo.nags.push(nag)
   }
 
   // Tokenizer state
