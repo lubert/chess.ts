@@ -59,32 +59,31 @@ for (let i = 0; i < 64; i++) {
   BIT_SHIFT[i] = BigInt(1) << BigInt(i)
 }
 
+const PIECE_SYM: PieceSymbol[] = [
+  'p',
+  'p',
+  'n',
+  'b',
+  'r',
+  'q',
+  'k', // index 0 unused but typed for safety
+] as unknown as PieceSymbol[]
+// Fix index 0 — keep array dense; callers never hit 0 because encoded is nonzero
+PIECE_SYM[0] = 'p' // placeholder, never actually accessed
+
 export function toBitBoard(board: Board): BitBoard {
   const bitboard: BitBoard = {
-    w: {
-      p: BigInt(0),
-      n: BigInt(0),
-      b: BigInt(0),
-      r: BigInt(0),
-      q: BigInt(0),
-      k: BigInt(0),
-    },
-    b: {
-      p: BigInt(0),
-      n: BigInt(0),
-      b: BigInt(0),
-      r: BigInt(0),
-      q: BigInt(0),
-      k: BigInt(0),
-    },
+    w: { p: 0n, n: 0n, b: 0n, r: 0n, q: 0n, k: 0n },
+    b: { p: 0n, n: 0n, b: 0n, r: 0n, q: 0n, k: 0n },
   }
   for (let i = 0; i < 128; i++) {
     if (i & 0x88) continue
     const encoded = board[i]
     if (encoded) {
       const bit = (i >> 4) * 8 + (i & 7)
-      const piece = decodePiece(encoded)
-      bitboard[piece.color][piece.type] |= BIT_SHIFT[bit]
+      const color = encoded & 8 ? 'b' : 'w'
+      const type = PIECE_SYM[encoded & 7]
+      bitboard[color][type] |= BIT_SHIFT[bit]
     }
   }
   return bitboard
