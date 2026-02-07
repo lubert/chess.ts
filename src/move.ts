@@ -67,6 +67,10 @@ import { REGEXP_MOVE, REGEXP_NAG } from './regex'
 import { validateFen } from './fen'
 import { cloneBoardState, defaultBoardState } from './state'
 
+// Scratch buffers to avoid per-call allocations
+const _pinBuf = new Int8Array(128)
+const _checkMaskBuf = new Uint8Array(128)
+
 /** Encode a piece symbol + color into a single byte for Uint8Array board */
 export function encodePiece(type: PieceSymbol, color: Color): number {
   return COLOR_NUM[color] | PIECE_TYPE_NUM[type]
@@ -403,7 +407,8 @@ function computePositionInfo(state: Readonly<BoardState>): PositionInfo {
   const usBit = COLOR_NUM[us]
   const themBit = usBit ^ 8
   const kingSq = state.kings[us]
-  const pins = new Int8Array(128)
+  const pins = _pinBuf
+  pins.fill(0)
   let checkerCount = 0
   let checkerSq = -1
   let checkerRay = 0
@@ -522,7 +527,8 @@ function computeCheckMask(
   checkerRay: number,
   kingSq: number,
 ): Uint8Array {
-  const mask = new Uint8Array(128)
+  const mask = _checkMaskBuf
+  mask.fill(0)
   // Can always capture the checker
   mask[checkerSq] = 1
 
