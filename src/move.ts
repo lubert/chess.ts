@@ -416,31 +416,37 @@ function computePositionInfo(state: Readonly<BoardState>): PositionInfo {
   }
 
   // Check for knight attacks
-  const knightOffsets = PIECE_OFFSETS[KNIGHT]
-  for (let i = 0; i < knightOffsets.length; i++) {
-    const sq = kingSq + knightOffsets[i]
-    if (sq & 0x88) continue
-    const p = state.board[sq]
-    if (p && p.color === them && p.type === KNIGHT) {
-      checkerCount++
-      if (checkerCount === 1) {
-        checkerSq = sq
-        checkerRay = 0 // knight, no ray
+  if (checkerCount < 2) {
+    const knightOffsets = PIECE_OFFSETS[KNIGHT]
+    for (let i = 0; i < knightOffsets.length; i++) {
+      const sq = kingSq + knightOffsets[i]
+      if (sq & 0x88) continue
+      const p = state.board[sq]
+      if (p && p.color === them && p.type === KNIGHT) {
+        checkerCount++
+        if (checkerCount === 1) {
+          checkerSq = sq
+          checkerRay = 0 // knight, no ray
+        }
+        break // at most one knight can check from a given square
       }
     }
   }
 
   // Check for pawn attacks (use them's offsets to find enemy pawns attacking our king)
-  const pawnOffsets = PAWN_ATTACK_OFFSETS[them]
-  for (let i = 0; i < pawnOffsets.length; i++) {
-    const sq = kingSq + pawnOffsets[i]
-    if (sq & 0x88) continue
-    const p = state.board[sq]
-    if (p && p.color === them && p.type === PAWN) {
-      checkerCount++
-      if (checkerCount === 1) {
-        checkerSq = sq
-        checkerRay = 0 // pawn, no ray
+  if (checkerCount < 2) {
+    const pawnOffsets = PAWN_ATTACK_OFFSETS[them]
+    for (let i = 0; i < pawnOffsets.length; i++) {
+      const sq = kingSq + pawnOffsets[i]
+      if (sq & 0x88) continue
+      const p = state.board[sq]
+      if (p && p.color === them && p.type === PAWN) {
+        checkerCount++
+        if (checkerCount === 1) {
+          checkerSq = sq
+          checkerRay = 0 // pawn, no ray
+        }
+        break // at most one pawn can check per offset
       }
     }
   }
