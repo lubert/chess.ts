@@ -542,6 +542,7 @@ export function generateMoves(
   // Compute pin/check info upfront for legal move generation
   let posInfo: PositionInfo | null = null
   let checkMask: Uint8Array | null = null
+  let doubleCheck = false
 
   if (legal) {
     posInfo = computePositionInfo(state)
@@ -550,7 +551,7 @@ export function generateMoves(
     if (posInfo.checkerCount >= 2) {
       if (forPiece !== undefined && forPiece !== KING) return []
       if (forSquare !== undefined && forSquare !== kingSq) return []
-      return generateKingMoves(state, kingSq, them, toSquare)
+      doubleCheck = true
     }
 
     // Single check: compute check mask for non-king pieces
@@ -607,129 +608,128 @@ export function generateMoves(
     ((!checkMask || checkMask[toSq]) &&
       (!pinDir || canMoveAlongPin(pinDir, fromSq, toSq)))
 
-  for (let fromSq = firstSq; fromSq <= lastSq; fromSq++) {
-    // Check if we ran off the end of the board
-    if (fromSq & 0x88) {
-      fromSq += 7
-      continue
-    }
-
-    const piece = state.board[fromSq]
-    if (piece?.color !== state.turn) continue
-
-    const symbol = piece.type
-    if (forPiece && forPiece !== symbol) continue
-
-    // King moves handled separately below
-    if (symbol === KING) continue
-
-    // For non-king pieces with legal filtering
-    const pinDir = posInfo ? posInfo.pins[fromSq] : 0
-
-    let toSq: number
-    if (symbol === PAWN) {
-      // Single square, non-capturing
-      toSq = fromSq + PAWN_OFFSETS[state.turn][0]
-      if (!state.board[toSq]) {
-        if (toSquare === undefined || toSquare === toSq) {
-          if (isLegalDest(toSq, pinDir, fromSq)) {
-            addMove(PAWN, fromSq, toSq, BITS.NORMAL)
-          }
-        }
-
-        // Double square
-        toSq = fromSq + PAWN_OFFSETS[state.turn][1]
-        if (
-          second_rank[state.turn] === rank(fromSq) &&
-          !state.board[toSq] &&
-          (toSquare === undefined || toSquare === toSq)
-        ) {
-          if (isLegalDest(toSq, pinDir, fromSq)) {
-            addMove(PAWN, fromSq, toSq, BITS.BIG_PAWN)
-          }
-        }
+  // In double check, skip non-king piece generation entirely
+  if (!doubleCheck) {
+    for (let fromSq = firstSq; fromSq <= lastSq; fromSq++) {
+      // Check if we ran off the end of the board
+      if (fromSq & 0x88) {
+        fromSq += 7
+        continue
       }
 
-      // Pawn captures
-      for (let j = 2; j < 4; j++) {
-        toSq = fromSq + PAWN_OFFSETS[state.turn][j]
-        if (toSq & 0x88) continue
-        if (toSquare !== undefined && toSq !== toSquare) continue
+      const piece = state.board[fromSq]
+      if (piece?.color !== state.turn) continue
 
-        const p = state.board[toSq]
-        if (p && p.color === them) {
-          if (isLegalDest(toSq, pinDir, fromSq)) {
-            addMove(PAWN, fromSq, toSq, BITS.CAPTURE, p.type)
+      const symbol = piece.type
+      if (forPiece && forPiece !== symbol) continue
+
+      // King moves handled separately below
+      if (symbol === KING) continue
+
+      // For non-king pieces with legal filtering
+      const pinDir = posInfo ? posInfo.pins[fromSq] : 0
+
+      let toSq: number
+      if (symbol === PAWN) {
+        // Single square, non-capturing
+        toSq = fromSq + PAWN_OFFSETS[state.turn][0]
+        if (!state.board[toSq]) {
+          if (toSquare === undefined || toSquare === toSq) {
+            if (isLegalDest(toSq, pinDir, fromSq)) {
+              addMove(PAWN, fromSq, toSq, BITS.NORMAL)
+            }
           }
-        } else if (toSq === state.ep_square) {
-          // En passant — special case: pin detection alone can miss
-          // horizontal discovered checks when both pawns leave the same rank.
-          // Fall back to isLegal for en passant moves.
-          if (!posInfo) {
-            addMove(PAWN, fromSq, state.ep_square, BITS.EP_CAPTURE, PAWN)
-          } else {
-            // Check mask: the captured pawn square must also be considered
-            // The captured pawn is on the same file as ep_square but different rank
-            const capturedPawnSq =
-              state.ep_square + (state.turn === WHITE ? 16 : -16)
-            if (
-              checkMask &&
-              !checkMask[toSq] &&
-              !checkMask[capturedPawnSq]
-            ) {
-              continue
-            }
-            if (pinDir && !canMoveAlongPin(pinDir, fromSq, toSq)) {
-              continue
-            }
-            // Fall back to make/unmake check for en passant
-            // to catch horizontal discovered checks
-            const epMove: HexMove = {
-              piece: PAWN,
-              color: state.turn,
-              from: fromSq,
-              to: state.ep_square,
-              captured: PAWN,
-              flags: BITS.EP_CAPTURE,
-            }
-            if (isLegal(state, epMove)) {
-              addMove(PAWN, fromSq, state.ep_square, BITS.EP_CAPTURE, PAWN)
+
+          // Double square
+          toSq = fromSq + PAWN_OFFSETS[state.turn][1]
+          if (
+            second_rank[state.turn] === rank(fromSq) &&
+            !state.board[toSq] &&
+            (toSquare === undefined || toSquare === toSq)
+          ) {
+            if (isLegalDest(toSq, pinDir, fromSq)) {
+              addMove(PAWN, fromSq, toSq, BITS.BIG_PAWN)
             }
           }
         }
-      }
-    } else {
-      // Non-king, non-pawn pieces
-      // Pinned knight can never move
-      if (posInfo && pinDir && symbol === KNIGHT) continue
 
-      for (let j = 0, len = PIECE_OFFSETS[symbol].length; j < len; j++) {
-        const offset = PIECE_OFFSETS[symbol][j]
-        toSq = fromSq
-
-        while (true) {
-          toSq += offset
-          if (toSq & 0x88) break
+        // Pawn captures
+        for (let j = 2; j < 4; j++) {
+          toSq = fromSq + PAWN_OFFSETS[state.turn][j]
+          if (toSq & 0x88) continue
+          if (toSquare !== undefined && toSq !== toSquare) continue
 
           const p = state.board[toSq]
-          if (!p) {
-            if (toSquare === undefined || toSquare === toSq) {
-              if (isLegalDest(toSq, pinDir, fromSq)) {
-                addMove(symbol, fromSq, toSq, BITS.NORMAL)
+          if (p && p.color === them) {
+            if (isLegalDest(toSq, pinDir, fromSq)) {
+              addMove(PAWN, fromSq, toSq, BITS.CAPTURE, p.type)
+            }
+          } else if (toSq === state.ep_square) {
+            // En passant — special case: pin detection alone can miss
+            // horizontal discovered checks when both pawns leave the same rank.
+            // Fall back to isLegal for en passant moves.
+            if (!posInfo) {
+              addMove(PAWN, fromSq, state.ep_square, BITS.EP_CAPTURE, PAWN)
+            } else {
+              // Check mask: the captured pawn square must also be considered
+              // The captured pawn is on the same file as ep_square but different rank
+              const capturedPawnSq =
+                state.ep_square + (state.turn === WHITE ? 16 : -16)
+              if (checkMask && !checkMask[toSq] && !checkMask[capturedPawnSq]) {
+                continue
+              }
+              if (pinDir && !canMoveAlongPin(pinDir, fromSq, toSq)) {
+                continue
+              }
+              // Fall back to make/unmake check for en passant
+              // to catch horizontal discovered checks
+              const epMove: HexMove = {
+                piece: PAWN,
+                color: state.turn,
+                from: fromSq,
+                to: state.ep_square,
+                captured: PAWN,
+                flags: BITS.EP_CAPTURE,
+              }
+              if (isLegal(state, epMove)) {
+                addMove(PAWN, fromSq, state.ep_square, BITS.EP_CAPTURE, PAWN)
               }
             }
-          } else {
-            if (p.color === state.turn) break
-            if (toSquare === undefined || toSquare === toSq) {
-              if (isLegalDest(toSq, pinDir, fromSq)) {
-                addMove(symbol, fromSq, toSq, BITS.CAPTURE, p.type)
-              }
-            }
-            break
           }
+        }
+      } else {
+        // Non-king, non-pawn pieces
+        // Pinned knight can never move
+        if (posInfo && pinDir && symbol === KNIGHT) continue
 
-          // Break if knight or king
-          if (symbol === KNIGHT || symbol === KING) break
+        for (let j = 0, len = PIECE_OFFSETS[symbol].length; j < len; j++) {
+          const offset = PIECE_OFFSETS[symbol][j]
+          toSq = fromSq
+
+          while (true) {
+            toSq += offset
+            if (toSq & 0x88) break
+
+            const p = state.board[toSq]
+            if (!p) {
+              if (toSquare === undefined || toSquare === toSq) {
+                if (isLegalDest(toSq, pinDir, fromSq)) {
+                  addMove(symbol, fromSq, toSq, BITS.NORMAL)
+                }
+              }
+            } else {
+              if (p.color === state.turn) break
+              if (toSquare === undefined || toSquare === toSq) {
+                if (isLegalDest(toSq, pinDir, fromSq)) {
+                  addMove(symbol, fromSq, toSq, BITS.CAPTURE, p.type)
+                }
+              }
+              break
+            }
+
+            // Break if knight or king
+            if (symbol === KNIGHT || symbol === KING) break
+          }
         }
       }
     }
@@ -748,11 +748,7 @@ export function generateMoves(
         const p = state.board[toSq]
         if (p && p.color === state.turn) continue
 
-        if (
-          posInfo
-            ? !isAttacked(state, toSq, them, kingSq)
-            : true
-        ) {
+        if (posInfo ? !isAttacked(state, toSq, them, kingSq) : true) {
           if (p) {
             addMove(KING, kingSq, toSq, BITS.CAPTURE, p.type)
           } else {
@@ -765,9 +761,7 @@ export function generateMoves(
       // When posInfo is set, checkerCount === 0 is already guaranteed by the
       // guard, so we can skip the redundant isAttacked(kingSq) call.
       if (!posInfo || posInfo.checkerCount === 0) {
-        const notInCheck = posInfo
-          ? true
-          : !isAttacked(state, kingSq)
+        const notInCheck = posInfo ? true : !isAttacked(state, kingSq)
 
         if (notInCheck) {
           // King-side castling
@@ -806,52 +800,6 @@ export function generateMoves(
   }
 
   if (legal && !posInfo) return moves.filter((m) => isLegal(state, m))
-  return moves
-}
-
-/**
- * Generate only king moves (used in double check).
- * @internal
- */
-function generateKingMoves(
-  state: Readonly<BoardState>,
-  kingSq: number,
-  them: Color,
-  toSquare: number | undefined,
-): HexMove[] {
-  const moves: HexMove[] = []
-
-  for (let j = 0; j < PIECE_OFFSETS[KING].length; j++) {
-    const offset = PIECE_OFFSETS[KING][j]
-    const toSq = kingSq + offset
-    if (toSq & 0x88) continue
-    if (toSquare !== undefined && toSq !== toSquare) continue
-
-    const p = state.board[toSq]
-    if (p && p.color === state.turn) continue
-
-    if (!isAttacked(state, toSq, them, kingSq)) {
-      if (p) {
-        moves.push({
-          piece: KING,
-          color: state.turn,
-          from: kingSq,
-          to: toSq,
-          captured: p.type,
-          flags: BITS.CAPTURE,
-        })
-      } else {
-        moves.push({
-          piece: KING,
-          color: state.turn,
-          from: kingSq,
-          to: toSq,
-          flags: BITS.NORMAL,
-        })
-      }
-    }
-  }
-
   return moves
 }
 
@@ -1001,9 +949,7 @@ export function sanToMove(
 
     // Filter by promotion if specified
     if (matchPromotion && parsed.promotion) {
-      candidates = candidates.filter(
-        (m) => m.promotion === parsed.promotion,
-      )
+      candidates = candidates.filter((m) => m.promotion === parsed.promotion)
     }
 
     // Filter by target square
@@ -1014,9 +960,7 @@ export function sanToMove(
 
     // Filter by source square or disambiguator
     if (parsed.from) {
-      candidates = candidates.filter(
-        (m) => algebraic(m.from) === parsed.from,
-      )
+      candidates = candidates.filter((m) => algebraic(m.from) === parsed.from)
     } else if (parsed.disambiguator) {
       candidates = candidates.filter((m) => {
         const fromSq = algebraic(m.from)
@@ -1043,7 +987,9 @@ export function sanToMove(
   // Fall back to SAN round-trip for edge cases
   let strippedMoves = []
   for (let i = 0, len = moves.length; i < len; i++) {
-    const fullSan = moveToSan(state, moves[i], moves, { addPromotion: matchPromotion })
+    const fullSan = moveToSan(state, moves[i], moves, {
+      addPromotion: matchPromotion,
+    })
     const san = strippedSan(fullSan)
     if (cleanMove === san) {
       moves[i].san = fullSan
@@ -1183,10 +1129,7 @@ export function sanToMove(
  * Converts a HexMove to a Move.
  * @public
  */
-export function hexToMove(
-  state: Readonly<BoardState>,
-  move: HexMove,
-): Move {
+export function hexToMove(state: Readonly<BoardState>, move: HexMove): Move {
   if (!move.san) {
     move.san = moveToSan(state, move)
   }
@@ -1635,7 +1578,6 @@ export function hexToGameState(
     move: move || undefined,
   }
 }
-export function moveToUci(move:PartialMove)
-{
-  return move.from+ move.to + move.promotion
+export function moveToUci(move: PartialMove) {
+  return move.from + move.to + move.promotion
 }
