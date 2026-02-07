@@ -23,6 +23,15 @@ import {
   PAWN_ATTACK_OFFSETS,
   DIRECTIONS,
   RAYS,
+  PIECE_TYPE_NUM,
+  NUM_PIECE_TYPE,
+  COLOR_NUM,
+  PT_PAWN,
+  PT_KNIGHT,
+  PT_BISHOP,
+  PT_ROOK,
+  PT_QUEEN,
+  PT_KING,
 } from './constants'
 import {
   Board,
@@ -37,6 +46,7 @@ import {
   GameState,
   PieceSymbol,
   BoardState,
+  UndoInfo,
 } from './interfaces/types'
 import {
   algebraic,
@@ -56,6 +66,29 @@ import {
 import { REGEXP_MOVE, REGEXP_NAG } from './regex'
 import { validateFen } from './fen'
 import { cloneBoardState, defaultBoardState } from './state'
+
+/** Encode a piece symbol + color into a single byte for Uint8Array board */
+export function encodePiece(type: PieceSymbol, color: Color): number {
+  return COLOR_NUM[color] | PIECE_TYPE_NUM[type]
+}
+
+/** Decode an encoded byte to a Piece object */
+export function decodePiece(encoded: number): Piece {
+  return {
+    type: NUM_PIECE_TYPE[encoded & 7],
+    color: encoded & 8 ? BLACK : WHITE,
+  }
+}
+
+/** Extract piece type number from encoded byte (bits 0-2) */
+function decodePieceType(encoded: number): number {
+  return encoded & 7
+}
+
+/** Extract color bit from encoded byte (bit 3) */
+function decodePieceColor(encoded: number): number {
+  return encoded & 8
+}
 
 /* this function is used to uniquely identify ambiguous moves */
 export function getDisambiguator(
@@ -114,19 +147,16 @@ export function getFen(state: Readonly<BoardState>, strict = false): string {
   let fen = ''
 
   for (let i = SQUARES.a8; i <= SQUARES.h1; i++) {
-    const piece = state.board[i]
-    if (!piece) {
+    const encoded = state.board[i]
+    if (!encoded) {
       empty++
     } else {
       if (empty > 0) {
         fen += empty
         empty = 0
       }
-      const color = piece.color
-      const piece_type = piece.type
-
-      fen +=
-        color === WHITE ? piece_type.toUpperCase() : piece_type.toLowerCase()
+      const piece_type = NUM_PIECE_TYPE[encoded & 7]
+      fen += encoded & 8 ? piece_type.toLowerCase() : piece_type.toUpperCase()
     }
 
     if ((i + 1) & 0x88) {
@@ -171,16 +201,20 @@ export function getFen(state: Readonly<BoardState>, strict = false): string {
       const bigPawnSquare = state.ep_square + (state.turn === WHITE ? 16 : -16)
       const squares = [bigPawnSquare + 1, bigPawnSquare - 1]
       const color = state.turn
+      const colorBit = COLOR_NUM[color]
 
       for (const square of squares) {
         if (square & 0x88) continue
+        const sq_encoded = state.board[square]
         // is there a pawn that can capture the epSquare?
         if (
-          state.board[square]?.color === color &&
-          state.board[square]?.type === PAWN
+          sq_encoded &&
+          decodePieceColor(sq_encoded) === colorBit &&
+          decodePieceType(sq_encoded) === PT_PAWN
         ) {
           // if the pawn makes an ep capture, does it leave it's king in check?
-          const nextState = makeMove(state, {
+          const mutableState = state as BoardState
+          const epUndo = makeMoveInPlace(mutableState, {
             color,
             from: square,
             to: state.ep_square,
@@ -190,7 +224,9 @@ export function getFen(state: Readonly<BoardState>, strict = false): string {
           })
 
           // if ep is legal, break and set the ep square in the FEN output
-          if (!isKingAttacked(nextState, color)) {
+          const epLegal = !isKingAttacked(mutableState, color)
+          unmakeMoveInPlace(mutableState, epUndo)
+          if (epLegal) {
             epflags = algebraic(state.ep_square) || '-'
             break
           }
@@ -224,7 +260,7 @@ export function loadFen(
     return null
   }
 
-  let state = defaultBoardState()
+  const state = defaultBoardState()
 
   for (let i = 0; i < position.length; i++) {
     let piece = position.charAt(i)
@@ -238,14 +274,10 @@ export function loadFen(
       piece = piece.toLowerCase()
       if (!isPieceSymbol(piece)) return null
 
-      const sq = algebraic(square)
-      if (!sq) return null
-
-      const newState = putPiece(state, { type: piece, color: color }, sq)
-      if (!newState) {
-        return null
+      state.board[square] = encodePiece(piece, color)
+      if (piece === KING) {
+        state.kings[color] = square
       }
-      state = newState
       square++
     }
   }
@@ -279,8 +311,8 @@ export function getPiece(
   if (typeof square === 'string') {
     square = SQUARES[square]
   }
-  const piece = state.board[square]
-  if (piece) return clonePiece(piece)
+  const encoded = state.board[square]
+  if (encoded) return decodePiece(encoded)
   return null
 }
 
@@ -320,7 +352,7 @@ export function putPiece(
     return null
   }
 
-  state.board[sq] = piece
+  state.board[sq] = encodePiece(piece.type, piece.color)
   if (piece.type === KING) {
     state.kings[piece.color] = sq
   }
@@ -335,21 +367,25 @@ export function removePiece(
   if (typeof square === 'string') {
     square = SQUARES[square]
   }
-  const piece = prevState.board[square]
-  if (!piece) return null
+  const encoded = prevState.board[square]
+  if (!encoded) return null
 
   const state = cloneBoardState(prevState)
-  const { type, color } = piece
+  const type = NUM_PIECE_TYPE[encoded & 7]
+  const color: Color = encoded & 8 ? BLACK : WHITE
   if (type === KING) {
     state.kings[color] = EMPTY
   }
-  delete state.board[square]
+  state.board[square] = 0
   return state
 }
 
 export function isLegal(state: BoardState, move: HexMove): boolean {
-  const newState = makeMove(state, move)
-  return !isKingAttacked(newState, state.turn)
+  const us = state.turn
+  const undo = makeMoveInPlace(state, move)
+  const legal = !isKingAttacked(state, us)
+  unmakeMoveInPlace(state, undo)
+  return legal
 }
 
 type PositionInfo = {
@@ -365,7 +401,8 @@ type PositionInfo = {
  */
 function computePositionInfo(state: Readonly<BoardState>): PositionInfo {
   const us = state.turn
-  const them = swapColor(us)
+  const usBit = COLOR_NUM[us]
+  const themBit = usBit ^ 8
   const kingSq = state.kings[us]
   const pins = new Int8Array(128)
   let checkerCount = 0
@@ -381,7 +418,7 @@ function computePositionInfo(state: Readonly<BoardState>): PositionInfo {
     while ((sq & 0x88) === 0) {
       const p = state.board[sq]
       if (p) {
-        if (p.color === us) {
+        if (decodePieceColor(p) === usBit) {
           if (friendlySq === -1) {
             // First friendly piece on this ray
             friendlySq = sq
@@ -391,8 +428,9 @@ function computePositionInfo(state: Readonly<BoardState>): PositionInfo {
           }
         } else {
           // Enemy piece — check if it's a slider matching this ray direction
-          const isRookLike = p.type === ROOK || p.type === QUEEN
-          const isBishopLike = p.type === BISHOP || p.type === QUEEN
+          const pt = decodePieceType(p)
+          const isRookLike = pt === PT_ROOK || pt === PT_QUEEN
+          const isBishopLike = pt === PT_BISHOP || pt === PT_QUEEN
           const matchesRay = i < 4 ? isRookLike : isBishopLike
 
           if (matchesRay) {
@@ -422,7 +460,11 @@ function computePositionInfo(state: Readonly<BoardState>): PositionInfo {
       const sq = kingSq + knightOffsets[i]
       if (sq & 0x88) continue
       const p = state.board[sq]
-      if (p && p.color === them && p.type === KNIGHT) {
+      if (
+        p &&
+        decodePieceColor(p) === themBit &&
+        decodePieceType(p) === PT_KNIGHT
+      ) {
         checkerCount++
         if (checkerCount === 1) {
           checkerSq = sq
@@ -435,12 +477,17 @@ function computePositionInfo(state: Readonly<BoardState>): PositionInfo {
 
   // Check for pawn attacks (use them's offsets to find enemy pawns attacking our king)
   if (checkerCount < 2) {
+    const them = swapColor(us)
     const pawnOffsets = PAWN_ATTACK_OFFSETS[them]
     for (let i = 0; i < pawnOffsets.length; i++) {
       const sq = kingSq + pawnOffsets[i]
       if (sq & 0x88) continue
       const p = state.board[sq]
-      if (p && p.color === them && p.type === PAWN) {
+      if (
+        p &&
+        decodePieceColor(p) === themBit &&
+        decodePieceType(p) === PT_PAWN
+      ) {
         checkerCount++
         if (checkerCount === 1) {
           checkerSq = sq
@@ -514,6 +561,8 @@ export function generateMoves(
   const moves: HexMove[] = []
 
   const them = swapColor(state.turn)
+  const usBit = COLOR_NUM[state.turn]
+  const themBit = usBit ^ 8
   const second_rank: { [key: string]: number } = { b: RANK_7, w: RANK_2 }
   const kingSq = state.kings[state.turn]
 
@@ -619,20 +668,21 @@ export function generateMoves(
         continue
       }
 
-      const piece = state.board[fromSq]
-      if (piece?.color !== state.turn) continue
+      const encoded = state.board[fromSq]
+      if (!encoded || decodePieceColor(encoded) !== usBit) continue
 
-      const symbol = piece.type
+      const pt = decodePieceType(encoded)
+      const symbol = NUM_PIECE_TYPE[pt]
       if (forPiece && forPiece !== symbol) continue
 
       // King moves handled separately below
-      if (symbol === KING) continue
+      if (pt === PT_KING) continue
 
       // For non-king pieces with legal filtering
       const pinDir = posInfo ? posInfo.pins[fromSq] : 0
 
       let toSq: number
-      if (symbol === PAWN) {
+      if (pt === PT_PAWN) {
         // Single square, non-capturing
         toSq = fromSq + PAWN_OFFSETS[state.turn][0]
         if (!state.board[toSq]) {
@@ -662,9 +712,9 @@ export function generateMoves(
           if (toSquare !== undefined && toSq !== toSquare) continue
 
           const p = state.board[toSq]
-          if (p && p.color === them) {
+          if (p && decodePieceColor(p) === themBit) {
             if (isLegalDest(toSq, pinDir, fromSq)) {
-              addMove(PAWN, fromSq, toSq, BITS.CAPTURE, p.type)
+              addMove(PAWN, fromSq, toSq, BITS.CAPTURE, NUM_PIECE_TYPE[p & 7])
             }
           } else if (toSq === state.ep_square) {
             // En passant — special case: pin detection alone can miss
@@ -695,7 +745,7 @@ export function generateMoves(
                 captured: PAWN,
                 flags: BITS.EP_CAPTURE,
               }
-              if (isLegal(state, epMove)) {
+              if (isLegal(state as BoardState, epMove)) {
                 addMove(PAWN, fromSq, state.ep_square, BITS.EP_CAPTURE, PAWN)
               }
             }
@@ -704,7 +754,7 @@ export function generateMoves(
       } else {
         // Non-king, non-pawn pieces
         // Pinned knight can never move
-        if (posInfo && pinDir && symbol === KNIGHT) continue
+        if (posInfo && pinDir && pt === PT_KNIGHT) continue
 
         for (let j = 0, len = PIECE_OFFSETS[symbol].length; j < len; j++) {
           const offset = PIECE_OFFSETS[symbol][j]
@@ -722,17 +772,23 @@ export function generateMoves(
                 }
               }
             } else {
-              if (p.color === state.turn) break
+              if (decodePieceColor(p) === usBit) break
               if (toSquare === undefined || toSquare === toSq) {
                 if (isLegalDest(toSq, pinDir, fromSq)) {
-                  addMove(symbol, fromSq, toSq, BITS.CAPTURE, p.type)
+                  addMove(
+                    symbol,
+                    fromSq,
+                    toSq,
+                    BITS.CAPTURE,
+                    NUM_PIECE_TYPE[p & 7],
+                  )
                 }
               }
               break
             }
 
             // Break if knight (king is handled separately)
-            if (symbol === KNIGHT) break
+            if (pt === PT_KNIGHT) break
           }
         }
       }
@@ -750,11 +806,11 @@ export function generateMoves(
         if (toSquare !== undefined && toSq !== toSquare) continue
 
         const p = state.board[toSq]
-        if (p && p.color === state.turn) continue
+        if (p && decodePieceColor(p) === usBit) continue
 
         if (posInfo ? !isAttacked(state, toSq, them, kingSq) : true) {
           if (p) {
-            addMove(KING, kingSq, toSq, BITS.CAPTURE, p.type)
+            addMove(KING, kingSq, toSq, BITS.CAPTURE, NUM_PIECE_TYPE[p & 7])
           } else {
             addMove(KING, kingSq, toSq, BITS.NORMAL)
           }
@@ -848,9 +904,10 @@ export function moveToSan(
     }
   }
 
-  const newState = makeMove(state, move)
-  if (inCheck(newState)) {
-    if (inCheckmate(newState)) {
+  const mutableState = state as BoardState
+  const undo = makeMoveInPlace(mutableState, move)
+  if (inCheck(mutableState)) {
+    if (inCheckmate(mutableState)) {
       move.flags |= BITS.CHECKMATE
       output += '#'
     } else {
@@ -858,6 +915,7 @@ export function moveToSan(
       output += '+'
     }
   }
+  unmakeMoveInPlace(mutableState, undo)
 
   return output
 }
@@ -977,8 +1035,11 @@ export function sanToMove(
 
     // Validate check indicator if present — reject if PGN says check but move doesn't give check
     if (candidates.length === 1 && parsed.check) {
-      const newState = makeMove(state, candidates[0])
-      if (!inCheck(newState)) candidates = []
+      const mutableState = state as BoardState
+      const checkUndo = makeMoveInPlace(mutableState, candidates[0])
+      const givesCheck = inCheck(mutableState)
+      unmakeMoveInPlace(mutableState, checkUndo)
+      if (!givesCheck) candidates = []
     }
 
     if (candidates.length === 1) {
@@ -1192,36 +1253,42 @@ export function isThreatening(
   }
 
   // Check if there is an attacking piece
-  const byPiece = board[square]
-  if (!byPiece) {
+  const byEncoded = board[square]
+  if (!byEncoded) {
     return false
   }
 
   // Check if the target square is occupied by the same color
-  if (board[targetSquare]?.color === byPiece.color) {
+  const targetEncoded = board[targetSquare]
+  if (
+    targetEncoded &&
+    decodePieceColor(targetEncoded) === decodePieceColor(byEncoded)
+  ) {
     return false
   }
 
-  const { type: byType } = byPiece
+  const byType = decodePieceType(byEncoded)
+  const byColor: Color = byEncoded & 8 ? BLACK : WHITE
+  const bySymbol = NUM_PIECE_TYPE[byType]
   switch (byType) {
-    case PAWN:
-      return PAWN_ATTACK_OFFSETS[byPiece.color]
+    case PT_PAWN:
+      return PAWN_ATTACK_OFFSETS[byColor]
         .map((offset) => targetSquare + offset)
         .includes(square)
-    case KNIGHT:
-    case KING:
-      return PIECE_OFFSETS[byType]
+    case PT_KNIGHT:
+    case PT_KING:
+      return PIECE_OFFSETS[bySymbol]
         .map((offset) => targetSquare + offset)
         .includes(square)
-    case BISHOP: {
+    case PT_BISHOP: {
       const squares = diagonalSquaresBetween(square, targetSquare)
       return !!squares.length && squares.every((sq) => !board[sq])
     }
-    case ROOK: {
+    case PT_ROOK: {
       const squares = linearSquaresBetween(square, targetSquare)
       return !!squares.length && squares.every((sq) => !board[sq])
     }
-    case QUEEN: {
+    case PT_QUEEN: {
       const squares = squaresBetween(square, targetSquare)
       return !!squares.length && squares.every((sq) => !board[sq])
     }
@@ -1243,17 +1310,32 @@ export function isThreatening(
 export function isAttacked(
   state: Readonly<BoardState>,
   square: number,
-  color: Color = swapColor(state.board[square]?.color || state.turn),
+  color?: Color,
   skipSq: number = -1,
 ): boolean {
   if (square & 0x88) return false
+
+  // Determine attacking color
+  if (color === undefined) {
+    const encoded = state.board[square]
+    if (encoded) {
+      color = encoded & 8 ? WHITE : BLACK // swap color of piece on square
+    } else {
+      color = swapColor(state.turn)
+    }
+  }
+  const colorBit = COLOR_NUM[color]
 
   // Pawn
   const pawnOffsets = PAWN_ATTACK_OFFSETS[color]
   for (let i = 0; i < pawnOffsets.length; i++) {
     const offset = pawnOffsets[i]
     const p = state.board[square + offset]
-    if (p && p.color === color && p.type === PAWN) {
+    if (
+      p &&
+      decodePieceColor(p) === colorBit &&
+      decodePieceType(p) === PT_PAWN
+    ) {
       return true
     }
   }
@@ -1262,10 +1344,11 @@ export function isAttacked(
   for (let i = 0; i < DIRECTIONS.length; i++) {
     const offset = DIRECTIONS[i]
     const p = state.board[square + offset]
-    if (p && p.color === color) {
-      if (i < 4 && (p.type === ROOK || p.type === QUEEN || p.type === KING))
+    if (p && decodePieceColor(p) === colorBit) {
+      const pt = decodePieceType(p)
+      if (i < 4 && (pt === PT_ROOK || pt === PT_QUEEN || pt === PT_KING))
         return true
-      if (i >= 4 && (p.type === BISHOP || p.type === QUEEN || p.type === KING))
+      if (i >= 4 && (pt === PT_BISHOP || pt === PT_QUEEN || pt === PT_KING))
         return true
     }
   }
@@ -1274,7 +1357,11 @@ export function isAttacked(
   for (let i = 0; i < PIECE_OFFSETS[KNIGHT].length; i++) {
     const offset = PIECE_OFFSETS[KNIGHT][i]
     const p = state.board[square + offset]
-    if (p && p.color === color && p.type === KNIGHT) {
+    if (
+      p &&
+      decodePieceColor(p) === colorBit &&
+      decodePieceType(p) === PT_KNIGHT
+    ) {
       return true
     }
   }
@@ -1290,9 +1377,10 @@ export function isAttacked(
       }
       const p = state.board[sq]
       if (p) {
-        if (p.color === color) {
-          if (i < 4 && (p.type === ROOK || p.type === QUEEN)) return true
-          if (i >= 4 && (p.type === BISHOP || p.type === QUEEN)) return true
+        if (decodePieceColor(p) === colorBit) {
+          const pt = decodePieceType(p)
+          if (i < 4 && (pt === PT_ROOK || pt === PT_QUEEN)) return true
+          if (i >= 4 && (pt === PT_BISHOP || pt === PT_QUEEN)) return true
         }
         break
       }
@@ -1335,10 +1423,11 @@ export function insufficientMaterial(state: Readonly<BoardState>): boolean {
       continue
     }
 
-    const piece = state.board[i]
-    if (piece) {
-      pieces[piece.type] = piece.type in pieces ? pieces[piece.type] + 1 : 1
-      if (piece.type === BISHOP) {
+    const encoded = state.board[i]
+    if (encoded) {
+      const pt = NUM_PIECE_TYPE[encoded & 7]
+      pieces[pt] = pt in pieces ? pieces[pt] + 1 : 1
+      if ((encoded & 7) === PT_BISHOP) {
         bishops.push(sq_color)
       }
       num_pieces++
@@ -1389,38 +1478,37 @@ export function makeMove(
   }
 
   state.board[move.to] = state.board[move.from]
-  delete state.board[move.from]
+  state.board[move.from] = 0
 
   // if ep capture, remove the captured pawn
   if (move.flags & BITS.EP_CAPTURE) {
     if (state.turn === BLACK) {
-      delete state.board[move.to - 16]
+      state.board[move.to - 16] = 0
     } else {
-      delete state.board[move.to + 16]
+      state.board[move.to + 16] = 0
     }
   }
 
   // if pawn promotion, replace with new piece
   if (move.promotion) {
-    state.board[move.to] = { type: move.promotion, color: us }
+    state.board[move.to] = encodePiece(move.promotion, us)
   }
 
   // if we moved the king
-  const piece = state.board[move.to]
-  if (piece?.type === KING) {
-    state.kings[piece.color] = move.to
+  if (move.piece === KING) {
+    state.kings[us] = move.to
 
     // if we castled, move the rook next to the king
     if (move.flags & BITS.KSIDE_CASTLE) {
       const castling_to = move.to - 1
       const castling_from = move.to + 1
       state.board[castling_to] = state.board[castling_from]
-      delete state.board[castling_from]
+      state.board[castling_from] = 0
     } else if (move.flags & BITS.QSIDE_CASTLE) {
       const castling_to = move.to + 1
       const castling_from = move.to - 2
       state.board[castling_to] = state.board[castling_from]
-      delete state.board[castling_from]
+      state.board[castling_from] = 0
     }
 
     // turn off castling
@@ -1480,6 +1568,204 @@ export function makeMove(
   return state
 }
 
+export function makeMoveInPlace(
+  state: BoardState,
+  move: Readonly<HexMove>,
+): UndoInfo {
+  const undo: UndoInfo = {
+    move,
+    castling_w: state.castling.w,
+    castling_b: state.castling.b,
+    ep_square: state.ep_square,
+    half_moves: state.half_moves,
+    move_number: state.move_number,
+    captured_encoded: state.board[move.to],
+  }
+
+  const us = state.turn
+  const them = swapColor(us)
+
+  // Handle null moves (pass)
+  if (move.flags & BITS.NULL_MOVE) {
+    state.ep_square = -1
+    state.half_moves++
+    state.turn = them
+    if (state.turn === WHITE) {
+      state.move_number++
+    }
+    return undo
+  }
+
+  state.board[move.to] = state.board[move.from]
+  state.board[move.from] = 0
+
+  // if ep capture, remove the captured pawn
+  if (move.flags & BITS.EP_CAPTURE) {
+    if (us === BLACK) {
+      state.board[move.to - 16] = 0
+    } else {
+      state.board[move.to + 16] = 0
+    }
+  }
+
+  // if pawn promotion, replace with new piece
+  if (move.promotion) {
+    state.board[move.to] = encodePiece(move.promotion, us)
+  }
+
+  // if we moved the king
+  if (move.piece === KING) {
+    state.kings[us] = move.to
+
+    // if we castled, move the rook next to the king
+    if (move.flags & BITS.KSIDE_CASTLE) {
+      const castling_to = move.to - 1
+      const castling_from = move.to + 1
+      state.board[castling_to] = state.board[castling_from]
+      state.board[castling_from] = 0
+    } else if (move.flags & BITS.QSIDE_CASTLE) {
+      const castling_to = move.to + 1
+      const castling_from = move.to - 2
+      state.board[castling_to] = state.board[castling_from]
+      state.board[castling_from] = 0
+    }
+
+    // turn off castling
+    state.castling[us] = 0
+  }
+
+  // turn off castling if we move a rook
+  if (state.castling[us]) {
+    for (let i = 0, len = ROOKS[us].length; i < len; i++) {
+      if (
+        move.from === ROOKS[us][i].square &&
+        state.castling[us] & ROOKS[us][i].flag
+      ) {
+        state.castling[us] ^= ROOKS[us][i].flag
+        break
+      }
+    }
+  }
+
+  // turn off castling if we capture a rook
+  if (state.castling[them]) {
+    for (let i = 0, len = ROOKS[them].length; i < len; i++) {
+      if (
+        move.to === ROOKS[them][i].square &&
+        state.castling[them] & ROOKS[them][i].flag
+      ) {
+        state.castling[them] ^= ROOKS[them][i].flag
+        break
+      }
+    }
+  }
+
+  // if big pawn move, update the en passant square
+  if (move.flags & BITS.BIG_PAWN) {
+    if (us === BLACK) {
+      state.ep_square = move.to - 16
+    } else {
+      state.ep_square = move.to + 16
+    }
+  } else {
+    state.ep_square = EMPTY
+  }
+
+  // reset the 50 move counter if a pawn is moved or a piece is captured
+  if (move.piece === PAWN) {
+    state.half_moves = 0
+  } else if (move.flags & (BITS.CAPTURE | BITS.EP_CAPTURE)) {
+    state.half_moves = 0
+  } else {
+    state.half_moves++
+  }
+
+  if (us === BLACK) {
+    state.move_number++
+  }
+  state.turn = them
+  return undo
+}
+
+export function unmakeMoveInPlace(state: BoardState, undo: UndoInfo): void {
+  const move = undo.move
+  const us = move.color
+  const them = swapColor(us)
+
+  // Handle null moves (pass)
+  if (move.flags & BITS.NULL_MOVE) {
+    state.turn = us
+    state.ep_square = undo.ep_square
+    state.half_moves = undo.half_moves
+    state.move_number = undo.move_number
+    return
+  }
+
+  state.turn = us
+  state.castling.w = undo.castling_w
+  state.castling.b = undo.castling_b
+  state.ep_square = undo.ep_square
+  state.half_moves = undo.half_moves
+  state.move_number = undo.move_number
+
+  // Move piece back
+  if (move.promotion) {
+    // Undo promotion: put the original pawn back
+    state.board[move.from] = encodePiece(PAWN, us)
+  } else {
+    state.board[move.from] = state.board[move.to]
+  }
+
+  // Restore captured piece or clear destination
+  if (move.flags & BITS.EP_CAPTURE) {
+    // Clear the to square and restore the captured pawn
+    state.board[move.to] = 0
+    const capturedPawnSq = us === WHITE ? move.to + 16 : move.to - 16
+    state.board[capturedPawnSq] = encodePiece(PAWN, them)
+  } else {
+    // Restore captured piece (or 0 if no capture)
+    state.board[move.to] = undo.captured_encoded
+  }
+
+  // Restore king position
+  if (move.piece === KING) {
+    state.kings[us] = move.from
+
+    // Undo castling rook move
+    if (move.flags & BITS.KSIDE_CASTLE) {
+      const castling_to = move.to - 1
+      const castling_from = move.to + 1
+      state.board[castling_from] = state.board[castling_to]
+      state.board[castling_to] = 0
+    } else if (move.flags & BITS.QSIDE_CASTLE) {
+      const castling_to = move.to + 1
+      const castling_from = move.to - 2
+      state.board[castling_from] = state.board[castling_to]
+      state.board[castling_to] = 0
+    }
+  }
+}
+
+export function perft(state: BoardState, depth: number): number {
+  const moves = generateMoves(state, { legal: false })
+  let nodes = 0
+  const color = state.turn
+
+  for (let i = 0, len = moves.length; i < len; i++) {
+    const undo = makeMoveInPlace(state, moves[i])
+    if (!isKingAttacked(state, color)) {
+      if (depth - 1 > 0) {
+        nodes += perft(state, depth - 1)
+      } else {
+        nodes++
+      }
+    }
+    unmakeMoveInPlace(state, undo)
+  }
+
+  return nodes
+}
+
 export function buildMove(
   state: Readonly<BoardState>,
   from: number,
@@ -1487,15 +1773,15 @@ export function buildMove(
   flags: number,
   promotion?: string,
 ): HexMove | null {
-  const piece = state.board[from]
-  if (!piece) return null
+  const encoded = state.board[from]
+  if (!encoded) return null
 
   const move: HexMove = {
     color: state.turn,
     from: from,
     to: to,
     flags: flags,
-    piece: (state.board[from] as Piece).type,
+    piece: NUM_PIECE_TYPE[encoded & 7],
   }
 
   if (promotion && isPieceSymbol(promotion)) {
@@ -1503,8 +1789,9 @@ export function buildMove(
     move.promotion = promotion
   }
 
-  if (state.board[to]) {
-    move.captured = state.board[to]?.type
+  const toEncoded = state.board[to]
+  if (toEncoded) {
+    move.captured = NUM_PIECE_TYPE[toEncoded & 7]
   } else if (flags & BITS.EP_CAPTURE) {
     move.captured = PAWN
   }
@@ -1516,11 +1803,11 @@ export function getBoard(board: Readonly<Board>): (Piece | null)[][] {
   let row = []
 
   for (let i = SQUARES.a8; i <= SQUARES.h1; i++) {
-    const piece = board[i]
-    if (piece == null) {
+    const encoded = board[i]
+    if (!encoded) {
       row.push(null)
     } else {
-      row.push({ type: piece.type, color: piece.color })
+      row.push(decodePiece(encoded))
     }
     if ((i + 1) & 0x88) {
       output.push(row)

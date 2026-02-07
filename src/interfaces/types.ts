@@ -130,7 +130,7 @@ export type NibbleState = BaseState & {
 }
 
 /** Private types */
-export type Board = Array<Piece | undefined>
+export type Board = Uint8Array
 
 export type ColorState = Record<Color, number> & {
   w: number
@@ -168,6 +168,16 @@ export type HexMove = {
   san?: string
   captured?: PieceSymbol
   promotion?: PieceSymbol
+}
+
+export type UndoInfo = {
+  move: Readonly<HexMove>
+  castling_w: number
+  castling_b: number
+  ep_square: number
+  half_moves: number
+  move_number: number
+  captured_encoded: number
 }
 
 export type ParsedMove = {

@@ -1,6 +1,7 @@
 import { TreeNode } from 'treenode.ts'
 import {
   makeMove,
+  makeMoveInPlace,
   putPiece,
   loadFen,
   getPiece,
@@ -17,11 +18,11 @@ import {
   hexToMove,
   moveToSan,
   getFen,
-  isKingAttacked,
   isAttacked,
   isAttacking,
   isThreatening,
   moveToUci,
+  perft as perftFn,
 } from './move'
 import { Nag } from './interfaces/nag'
 import { loadPgn, getPgn } from './pgn'
@@ -52,7 +53,7 @@ import {
 import { boardToMap, mapToAscii } from './board'
 import { DEFAULT_POSITION, SQUARES, BITS } from './constants'
 import { FenErrorType, validateFen } from './fen'
-import { cloneHexState, defaultBoardState } from './state'
+import { cloneBoardState, cloneHexState, defaultBoardState } from './state'
 
 /** @public */
 export class Chess {
@@ -883,14 +884,14 @@ export class Chess {
    */
   public validateMoves(moves: string[] | PartialMove[]): Move[] | null {
     const validMoves: Move[] = []
-    let { boardState } = this
+    const boardState = cloneBoardState(this.boardState)
     for (const move of moves) {
       const validMove = validateMove(boardState, move)
       if (!validMove) {
         return null
       }
       validMoves.push(hexToMove(boardState, validMove))
-      boardState = makeMove(boardState, validMove)
+      makeMoveInPlace(boardState, validMove)
     }
     return validMoves
   }
@@ -1351,24 +1352,8 @@ export class Chess {
 
   /** @internal */
   public perft(depth: number): number {
-    const moves = generateMoves(this.boardState, { legal: false })
-    let nodes = 0
-    const color = this.boardState.turn
-
-    for (let i = 0, len = moves.length; i < len; i++) {
-      this.makeMove(moves[i])
-      if (!isKingAttacked(this.boardState, color)) {
-        if (depth - 1 > 0) {
-          const child_nodes = this.perft(depth - 1)
-          nodes += child_nodes
-        } else {
-          nodes++
-        }
-      }
-      this.undoMove()
-    }
-
-    return nodes
+    const state = cloneBoardState(this.boardState)
+    return perftFn(state, depth)
   }
 
   /** @internal */

@@ -1,17 +1,12 @@
-import { BitState, BoardState, HexState } from './interfaces/types'
-import {
-  fromBitBoard,
-  fromCastlingBits,
-  toBitBoard,
-  toCastlingBits,
-} from './board'
-import { bitToSquare, getBitIndices, squareToBit } from './utils'
-import { EMPTY, WHITE } from './constants'
+import { BitState, BoardState, HexState, PieceSymbol } from './interfaces/types'
+import { fromCastlingBits, toBitBoard, toCastlingBits } from './board'
+import { bitToSquare, squareToBit } from './utils'
+import { EMPTY, WHITE, PIECE_TYPE_NUM, COLOR_NUM } from './constants'
 import { cloneMove } from './move'
 
 export function defaultBoardState(): BoardState {
   return {
-    board: new Array(128),
+    board: new Uint8Array(128),
     kings: { w: EMPTY, b: EMPTY },
     turn: WHITE,
     castling: { w: 0, b: 0 },
@@ -44,12 +39,28 @@ export function cloneBoardState(state: BoardState): BoardState {
 }
 
 export function fromBitState(state: BitState): BoardState {
+  const board = new Uint8Array(128)
+  const kings = { w: EMPTY, b: EMPTY }
+  for (const color of ['w', 'b'] as const) {
+    const colorBit = COLOR_NUM[color]
+    for (const piece of ['p', 'n', 'b', 'r', 'q', 'k'] as const) {
+      const pt = PIECE_TYPE_NUM[piece as PieceSymbol]
+      let bits = state.board[color][piece]
+      let pos = 0
+      while (bits > BigInt(0)) {
+        if (bits & BigInt(1)) {
+          const sq = bitToSquare(pos)
+          board[sq] = colorBit | pt
+          if (piece === 'k') kings[color] = sq
+        }
+        bits >>= BigInt(1)
+        pos++
+      }
+    }
+  }
   return {
-    board: fromBitBoard(state.board),
-    kings: {
-      w: bitToSquare(getBitIndices(state.board.w.k, true)[0]),
-      b: bitToSquare(getBitIndices(state.board.b.k, true)[0]),
-    },
+    board,
+    kings,
     turn: state.wtm ? 'w' : 'b',
     castling: fromCastlingBits(state.castling),
     ep_square: bitToSquare(state.ep_square),
