@@ -599,6 +599,14 @@ export function generateMoves(
     }
   }
 
+  // Returns true if a non-king move to toSq is legal given the current
+  // check mask and pin direction. When posInfo is null (legal: false),
+  // always returns true.
+  const isLegalDest = (toSq: number, pinDir: number, fromSq: number) =>
+    !posInfo ||
+    ((!checkMask || checkMask[toSq]) &&
+      (!pinDir || canMoveAlongPin(pinDir, fromSq, toSq)))
+
   for (let fromSq = firstSq; fromSq <= lastSq; fromSq++) {
     // Check if we ran off the end of the board
     if (fromSq & 0x88) {
@@ -624,11 +632,7 @@ export function generateMoves(
       toSq = fromSq + PAWN_OFFSETS[state.turn][0]
       if (!state.board[toSq]) {
         if (toSquare === undefined || toSquare === toSq) {
-          if (
-            !posInfo ||
-            ((!checkMask || checkMask[toSq]) &&
-              (!pinDir || canMoveAlongPin(pinDir, fromSq, toSq)))
-          ) {
+          if (isLegalDest(toSq, pinDir, fromSq)) {
             addMove(PAWN, fromSq, toSq, BITS.NORMAL)
           }
         }
@@ -640,11 +644,7 @@ export function generateMoves(
           !state.board[toSq] &&
           (toSquare === undefined || toSquare === toSq)
         ) {
-          if (
-            !posInfo ||
-            ((!checkMask || checkMask[toSq]) &&
-              (!pinDir || canMoveAlongPin(pinDir, fromSq, toSq)))
-          ) {
+          if (isLegalDest(toSq, pinDir, fromSq)) {
             addMove(PAWN, fromSq, toSq, BITS.BIG_PAWN)
           }
         }
@@ -658,11 +658,7 @@ export function generateMoves(
 
         const p = state.board[toSq]
         if (p && p.color === them) {
-          if (
-            !posInfo ||
-            ((!checkMask || checkMask[toSq]) &&
-              (!pinDir || canMoveAlongPin(pinDir, fromSq, toSq)))
-          ) {
+          if (isLegalDest(toSq, pinDir, fromSq)) {
             addMove(PAWN, fromSq, toSq, BITS.CAPTURE, p.type)
           }
         } else if (toSq === state.ep_square) {
@@ -718,22 +714,14 @@ export function generateMoves(
           const p = state.board[toSq]
           if (!p) {
             if (toSquare === undefined || toSquare === toSq) {
-              if (
-                !posInfo ||
-                ((!checkMask || checkMask[toSq]) &&
-                  (!pinDir || canMoveAlongPin(pinDir, fromSq, toSq)))
-              ) {
+              if (isLegalDest(toSq, pinDir, fromSq)) {
                 addMove(symbol, fromSq, toSq, BITS.NORMAL)
               }
             }
           } else {
             if (p.color === state.turn) break
             if (toSquare === undefined || toSquare === toSq) {
-              if (
-                !posInfo ||
-                ((!checkMask || checkMask[toSq]) &&
-                  (!pinDir || canMoveAlongPin(pinDir, fromSq, toSq)))
-              ) {
+              if (isLegalDest(toSq, pinDir, fromSq)) {
                 addMove(symbol, fromSq, toSq, BITS.CAPTURE, p.type)
               }
             }
