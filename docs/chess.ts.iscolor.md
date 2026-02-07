@@ -8,7 +8,7 @@
 **Signature:**
 
 ```typescript
-export declare function isColor(color: string): color is Color;
+declare function isColor(color: string): color is Color;
 ```
 
 ## Parameters

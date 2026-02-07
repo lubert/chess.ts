@@ -9,7 +9,7 @@ Tests if two squares are on the same rank or file.
 **Signature:**
 
 ```typescript
-export declare function sameRankOrFile(sq1: number, sq2: number): boolean;
+declare function sameRankOrFile(sq1: number, sq2: number): boolean;
 ```
 
 ## Parameters

@@ -9,7 +9,7 @@ Tests if two squares are on the same major diagonal.
 **Signature:**
 
 ```typescript
-export declare function sameMajorDiagonal(sq1: number, sq2: number): boolean;
+declare function sameMajorDiagonal(sq1: number, sq2: number): boolean;
 ```
 
 ## Parameters

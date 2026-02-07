@@ -8,7 +8,7 @@
 **Signature:**
 
 ```typescript
-export declare function isSquare(sq: string): sq is Square;
+declare function isSquare(sq: string): sq is Square;
 ```
 
 ## Parameters

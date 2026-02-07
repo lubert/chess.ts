@@ -21,9 +21,15 @@
 |  Function | Description |
 |  --- | --- |
 |  [algebraic(i)](./chess.ts.algebraic.md) | Converts a 0x88 square to algebraic notation. |
+|  [bitToAlgebraic(bit)](./chess.ts.bittoalgebraic.md) | Converts a bit index (0-63) to algebraic notation. |
+|  [bitToSquare(sq)](./chess.ts.bittosquare.md) | Converts a bit index (0-63) to a 0x88 square index. |
 |  [boardToMap(board)](./chess.ts.boardtomap.md) | Converts a board state to a map of squares to piece symbols. |
 |  [file(i)](./chess.ts.file.md) | Extracts the zero-based file of an 0x88 square. |
+|  [fromBitState(state)](./chess.ts.frombitstate.md) |  |
 |  [generateMoves(state, options)](./chess.ts.generatemoves.md) | Return all moves for a given board state. |
+|  [getBitIndices(n, first)](./chess.ts.getbitindices.md) | Returns the indices of all set bits in a bigint. |
+|  [getFen(state, strict)](./chess.ts.getfen.md) |  |
+|  [hexToGameState(node)](./chess.ts.hextogamestate.md) |  |
 |  [hexToMove(state, move)](./chess.ts.hextomove.md) | Converts a HexMove to a Move. |
 |  [isAttacked(state, square, color)](./chess.ts.isattacked.md) | Checks if a square is attacked. If an attacking color is not provided, the opposite color of the piece on the square or the current turn is used. This function does not check if the attacking piece is pinned. |
 |  [isAttacking(state, square, targetSquare)](./chess.ts.isattacking.md) | Checks if a square is attacking a target square. |
@@ -40,6 +46,7 @@
 |  [sameMinorDiagonal(sq1, sq2)](./chess.ts.sameminordiagonal.md) | Tests if two squares are on the same minor diagonal. |
 |  [sameRank(sq1, sq2)](./chess.ts.samerank.md) | Tests if two squares are on the same rank. |
 |  [sameRankOrFile(sq1, sq2)](./chess.ts.samerankorfile.md) | Tests if two squares are on the same rank or file. |
+|  [squareToBit(sq)](./chess.ts.squaretobit.md) | Converts a 0x88 square index to a bit index (0-63). |
 |  [toBitState(state)](./chess.ts.tobitstate.md) |  |
 
 ## Variables
@@ -51,12 +58,14 @@
 |  [BITSQUARES](./chess.ts.bitsquares.md) |  |
 |  [BLACK](./chess.ts.black.md) |  |
 |  [EMPTY](./chess.ts.empty.md) |  |
+|  [FILE\_MASKS](./chess.ts.file_masks.md) | Pre-computed bitmasks for each file (column). Each mask has all 8 squares on that file set. |
 |  [FLAGS](./chess.ts.flags.md) |  |
 |  [KING](./chess.ts.king.md) |  |
 |  [KNIGHT](./chess.ts.knight.md) |  |
 |  [NagMap](./chess.ts.nagmap.md) |  |
 |  [PAWN](./chess.ts.pawn.md) |  |
 |  [QUEEN](./chess.ts.queen.md) |  |
+|  [RANK\_MASKS](./chess.ts.rank_masks.md) | Pre-computed bitmasks for each rank (row). Each mask has all 8 squares on that rank set. |
 |  [ROOK](./chess.ts.rook.md) |  |
 |  [SQUARES](./chess.ts.squares.md) |  |
 |  [WHITE](./chess.ts.white.md) |  |
@@ -68,9 +77,12 @@
 |  [BaseState](./chess.ts.basestate.md) |  |
 |  [BitBoard](./chess.ts.bitboard.md) |  |
 |  [BitState](./chess.ts.bitstate.md) |  |
+|  [Board](./chess.ts.board.md) | Private types |
 |  [BoardState](./chess.ts.boardstate.md) |  |
 |  [Color](./chess.ts.color.md) |  |
 |  [CommentMap](./chess.ts.commentmap.md) |  |
+|  [GameState](./chess.ts.gamestate.md) |  |
+|  [HexState](./chess.ts.hexstate.md) |  |
 |  [Move](./chess.ts.move.md) | Represents a chess move |
 |  [PartialMove](./chess.ts.partialmove.md) |  |
 |  [Piece](./chess.ts.piece.md) |  |

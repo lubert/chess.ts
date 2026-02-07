@@ -10,6 +10,7 @@ Attempts to make a move on the board, returning a move object if the move was le
 
 ```typescript
 move(move: string | PartialMove, options?: {
+        asVariation?: boolean;
         dry_run?: boolean;
         strict?: boolean;
     }): Move | null;
@@ -20,7 +21,7 @@ move(move: string | PartialMove, options?: {
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  move | string \| [PartialMove](./chess.ts.partialmove.md) | Case-sensitive SAN string or object, e.g. <code>'Nxb7'</code> or <code>{ from: 'h7', to: 'h8', promotion: 'q' }</code> |
-|  options | { dry\_run?: boolean; strict?: boolean; } | _(Optional)_ Options to enable parsing of a variety of non-standard move notations |
+|  options | { asVariation?: boolean; dry\_run?: boolean; strict?: boolean; } | _(Optional)_ Options to enable parsing of a variety of non-standard move notations |
 
 **Returns:**
 

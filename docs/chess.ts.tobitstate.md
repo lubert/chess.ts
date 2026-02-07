@@ -7,7 +7,7 @@
 **Signature:**
 
 ```typescript
-export declare function toBitState(state: BoardState): BitState;
+declare function toBitState(state: BoardState): BitState;
 ```
 
 ## Parameters

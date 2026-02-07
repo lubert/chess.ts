@@ -8,5 +8,5 @@
 **Signature:**
 
 ```typescript
-export type Color = 'w' | 'b';
+type Color = 'w' | 'b';
 ```

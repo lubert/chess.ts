@@ -9,7 +9,7 @@ https://en.wikipedia.org/wiki/Numeric\_Annotation\_Glyphs
 **Signature:**
 
 ```typescript
-export declare enum Nag 
+declare enum Nag 
 ```
 
 ## Enumeration Members

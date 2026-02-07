@@ -9,7 +9,7 @@ Tests if two squares are on the same minor diagonal.
 **Signature:**
 
 ```typescript
-export declare function sameMinorDiagonal(sq1: number, sq2: number): boolean;
+declare function sameMinorDiagonal(sq1: number, sq2: number): boolean;
 ```
 
 ## Parameters

@@ -8,7 +8,7 @@
 **Signature:**
 
 ```typescript
-export declare class Chess 
+declare class Chess 
 ```
 
 ## Constructors
@@ -21,11 +21,12 @@ export declare class Chess
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [currentNode](./chess.ts.chess.currentnode.md) | <code>readonly</code> | Readonly&lt;TreeNode&lt;GameState&gt;&gt; |  |
+|  [currentHexNode](./chess.ts.chess.currenthexnode.md) | <code>readonly</code> | Readonly&lt;TreeNode&lt;[HexState](./chess.ts.hexstate.md)<!-- -->&gt;&gt; |  |
+|  [currentNode](./chess.ts.chess.currentnode.md) | <code>readonly</code> | Readonly&lt;TreeNode&lt;[GameState](./chess.ts.gamestate.md)<!-- -->&gt;&gt; |  |
 |  [header](./chess.ts.chess.header.md) |  | HeaderMap |  |
-|  [hexTree](./chess.ts.chess.hextree.md) | <code>readonly</code> | Readonly&lt;TreeNode&lt;HexState&gt;&gt; |  |
+|  [hexTree](./chess.ts.chess.hextree.md) | <code>readonly</code> | Readonly&lt;TreeNode&lt;[HexState](./chess.ts.hexstate.md)<!-- -->&gt;&gt; |  |
 |  [state](./chess.ts.chess.state.md) | <code>readonly</code> | Readonly&lt;[BoardState](./chess.ts.boardstate.md)<!-- -->&gt; |  |
-|  [tree](./chess.ts.chess.tree.md) | <code>readonly</code> | Readonly&lt;TreeNode&lt;GameState&gt;&gt; |  |
+|  [tree](./chess.ts.chess.tree.md) | <code>readonly</code> | Readonly&lt;TreeNode&lt;[GameState](./chess.ts.gamestate.md)<!-- -->&gt;&gt; |  |
 
 ## Methods
 
@@ -38,6 +39,10 @@ export declare class Chess
 |  [deleteComment(key)](./chess.ts.chess.deletecomment.md) |  | Delete and return the comment for a position, if it exists. |
 |  [deleteComments()](./chess.ts.chess.deletecomments.md) |  | Delete comments for all positions. |
 |  [deleteNode(key)](./chess.ts.chess.deletenode.md) |  | Delete a node and its children from the tree. Cannot delete the root node. |
+|  [deleteRemainingMoves(key)](./chess.ts.chess.deleteremainingmoves.md) |  | Deletes all remaining moves from the given node. |
+|  [deleteStartingComment(key)](./chess.ts.chess.deletestartingcomment.md) |  | Delete and return the starting comment for a position, if it exists. |
+|  [deleteVariation(key)](./chess.ts.chess.deletevariation.md) |  | Deletes a variation from the tree. If the node has no siblings, it will traverse up the tree to find the first ancestor with more than one child and delete the path leading to it. |
+|  [demoteVariation(key)](./chess.ts.chess.demotevariation.md) |  | Demotes a variation by moving it down in the list of sibling nodes. |
 |  [fen(strict)](./chess.ts.chess.fen.md) |  | Returns the FEN string for the current position. |
 |  [gameOver()](./chess.ts.chess.gameover.md) |  | Returns true if the game has ended via checkmate, stalemate, draw, threefold repetition, or insufficient material. Otherwise, returns false. |
 |  [getComment(key)](./chess.ts.chess.getcomment.md) |  | Retrieve the comment if it exists. |
@@ -45,6 +50,8 @@ export declare class Chess
 |  [getNags(key)](./chess.ts.chess.getnags.md) |  |  |
 |  [getPiece(square)](./chess.ts.chess.getpiece.md) |  | Returns the piece on the square. |
 |  [getPieces()](./chess.ts.chess.getpieces.md) |  | Returns a map of squares to pieces. |
+|  [getStartingComment(key)](./chess.ts.chess.getstartingcomment.md) |  | Retrieve the starting comment (comment before the move) if it exists. |
+|  [getStartingComments(key)](./chess.ts.chess.getstartingcomments.md) |  | Retrieve starting comments for all positions, keyed by FEN string or indices. |
 |  [history(options)](./chess.ts.chess.history.md) |  | Returns a list containing the moves of the current game. |
 |  [history(options)](./chess.ts.chess.history_1.md) |  | Returns a list containing the moves of the current game. |
 |  [inCheck()](./chess.ts.chess.incheck.md) |  | Returns true or false if the side to move is in check. |
@@ -62,6 +69,7 @@ export declare class Chess
 |  [move(move, options)](./chess.ts.chess.move.md) |  | Attempts to make a move on the board, returning a move object if the move was legal, otherwise null. The .move function can be called two ways, by passing a string in Standard Algebraic Notation (SAN): |
 |  [moves(options)](./chess.ts.chess.moves.md) |  | Returns a list of legal moves from the current position. The function takes an optional parameter for filtering move generation. |
 |  [pgn(options)](./chess.ts.chess.pgn.md) |  | Returns the game in PGN format. Options is an optional parameter which may include max width and/or a newline character settings. |
+|  [promoteVariation(key)](./chess.ts.chess.promotevariation.md) |  | Promotes a variation by moving it up in the list of sibling nodes. |
 |  [putPiece(piece, square)](./chess.ts.chess.putpiece.md) |  | Place a piece on the square where piece is an object with the form <code>{ type: ..., color: ... }</code>. Returns true if the piece was successfully placed, otherwise, the board remains unchanged and false is returned. <code>put()</code> will fail when passed an invalid piece or square, or when two or more kings of the same color are placed. |
 |  [redo()](./chess.ts.chess.redo.md) |  | Redo mainline move. |
 |  [redoAll()](./chess.ts.chess.redoall.md) |  | Redo all mainline moves. |
@@ -70,6 +78,7 @@ export declare class Chess
 |  [sanMoves(options)](./chess.ts.chess.sanmoves.md) |  | Returns a list of legal moves from the current position. The function takes an optional parameter for filtering move generation. |
 |  [setComment(comment, key)](./chess.ts.chess.setcomment.md) |  | Comment on a position, if it exists. |
 |  [setCurrentNode(key)](./chess.ts.chess.setcurrentnode.md) |  |  |
+|  [setStartingComment(comment, key)](./chess.ts.chess.setstartingcomment.md) |  | Set a starting comment (comment before the move) on a position. |
 |  [squareColor(square)](./chess.ts.chess.squarecolor.md) |  | Returns the color of the square ('light' or 'dark'). |
 |  [turn()](./chess.ts.chess.turn.md) |  | Returns the current side to move. |
 |  [undo()](./chess.ts.chess.undo.md) |  | Takeback the last half-move, returning a move object if successful, otherwise null. |

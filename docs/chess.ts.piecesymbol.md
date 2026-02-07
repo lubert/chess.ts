@@ -8,5 +8,5 @@
 **Signature:**
 
 ```typescript
-export type PieceSymbol = 'p' | 'n' | 'b' | 'r' | 'q' | 'k';
+type PieceSymbol = 'p' | 'n' | 'b' | 'r' | 'q' | 'k';
 ```

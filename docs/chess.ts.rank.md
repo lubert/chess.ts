@@ -9,7 +9,7 @@ Extracts the zero-based rank of an 0x88 square.
 **Signature:**
 
 ```typescript
-export declare function rank(i: number): number;
+declare function rank(i: number): number;
 ```
 
 ## Parameters

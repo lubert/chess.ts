@@ -8,7 +8,7 @@
 **Signature:**
 
 ```typescript
-export type BaseState = {
+type BaseState = {
     wtm: boolean;
     ep_square: number;
     half_moves: number;

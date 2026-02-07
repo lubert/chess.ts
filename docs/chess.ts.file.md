@@ -9,7 +9,7 @@ Extracts the zero-based file of an 0x88 square.
 **Signature:**
 
 ```typescript
-export declare function file(i: number): number;
+declare function file(i: number): number;
 ```
 
 ## Parameters

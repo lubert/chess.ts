@@ -9,7 +9,7 @@ Represents a chess move
 **Signature:**
 
 ```typescript
-export type Move = PartialMove & {
+type Move = PartialMove & {
     color: Color;
     flags: string;
     piece: PieceSymbol;

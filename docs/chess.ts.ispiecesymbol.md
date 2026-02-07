@@ -8,7 +8,7 @@
 **Signature:**
 
 ```typescript
-export declare function isPieceSymbol(symbol: string): symbol is PieceSymbol;
+declare function isPieceSymbol(symbol: string): symbol is PieceSymbol;
 ```
 
 ## Parameters

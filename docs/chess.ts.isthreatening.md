@@ -9,14 +9,14 @@ Checks if a square is threatening a target square.
 **Signature:**
 
 ```typescript
-export declare function isThreatening(board: Readonly<Board>, square: number, targetSquare: number): boolean;
+declare function isThreatening(board: Readonly<Board>, square: number, targetSquare: number): boolean;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  board | Readonly&lt;Board&gt; |  |
+|  board | Readonly&lt;[Board](./chess.ts.board.md)<!-- -->&gt; |  |
 |  square | number | Attacking square |
 |  targetSquare | number | Target square |
 

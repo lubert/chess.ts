@@ -8,7 +8,7 @@
 **Signature:**
 
 ```typescript
-export type BitBoard = {
+type BitBoard = {
     w: Record<PieceSymbol, bigint>;
     b: Record<PieceSymbol, bigint>;
 };

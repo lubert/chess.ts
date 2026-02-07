@@ -9,7 +9,7 @@ Return all moves for a given board state.
 **Signature:**
 
 ```typescript
-export declare function generateMoves(state: Readonly<BoardState>, options?: {
+declare function generateMoves(state: Readonly<BoardState>, options?: {
     legal?: boolean;
     piece?: PieceSymbol;
     from?: Square | number;

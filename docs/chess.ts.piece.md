@@ -8,7 +8,7 @@
 **Signature:**
 
 ```typescript
-export type Piece = {
+type Piece = {
     color: Color;
     type: PieceSymbol;
 };

@@ -9,7 +9,7 @@ Checks if a square is attacked. If an attacking color is not provided, the oppos
 **Signature:**
 
 ```typescript
-export declare function isAttacked(state: Readonly<BoardState>, square: number, color?: Color): boolean;
+declare function isAttacked(state: Readonly<BoardState>, square: number, color?: Color): boolean;
 ```
 
 ## Parameters

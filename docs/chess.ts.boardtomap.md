@@ -9,14 +9,14 @@ Converts a board state to a map of squares to piece symbols.
 **Signature:**
 
 ```typescript
-export declare function boardToMap(board: Readonly<Board>): Partial<Record<Square, string>>;
+declare function boardToMap(board: Readonly<Board>): Partial<Record<Square, string>>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  board | Readonly&lt;Board&gt; | Board state |
+|  board | Readonly&lt;[Board](./chess.ts.board.md)<!-- -->&gt; | Board state |
 
 **Returns:**
 

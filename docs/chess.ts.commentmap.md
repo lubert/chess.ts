@@ -8,5 +8,5 @@
 **Signature:**
 
 ```typescript
-export type CommentMap = Partial<Record<string, string>>;
+type CommentMap = Partial<Record<string, string>>;
 ```

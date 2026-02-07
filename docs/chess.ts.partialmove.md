@@ -8,7 +8,7 @@
 **Signature:**
 
 ```typescript
-export type PartialMove = {
+type PartialMove = {
     to: Square;
     from: Square;
     promotion?: PieceSymbol;

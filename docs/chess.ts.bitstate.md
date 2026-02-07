@@ -8,7 +8,7 @@
 **Signature:**
 
 ```typescript
-export type BitState = BaseState & {
+type BitState = BaseState & {
     board: BitBoard;
 };
 ```

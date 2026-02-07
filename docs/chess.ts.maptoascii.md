@@ -9,7 +9,7 @@ Renders a map of squares to characters on an ASCII board.
 **Signature:**
 
 ```typescript
-export declare function mapToAscii(charMap: Readonly<Partial<Record<Square, string>>>, eol?: string): string;
+declare function mapToAscii(charMap: Readonly<Partial<Record<Square, string>>>, eol?: string): string;
 ```
 
 ## Parameters

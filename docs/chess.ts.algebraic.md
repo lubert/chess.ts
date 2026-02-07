@@ -9,7 +9,7 @@ Converts a 0x88 square to algebraic notation.
 **Signature:**
 
 ```typescript
-export declare function algebraic(i: number): Square | undefined;
+declare function algebraic(i: number): Square | undefined;
 ```
 
 ## Parameters

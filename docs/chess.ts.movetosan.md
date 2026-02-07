@@ -7,7 +7,7 @@
 **Signature:**
 
 ```typescript
-export declare function moveToSan(state: Readonly<BoardState>, move: Readonly<HexMove>, moves?: HexMove[], options?: {
+declare function moveToSan(state: Readonly<BoardState>, move: HexMove, moves?: HexMove[], options?: {
     addPromotion?: boolean;
 }): string;
 ```
@@ -17,7 +17,7 @@ export declare function moveToSan(state: Readonly<BoardState>, move: Readonly<He
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  state | Readonly&lt;[BoardState](./chess.ts.boardstate.md)<!-- -->&gt; |  |
-|  move | Readonly&lt;HexMove&gt; |  |
+|  move | HexMove |  |
 |  moves | HexMove\[\] | _(Optional)_ |
 |  options | { addPromotion?: boolean; } | _(Optional)_ |
 

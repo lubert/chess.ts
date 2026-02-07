@@ -9,7 +9,7 @@ Checks if a square is attacking a target square.
 **Signature:**
 
 ```typescript
-export declare function isAttacking(state: Readonly<BoardState>, square: number, targetSquare: number): boolean;
+declare function isAttacking(state: Readonly<BoardState>, square: number, targetSquare: number): boolean;
 ```
 
 ## Parameters

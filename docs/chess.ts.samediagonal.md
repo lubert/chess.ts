@@ -9,7 +9,7 @@ Tests if two squares are on the same diagonal.
 **Signature:**
 
 ```typescript
-export declare function sameDiagonal(sq1: number, sq2: number): boolean;
+declare function sameDiagonal(sq1: number, sq2: number): boolean;
 ```
 
 ## Parameters

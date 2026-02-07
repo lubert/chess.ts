@@ -9,7 +9,7 @@ Tests if two squares are on the same file.
 **Signature:**
 
 ```typescript
-export declare function sameFile(sq1: number, sq2: number): boolean;
+declare function sameFile(sq1: number, sq2: number): boolean;
 ```
 
 ## Parameters

@@ -8,7 +8,7 @@
 **Signature:**
 
 ```typescript
-export type BoardState = {
+type BoardState = {
     board: Board;
     kings: ColorState;
     turn: Color;
@@ -18,5 +18,5 @@ export type BoardState = {
     move_number: number;
 };
 ```
-**References:** [Color](./chess.ts.color.md)
+**References:** [Board](./chess.ts.board.md)<!-- -->, [Color](./chess.ts.color.md)
 
