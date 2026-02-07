@@ -22,6 +22,7 @@ import {
   WHITE,
   PAWN_ATTACK_OFFSETS,
   DIRECTIONS,
+  RAYS,
 } from './constants'
 import {
   Board,
@@ -351,6 +352,206 @@ export function isLegal(state: BoardState, move: HexMove): boolean {
   return !isKingAttacked(newState, state.turn)
 }
 
+type PositionInfo = {
+  pins: Int8Array // 128-element array: 0 = unpinned, nonzero = pin direction offset
+  checkerCount: number // 0, 1, or 2
+  checkerSq: number // square of first checker (-1 if none)
+  checkerRay: number // direction from king to checker (0 if knight/pawn)
+}
+
+/**
+ * Compute pin and check information in one pass from the king.
+ * @internal
+ */
+function computePositionInfo(state: Readonly<BoardState>): PositionInfo {
+  const us = state.turn
+  const them = swapColor(us)
+  const kingSq = state.kings[us]
+  const pins = new Int8Array(128)
+  let checkerCount = 0
+  let checkerSq = -1
+  let checkerRay = 0
+
+  // Walk each of 8 ray directions from king square
+  for (let i = 0; i < 8; i++) {
+    const dir = DIRECTIONS[i]
+    let friendlySq = -1
+    let sq = kingSq + dir
+
+    while ((sq & 0x88) === 0) {
+      const p = state.board[sq]
+      if (p) {
+        if (p.color === us) {
+          if (friendlySq === -1) {
+            // First friendly piece on this ray
+            friendlySq = sq
+          } else {
+            // Second friendly piece — no pin possible on this ray
+            break
+          }
+        } else {
+          // Enemy piece — check if it's a slider matching this ray direction
+          const isRookLike = p.type === ROOK || p.type === QUEEN
+          const isBishopLike = p.type === BISHOP || p.type === QUEEN
+          const matchesRay = i < 4 ? isRookLike : isBishopLike
+
+          if (matchesRay) {
+            if (friendlySq !== -1) {
+              // Friendly piece in between → it's pinned along this direction
+              pins[friendlySq] = dir
+            } else {
+              // No piece in between → this is a checker
+              checkerCount++
+              if (checkerCount === 1) {
+                checkerSq = sq
+                checkerRay = dir
+              }
+            }
+          }
+          break
+        }
+      }
+      sq += dir
+    }
+  }
+
+  // Check for knight attacks
+  const knightOffsets = PIECE_OFFSETS[KNIGHT]
+  for (let i = 0; i < knightOffsets.length; i++) {
+    const sq = kingSq + knightOffsets[i]
+    if (sq & 0x88) continue
+    const p = state.board[sq]
+    if (p && p.color === them && p.type === KNIGHT) {
+      checkerCount++
+      if (checkerCount === 1) {
+        checkerSq = sq
+        checkerRay = 0 // knight, no ray
+      }
+    }
+  }
+
+  // Check for pawn attacks (use them's offsets to find enemy pawns attacking our king)
+  const pawnOffsets = PAWN_ATTACK_OFFSETS[them]
+  for (let i = 0; i < pawnOffsets.length; i++) {
+    const sq = kingSq + pawnOffsets[i]
+    if (sq & 0x88) continue
+    const p = state.board[sq]
+    if (p && p.color === them && p.type === PAWN) {
+      checkerCount++
+      if (checkerCount === 1) {
+        checkerSq = sq
+        checkerRay = 0 // pawn, no ray
+      }
+    }
+  }
+
+  return { pins, checkerCount, checkerSq, checkerRay }
+}
+
+/**
+ * Variant of isAttacked that skips the king's own square during slider ray scans.
+ * This ensures sliders "see through" the king for king move validation.
+ * @internal
+ */
+function isSquareAttackedForKing(
+  state: Readonly<BoardState>,
+  square: number,
+  kingSq: number,
+  attackerColor: Color,
+): boolean {
+  if (square & 0x88) return false
+
+  // Pawn
+  const pawnOffsets = PAWN_ATTACK_OFFSETS[attackerColor]
+  for (let i = 0; i < pawnOffsets.length; i++) {
+    const offset = pawnOffsets[i]
+    const p = state.board[square + offset]
+    if (p && p.color === attackerColor && p.type === PAWN) {
+      return true
+    }
+  }
+
+  // One square (king + adjacent pieces)
+  for (let i = 0; i < DIRECTIONS.length; i++) {
+    const offset = DIRECTIONS[i]
+    const p = state.board[square + offset]
+    if (p && p.color === attackerColor) {
+      if (i < 4 && (p.type === ROOK || p.type === QUEEN || p.type === KING))
+        return true
+      if (i >= 4 && (p.type === BISHOP || p.type === QUEEN || p.type === KING))
+        return true
+    }
+  }
+
+  // Knight
+  for (let i = 0; i < PIECE_OFFSETS[KNIGHT].length; i++) {
+    const offset = PIECE_OFFSETS[KNIGHT][i]
+    const p = state.board[square + offset]
+    if (p && p.color === attackerColor && p.type === KNIGHT) {
+      return true
+    }
+  }
+
+  // Multi square sliders — skip the king's own square
+  for (let i = 0; i < DIRECTIONS.length; i++) {
+    const offset = DIRECTIONS[i]
+    let sq = square + offset
+    while ((sq & 0x88) === 0) {
+      if (sq === kingSq) {
+        sq += offset
+        continue
+      }
+      const p = state.board[sq]
+      if (p) {
+        if (p.color === attackerColor) {
+          if (i < 4 && (p.type === ROOK || p.type === QUEEN)) return true
+          if (i >= 4 && (p.type === BISHOP || p.type === QUEEN)) return true
+        }
+        break
+      }
+      sq += offset
+    }
+  }
+
+  return false
+}
+
+/**
+ * Check if a move stays along the pin ray.
+ * A pinned piece can move toward or away from the pinner.
+ * @internal
+ */
+function canMoveAlongPin(pinDir: number, from: number, to: number): boolean {
+  const ray = RAYS[to - from + 119]
+  return ray === pinDir || ray === -pinDir
+}
+
+/**
+ * When in single check, compute a mask of valid destination squares.
+ * A non-king piece can either capture the checker or interpose on the ray.
+ * @internal
+ */
+function computeCheckMask(
+  checkerSq: number,
+  checkerRay: number,
+  kingSq: number,
+): Uint8Array {
+  const mask = new Uint8Array(128)
+  // Can always capture the checker
+  mask[checkerSq] = 1
+
+  // If sliding check, interposition squares are valid
+  if (checkerRay !== 0) {
+    let sq = kingSq + checkerRay
+    while (sq !== checkerSq) {
+      mask[sq] = 1
+      sq += checkerRay
+    }
+  }
+
+  return mask
+}
+
 /**
  * Return all moves for a given board state.
  * @param options.legal[=true] - Filter by legal moves
@@ -371,6 +572,40 @@ export function generateMoves(
   const { legal = true, piece: forPiece, from, to } = options
 
   const moves: HexMove[] = []
+
+  const them = swapColor(state.turn)
+  const second_rank: { [key: string]: number } = { b: RANK_7, w: RANK_2 }
+  const kingSq = state.kings[state.turn]
+
+  // Compute pin/check info upfront for legal move generation
+  let posInfo: PositionInfo | null = null
+  let checkMask: Uint8Array | null = null
+
+  if (legal) {
+    posInfo = computePositionInfo(state)
+
+    // Double check: only king moves are legal
+    if (posInfo.checkerCount >= 2) {
+      // Generate only king moves
+      if (forPiece !== undefined && forPiece !== KING) return []
+      const kingMoves = generateKingMoves(
+        state,
+        kingSq,
+        them,
+        to,
+      )
+      return kingMoves
+    }
+
+    // Single check: compute check mask for non-king pieces
+    if (posInfo.checkerCount === 1) {
+      checkMask = computeCheckMask(
+        posInfo.checkerSq,
+        posInfo.checkerRay,
+        kingSq,
+      )
+    }
+  }
 
   const addMove = (
     piece: PieceSymbol,
@@ -407,9 +642,6 @@ export function generateMoves(
       })
     }
   }
-
-  const them = swapColor(state.turn)
-  const second_rank: { [key: string]: number } = { b: RANK_7, w: RANK_2 }
 
   let firstSq = SQUARES.a8
   let lastSq = SQUARES.h1
@@ -448,13 +680,25 @@ export function generateMoves(
     const symbol = piece.type
     if (forPiece && forPiece !== symbol) continue
 
+    // King moves handled separately below
+    if (symbol === KING) continue
+
+    // For non-king pieces with legal filtering
+    const pinDir = posInfo ? posInfo.pins[fromSq] : 0
+
     let toSq: number
     if (symbol === PAWN) {
       // Single square, non-capturing
       toSq = fromSq + PAWN_OFFSETS[state.turn][0]
       if (!state.board[toSq]) {
         if (toSquare === undefined || toSquare === toSq) {
-          addMove(PAWN, fromSq, toSq, BITS.NORMAL)
+          if (
+            !posInfo ||
+            ((!checkMask || checkMask[toSq]) &&
+              (!pinDir || canMoveAlongPin(pinDir, fromSq, toSq)))
+          ) {
+            addMove(PAWN, fromSq, toSq, BITS.NORMAL)
+          }
         }
 
         // Double square
@@ -464,7 +708,13 @@ export function generateMoves(
           !state.board[toSq] &&
           (toSquare === undefined || toSquare === toSq)
         ) {
-          addMove(PAWN, fromSq, toSq, BITS.BIG_PAWN)
+          if (
+            !posInfo ||
+            ((!checkMask || checkMask[toSq]) &&
+              (!pinDir || canMoveAlongPin(pinDir, fromSq, toSq)))
+          ) {
+            addMove(PAWN, fromSq, toSq, BITS.BIG_PAWN)
+          }
         }
       }
 
@@ -476,12 +726,55 @@ export function generateMoves(
 
         const p = state.board[toSq]
         if (p && p.color === them) {
-          addMove(PAWN, fromSq, toSq, BITS.CAPTURE, p.type)
+          if (
+            !posInfo ||
+            ((!checkMask || checkMask[toSq]) &&
+              (!pinDir || canMoveAlongPin(pinDir, fromSq, toSq)))
+          ) {
+            addMove(PAWN, fromSq, toSq, BITS.CAPTURE, p.type)
+          }
         } else if (toSq === state.ep_square) {
-          addMove(PAWN, fromSq, state.ep_square, BITS.EP_CAPTURE, PAWN)
+          // En passant — special case: pin detection alone can miss
+          // horizontal discovered checks when both pawns leave the same rank.
+          // Fall back to isLegal for en passant moves.
+          if (!posInfo) {
+            addMove(PAWN, fromSq, state.ep_square, BITS.EP_CAPTURE, PAWN)
+          } else {
+            // Check mask: the captured pawn square must also be considered
+            // The captured pawn is on the same file as ep_square but different rank
+            const capturedPawnSq =
+              state.ep_square + (state.turn === WHITE ? 16 : -16)
+            if (
+              checkMask &&
+              !checkMask[toSq] &&
+              !checkMask[capturedPawnSq]
+            ) {
+              continue
+            }
+            if (pinDir && !canMoveAlongPin(pinDir, fromSq, toSq)) {
+              continue
+            }
+            // Fall back to make/unmake check for en passant
+            // to catch horizontal discovered checks
+            const epMove: HexMove = {
+              piece: PAWN,
+              color: state.turn,
+              from: fromSq,
+              to: state.ep_square,
+              captured: PAWN,
+              flags: BITS.EP_CAPTURE,
+            }
+            if (isLegal(state, epMove)) {
+              addMove(PAWN, fromSq, state.ep_square, BITS.EP_CAPTURE, PAWN)
+            }
+          }
         }
       }
     } else {
+      // Non-king, non-pawn pieces
+      // Pinned knight can never move
+      if (posInfo && pinDir && symbol === KNIGHT) continue
+
       for (let j = 0, len = PIECE_OFFSETS[symbol].length; j < len; j++) {
         const offset = PIECE_OFFSETS[symbol][j]
         toSq = fromSq
@@ -493,12 +786,24 @@ export function generateMoves(
           const p = state.board[toSq]
           if (!p) {
             if (toSquare === undefined || toSquare === toSq) {
-              addMove(symbol, fromSq, toSq, BITS.NORMAL)
+              if (
+                !posInfo ||
+                ((!checkMask || checkMask[toSq]) &&
+                  (!pinDir || canMoveAlongPin(pinDir, fromSq, toSq)))
+              ) {
+                addMove(symbol, fromSq, toSq, BITS.NORMAL)
+              }
             }
           } else {
             if (p.color === state.turn) break
             if (toSquare === undefined || toSquare === toSq) {
-              addMove(symbol, fromSq, toSq, BITS.CAPTURE, p.type)
+              if (
+                !posInfo ||
+                ((!checkMask || checkMask[toSq]) &&
+                  (!pinDir || canMoveAlongPin(pinDir, fromSq, toSq)))
+              ) {
+                addMove(symbol, fromSq, toSq, BITS.CAPTURE, p.type)
+              }
             }
             break
           }
@@ -510,46 +815,128 @@ export function generateMoves(
     }
   }
 
+  // Generate king moves (including castling)
   if (forPiece === undefined || forPiece === KING) {
-    if (forSquare === undefined || lastSq === state.kings[state.turn]) {
-      // King-side castling
-      if (state.castling[state.turn] & BITS.KSIDE_CASTLE) {
-        const castlingFrom = state.kings[state.turn]
-        const castlingTo = castlingFrom + 2
+    if (forSquare === undefined || forSquare === kingSq) {
+      // Normal king moves
+      for (let j = 0; j < PIECE_OFFSETS[KING].length; j++) {
+        const offset = PIECE_OFFSETS[KING][j]
+        const toSq = kingSq + offset
+        if (toSq & 0x88) continue
+        if (toSquare !== undefined && toSq !== toSquare) continue
+
+        const p = state.board[toSq]
+        if (p && p.color === state.turn) continue
 
         if (
-          (toSquare === undefined || toSquare === castlingTo) &&
-          !state.board[castlingFrom + 1] &&
-          !state.board[castlingTo] &&
-          !isAttacked(state, state.kings[state.turn]) &&
-          !isAttacked(state, castlingFrom + 1) &&
-          !isAttacked(state, castlingTo)
+          posInfo
+            ? !isSquareAttackedForKing(state, toSq, kingSq, them)
+            : true
         ) {
-          addMove(KING, state.kings[state.turn], castlingTo, BITS.KSIDE_CASTLE)
+          if (p) {
+            addMove(KING, kingSq, toSq, BITS.CAPTURE, p.type)
+          } else {
+            addMove(KING, kingSq, toSq, BITS.NORMAL)
+          }
         }
       }
 
-      // Queen-side castling
-      if (state.castling[state.turn] & BITS.QSIDE_CASTLE) {
-        const castlingFrom = state.kings[state.turn]
-        const castlingTo = castlingFrom - 2
+      // Castling — skip entirely if in check
+      if (!posInfo || posInfo.checkerCount === 0) {
+        // King-side castling
+        if (state.castling[state.turn] & BITS.KSIDE_CASTLE) {
+          const castlingFrom = kingSq
+          const castlingTo = castlingFrom + 2
 
-        if (
-          (toSquare === undefined || toSquare === castlingTo) &&
-          !state.board[castlingFrom - 1] &&
-          !state.board[castlingFrom - 2] &&
-          !state.board[castlingFrom - 3] &&
-          !isAttacked(state, state.kings[state.turn]) &&
-          !isAttacked(state, castlingFrom - 1) &&
-          !isAttacked(state, castlingTo)
-        ) {
-          addMove(KING, state.kings[state.turn], castlingTo, BITS.QSIDE_CASTLE)
+          if (
+            (toSquare === undefined || toSquare === castlingTo) &&
+            !state.board[castlingFrom + 1] &&
+            !state.board[castlingTo] &&
+            !isAttacked(state, kingSq) &&
+            !isAttacked(state, castlingFrom + 1) &&
+            !isAttacked(state, castlingTo)
+          ) {
+            addMove(KING, kingSq, castlingTo, BITS.KSIDE_CASTLE)
+          }
+        }
+
+        // Queen-side castling
+        if (state.castling[state.turn] & BITS.QSIDE_CASTLE) {
+          const castlingFrom = kingSq
+          const castlingTo = castlingFrom - 2
+
+          if (
+            (toSquare === undefined || toSquare === castlingTo) &&
+            !state.board[castlingFrom - 1] &&
+            !state.board[castlingFrom - 2] &&
+            !state.board[castlingFrom - 3] &&
+            !isAttacked(state, kingSq) &&
+            !isAttacked(state, castlingFrom - 1) &&
+            !isAttacked(state, castlingTo)
+          ) {
+            addMove(KING, kingSq, castlingTo, BITS.QSIDE_CASTLE)
+          }
         }
       }
     }
   }
 
-  if (legal) return moves.filter((m) => isLegal(state, m))
+  if (legal && !posInfo) return moves.filter((m) => isLegal(state, m))
+  return moves
+}
+
+/**
+ * Generate only king moves (used in double check).
+ * @internal
+ */
+function generateKingMoves(
+  state: Readonly<BoardState>,
+  kingSq: number,
+  them: Color,
+  to: Square | number | undefined,
+): HexMove[] {
+  const moves: HexMove[] = []
+
+  let toSquare: number | undefined
+  if (to !== undefined) {
+    if (typeof to === 'number') {
+      toSquare = to
+    } else {
+      toSquare = SQUARES[to]
+    }
+  }
+
+  for (let j = 0; j < PIECE_OFFSETS[KING].length; j++) {
+    const offset = PIECE_OFFSETS[KING][j]
+    const toSq = kingSq + offset
+    if (toSq & 0x88) continue
+    if (toSquare !== undefined && toSq !== toSquare) continue
+
+    const p = state.board[toSq]
+    if (p && p.color === state.turn) continue
+
+    if (!isSquareAttackedForKing(state, toSq, kingSq, them)) {
+      if (p) {
+        moves.push({
+          piece: KING,
+          color: state.turn,
+          from: kingSq,
+          to: toSq,
+          captured: p.type,
+          flags: BITS.CAPTURE,
+        })
+      } else {
+        moves.push({
+          piece: KING,
+          color: state.turn,
+          from: kingSq,
+          to: toSq,
+          flags: BITS.NORMAL,
+        })
+      }
+    }
+  }
+
   return moves
 }
 
