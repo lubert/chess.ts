@@ -57,6 +57,7 @@ export {
 export { toBitState, fromBitState } from './state'
 export {
   decodePiece,
+  encodePiece,
   getFen,
   hexToMove,
   hexToGameState,
