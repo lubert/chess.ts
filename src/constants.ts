@@ -210,6 +210,45 @@ export const RANK_MASKS: Record<Rank, bigint> = {
   1: 0xFF00000000000000n,
 }
 
+// Numeric piece type constants for Uint8Array board encoding
+// Encoding: 0 = empty, bits 0-2 = piece type (1-6), bit 3 = color (0=white, 8=black)
+export const PT_PAWN = 1
+export const PT_KNIGHT = 2
+export const PT_BISHOP = 3
+export const PT_ROOK = 4
+export const PT_QUEEN = 5
+export const PT_KING = 6
+export const COLOR_W = 0
+export const COLOR_B = 8
+
+// Maps PieceSymbol to numeric piece type
+export const PIECE_TYPE_NUM: Record<PieceSymbol, number> = {
+  p: PT_PAWN,
+  n: PT_KNIGHT,
+  b: PT_BISHOP,
+  r: PT_ROOK,
+  q: PT_QUEEN,
+  k: PT_KING,
+}
+
+// Maps numeric piece type back to PieceSymbol (index 0 is intentionally undefined)
+// prettier-ignore
+export const NUM_PIECE_TYPE: (PieceSymbol | undefined)[] = [
+  undefined, // 0 = empty square, should never be looked up
+  'p', // 1
+  'n', // 2
+  'b', // 3
+  'r', // 4
+  'q', // 5
+  'k', // 6
+]
+
+// Maps Color to numeric color bit
+export const COLOR_NUM: Record<Color, number> = {
+  w: COLOR_W,
+  b: COLOR_B,
+}
+
 export const ROOKS: Record<Color, { square: number; flag: number }[]> = {
   w: [
     { square: SQUARES.a1, flag: BITS.QSIDE_CASTLE },

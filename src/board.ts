@@ -7,6 +7,7 @@ import {
   Square,
 } from './interfaces/types'
 import { bitToSquare, symbol } from './utils'
+import { decodePiece, encodePiece } from './move'
 
 /**
  * Renders a map of squares to characters on an ASCII board.
@@ -47,8 +48,8 @@ export function boardToMap(
 ): Partial<Record<Square, string>> {
   const charMap: Partial<Record<Square, string>> = {}
   Object.entries(SQUARES).forEach(([sq, i]) => {
-    const piece = board[i]
-    if (piece) charMap[sq as Square] = symbol(piece)
+    const encoded = board[i]
+    if (encoded) charMap[sq as Square] = symbol(decodePiece(encoded))
   })
   return charMap
 }
@@ -79,9 +80,10 @@ export function toBitBoard(board: Board): BitBoard {
   }
   for (let i = 0; i < 128; i++) {
     if (i & 0x88) continue
-    const piece = board[i]
-    if (piece) {
+    const encoded = board[i]
+    if (encoded) {
       const bit = (i >> 4) * 8 + (i & 7)
+      const piece = decodePiece(encoded)
       bitboard[piece.color][piece.type] |= BIT_SHIFT[bit]
     }
   }
@@ -114,8 +116,9 @@ export function toNibbleBoard(board: Board): number[] {
   for (let i = 0; i < squares.length; i++) {
     const key = squares[i]
     const sq = BIT_SQUARES[key]
-    const piece = board[SQUARES[key]]
-    if (piece) {
+    const encoded = board[SQUARES[key]]
+    if (encoded) {
+      const piece = decodePiece(encoded)
       const color = piece.color === 'w' ? 1 : 7
       const nibble = color + 'pnbrqk'.indexOf(piece.type)
       nibbleBoard[sq] = nibble
@@ -125,14 +128,14 @@ export function toNibbleBoard(board: Board): number[] {
 }
 
 export function fromBitBoard(bitboard: BitBoard): Board {
-  const board: Board = new Array(128)
+  const board: Board = new Uint8Array(128)
   for (let i = 0; i < 64; i++) {
     const sq = bitToSquare(i)
     const bit = BigInt(1) << BigInt(i)
     for (const color of ['w', 'b'] as const) {
       for (const piece of ['p', 'n', 'b', 'r', 'q', 'k'] as const) {
         if (bitboard[color][piece] & bit) {
-          board[sq] = { type: piece, color }
+          board[sq] = encodePiece(piece, color)
         }
       }
     }
@@ -141,7 +144,7 @@ export function fromBitBoard(bitboard: BitBoard): Board {
 }
 
 export function fromNibbleBoard(nibbleBoard: number[]): Board {
-  const board: Board = new Array(128)
+  const board: Board = new Uint8Array(128)
   for (let i = 0; i < 64; i++) {
     const sq = bitToSquare(i)
     const nibble = nibbleBoard[i]
@@ -150,7 +153,7 @@ export function fromNibbleBoard(nibbleBoard: number[]): Board {
       const piece = 'pnbrqk'[
         nibble > 6 ? nibble - 7 : nibble - 1
       ] as PieceSymbol
-      board[sq] = { type: piece, color }
+      board[sq] = encodePiece(piece, color)
     }
   }
   return board
