@@ -457,6 +457,8 @@ function computePositionInfo(state: Readonly<BoardState>): PositionInfo {
 /**
  * Check if a move stays along the pin ray.
  * A pinned piece can move toward or away from the pinner.
+ * Uses the RAYS lookup table: RAYS[to - from + 119] gives the direction
+ * offset from `from` to `to` (or 0 if they are not on the same line).
  * @internal
  */
 function canMoveAlongPin(pinDir: number, from: number, to: number): boolean {
@@ -671,8 +673,10 @@ export function generateMoves(
             if (!posInfo) {
               addMove(PAWN, fromSq, state.ep_square, BITS.EP_CAPTURE, PAWN)
             } else {
-              // Check mask: the captured pawn square must also be considered
-              // The captured pawn is on the same file as ep_square but different rank
+              // In single check, EP can resolve by either:
+              //   1. Landing on an interposition square (toSq in checkMask), or
+              //   2. Capturing the checking pawn (capturedPawnSq in checkMask).
+              // Skip only if neither square resolves the check.
               const capturedPawnSq =
                 state.ep_square + (state.turn === WHITE ? 16 : -16)
               if (checkMask && !checkMask[toSq] && !checkMask[capturedPawnSq]) {
