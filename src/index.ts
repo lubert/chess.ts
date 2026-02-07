@@ -8,6 +8,7 @@ export {
   Color,
   CommentMap,
   GameState,
+  HeaderMap,
   HexState,
   Move,
   PartialMove,
