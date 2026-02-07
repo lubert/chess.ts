@@ -509,6 +509,30 @@ export function generateMoves(
   const second_rank: { [key: string]: number } = { b: RANK_7, w: RANK_2 }
   const kingSq = state.kings[state.turn]
 
+  // Parse from/to filters early so the double-check path can use them
+  let firstSq = SQUARES.a8
+  let lastSq = SQUARES.h1
+
+  let forSquare: number | undefined
+  if (from) {
+    if (typeof from === 'number') {
+      forSquare = from
+      if (forSquare & 0x88) return []
+    } else {
+      forSquare = SQUARES[from]
+    }
+    firstSq = lastSq = forSquare
+  }
+
+  let toSquare: number | undefined
+  if (to) {
+    if (typeof to === 'number') {
+      toSquare = to
+    } else {
+      toSquare = SQUARES[to]
+    }
+  }
+
   // Compute pin/check info upfront for legal move generation
   let posInfo: PositionInfo | null = null
   let checkMask: Uint8Array | null = null
@@ -518,15 +542,9 @@ export function generateMoves(
 
     // Double check: only king moves are legal
     if (posInfo.checkerCount >= 2) {
-      // Generate only king moves
       if (forPiece !== undefined && forPiece !== KING) return []
-      const kingMoves = generateKingMoves(
-        state,
-        kingSq,
-        them,
-        to,
-      )
-      return kingMoves
+      if (forSquare !== undefined && forSquare !== kingSq) return []
+      return generateKingMoves(state, kingSq, them, toSquare)
     }
 
     // Single check: compute check mask for non-king pieces
@@ -572,30 +590,6 @@ export function generateMoves(
         captured,
         flags,
       })
-    }
-  }
-
-  let firstSq = SQUARES.a8
-  let lastSq = SQUARES.h1
-
-  // Single square move generation
-  let forSquare: number | undefined
-  if (from) {
-    if (typeof from === 'number') {
-      forSquare = from
-      if (forSquare & 0x88) return []
-    } else {
-      forSquare = SQUARES[from]
-    }
-    firstSq = lastSq = forSquare
-  }
-
-  let toSquare: number | undefined
-  if (to) {
-    if (typeof to === 'number') {
-      toSquare = to
-    } else {
-      toSquare = SQUARES[to]
     }
   }
 
@@ -825,18 +819,9 @@ function generateKingMoves(
   state: Readonly<BoardState>,
   kingSq: number,
   them: Color,
-  to: Square | number | undefined,
+  toSquare: number | undefined,
 ): HexMove[] {
   const moves: HexMove[] = []
-
-  let toSquare: number | undefined
-  if (to !== undefined) {
-    if (typeof to === 'number') {
-      toSquare = to
-    } else {
-      toSquare = SQUARES[to]
-    }
-  }
 
   for (let j = 0; j < PIECE_OFFSETS[KING].length; j++) {
     const offset = PIECE_OFFSETS[KING][j]
