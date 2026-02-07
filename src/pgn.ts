@@ -248,6 +248,12 @@ export function walkPgn(pgn: string, options: WalkPgnOptions): HeaderMap {
     return true
   }
 
+  const addPendingNag = (nag: number) => {
+    if (!pendingMoveInfo) return
+    if (!pendingMoveInfo.nags) pendingMoveInfo.nags = [nag]
+    else pendingMoveInfo.nags.push(nag)
+  }
+
   // Tokenizer state
   let mi = 0
   const pending: string[] = []
@@ -349,41 +355,19 @@ export function walkPgn(pgn: string, options: WalkPgnOptions): HeaderMap {
     } else if (token.includes(')')) {
       pushBackMultiple(splitStr(token, ')'))
     } else if (token.startsWith('$')) {
-      const nag = parseInt(token.substring(1), 10)
-      if (pendingMoveInfo) {
-        if (!pendingMoveInfo.nags) pendingMoveInfo.nags = [nag]
-        else pendingMoveInfo.nags.push(nag)
-      }
+      addPendingNag(parseInt(token.substring(1), 10))
     } else if (token === '!') {
-      if (pendingMoveInfo) {
-        if (!pendingMoveInfo.nags) pendingMoveInfo.nags = [Nag.GOOD_MOVE]
-        else pendingMoveInfo.nags.push(Nag.GOOD_MOVE)
-      }
+      addPendingNag(Nag.GOOD_MOVE)
     } else if (token === '?') {
-      if (pendingMoveInfo) {
-        if (!pendingMoveInfo.nags) pendingMoveInfo.nags = [Nag.MISTAKE]
-        else pendingMoveInfo.nags.push(Nag.MISTAKE)
-      }
+      addPendingNag(Nag.MISTAKE)
     } else if (token === '!!') {
-      if (pendingMoveInfo) {
-        if (!pendingMoveInfo.nags) pendingMoveInfo.nags = [Nag.BRILLIANT_MOVE]
-        else pendingMoveInfo.nags.push(Nag.BRILLIANT_MOVE)
-      }
+      addPendingNag(Nag.BRILLIANT_MOVE)
     } else if (token === '??') {
-      if (pendingMoveInfo) {
-        if (!pendingMoveInfo.nags) pendingMoveInfo.nags = [Nag.BLUNDER]
-        else pendingMoveInfo.nags.push(Nag.BLUNDER)
-      }
+      addPendingNag(Nag.BLUNDER)
     } else if (token === '!?') {
-      if (pendingMoveInfo) {
-        if (!pendingMoveInfo.nags) pendingMoveInfo.nags = [Nag.SPECULATIVE_MOVE]
-        else pendingMoveInfo.nags.push(Nag.SPECULATIVE_MOVE)
-      }
+      addPendingNag(Nag.SPECULATIVE_MOVE)
     } else if (token === '?!') {
-      if (pendingMoveInfo) {
-        if (!pendingMoveInfo.nags) pendingMoveInfo.nags = [Nag.DUBIOUS_MOVE]
-        else pendingMoveInfo.nags.push(Nag.DUBIOUS_MOVE)
-      }
+      addPendingNag(Nag.DUBIOUS_MOVE)
     } else if (POSSIBLE_RESULTS.includes(token)) {
       if (!header.Result && variationStack.length === 0) {
         header.Result = token
