@@ -385,7 +385,7 @@ export function walkPgn(pgn: string, options: WalkPgnOptions): HeaderMap {
         else pendingMoveInfo.nags.push(Nag.DUBIOUS_MOVE)
       }
     } else if (POSSIBLE_RESULTS.includes(token)) {
-      if (!header.Result) {
+      if (!header.Result && variationStack.length === 0) {
         header.Result = token
       }
     } else if (NULL_MOVES.includes(token)) {
