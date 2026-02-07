@@ -71,6 +71,9 @@ import { cloneBoardState, defaultBoardState } from './state'
 const _pinBuf = new Int8Array(128)
 const _checkMaskBuf = new Uint8Array(128)
 
+const SECOND_RANK: Record<string, number> = { b: RANK_7, w: RANK_2 }
+const PROMOTION_PIECES: PieceSymbol[] = [QUEEN, ROOK, BISHOP, KNIGHT]
+
 /** Encode a piece symbol + color into a single byte for Uint8Array board */
 export function encodePiece(type: PieceSymbol, color: Color): number {
   return COLOR_NUM[color] | PIECE_TYPE_NUM[type]
@@ -568,7 +571,7 @@ export function generateMoves(
   const them = swapColor(state.turn)
   const usBit = COLOR_NUM[state.turn]
   const themBit = usBit ^ 8
-  const second_rank: { [key: string]: number } = { b: RANK_7, w: RANK_2 }
+  const second_rank = SECOND_RANK
   const kingSq = state.kings[state.turn]
 
   // Parse from/to filters early so the double-check path can use them
@@ -632,7 +635,7 @@ export function generateMoves(
     // Pawn promotion
     const r = rank(to)
     if (piece === PAWN && (r === RANK_8 || r === RANK_1)) {
-      const promotions = [QUEEN, ROOK, BISHOP, KNIGHT]
+      const promotions = PROMOTION_PIECES
       promotions.forEach((promotion) => {
         moves.push({
           piece,
