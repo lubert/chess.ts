@@ -5,8 +5,8 @@ import { moveToSan, getFen } from '../src/move'
 describe('pgn', () => {
   describe('loadPgn', () => {
     it('works', () => {
-  const fen = '4q2k/2r1r3/4PR1p/p1p5/P1Bp1Q1P/1P6/6P1/6K1 b - - 4 41'
-  const pgn = `
+      const fen = '4q2k/2r1r3/4PR1p/p1p5/P1Bp1Q1P/1P6/6P1/6K1 b - - 4 41'
+      const pgn = `
 [Event "Reykjavik WCh"]
 [Site "Reykjavik WCh"]
 [Date "1972.01.07"]
@@ -305,7 +305,7 @@ describe('pgn', () => {
     })
 
     it('parses variation with comment after move inside', () => {
-      const pgn = '1. e4 (1. d4 {Queen\'s Pawn}) 1...e5'
+      const pgn = "1. e4 (1. d4 {Queen's Pawn}) 1...e5"
       const { tree } = loadPgn(pgn)
 
       expect(tree.children.length).toBe(2)
@@ -321,7 +321,7 @@ describe('pgn', () => {
       const chess = new Chess()
       chess.loadPgn(pgn)
       const exportedPgn = chess.pgn()
-      expect(exportedPgn).toBe('1. e4 (1. d4 {Queen\'s Pawn}) 1...e5')
+      expect(exportedPgn).toBe("1. e4 (1. d4 {Queen's Pawn}) 1...e5")
     })
 
     it('parses mainline comment + variation with starting comment', () => {
@@ -346,7 +346,8 @@ describe('pgn', () => {
     })
 
     it('parses sibling variations with comments', () => {
-      const pgn = '1. e4 {King\'s Pawn} ({Queen\'s Pawn} 1. d4) ({English} 1. c4) 1...e5'
+      const pgn =
+        "1. e4 {King's Pawn} ({Queen's Pawn} 1. d4) ({English} 1. c4) 1...e5"
       const { tree } = loadPgn(pgn)
 
       expect(tree.children.length).toBe(3)
@@ -367,7 +368,9 @@ describe('pgn', () => {
       const chess = new Chess()
       chess.loadPgn(pgn)
       const exportedPgn = chess.pgn()
-      expect(exportedPgn).toBe('1. e4 {King\'s Pawn} ({Queen\'s Pawn} 1. d4) ({English} 1. c4) 1...e5')
+      expect(exportedPgn).toBe(
+        "1. e4 {King's Pawn} ({Queen's Pawn} 1. d4) ({English} 1. c4) 1...e5",
+      )
     })
 
     it('parses nested variation with comments', () => {
@@ -392,7 +395,9 @@ describe('pgn', () => {
       const chess = new Chess()
       chess.loadPgn(pgn)
       const exportedPgn = chess.pgn()
-      expect(exportedPgn).toBe('1. e4 (1. d4 d5 {solid} ({Indian} 1...Nf6)) 1...e5')
+      expect(exportedPgn).toBe(
+        '1. e4 (1. d4 d5 {solid} ({Indian} 1...Nf6)) 1...e5',
+      )
     })
 
     it('parses starting comment + move comment combined', () => {
@@ -516,7 +521,8 @@ describe('pgn', () => {
     })
 
     it('parses complex game with multiple variations and comments', () => {
-      const pgn = '{A classic opening} 1. e4 {King\'s Pawn} e5 ({Sicilian} 1...c5 2. Nf3) 2. Nf3 Nc6 ({Petroff} 2...Nf6 {equal game})'
+      const pgn =
+        "{A classic opening} 1. e4 {King's Pawn} e5 ({Sicilian} 1...c5 2. Nf3) 2. Nf3 Nc6 ({Petroff} 2...Nf6 {equal game})"
       const { tree } = loadPgn(pgn)
 
       // Root -> e4
@@ -539,7 +545,9 @@ describe('pgn', () => {
 
       // c5 -> Nf3 (continuation in Sicilian)
       const Nf3InSicilian = c5.children[0]
-      expect(moveToSan(c5.model.boardState, Nf3InSicilian.model.move!)).toBe('Nf3')
+      expect(moveToSan(c5.model.boardState, Nf3InSicilian.model.move!)).toBe(
+        'Nf3',
+      )
 
       // e5 -> Nf3 (mainline)
       const Nf3 = e5.children[0]
@@ -561,9 +569,11 @@ describe('pgn', () => {
       const chess = new Chess()
       chess.loadPgn(pgn)
       const exportedPgn = chess.pgn()
-      expect(exportedPgn).toBe('{A classic opening} 1. e4 {King\'s Pawn} 1...e5 ({Sicilian} 1...c5 2. Nf3) 2. Nf3 Nc6 ({Petroff} 2...Nf6 {equal game})')
+      expect(exportedPgn).toBe(
+        "{A classic opening} 1. e4 {King's Pawn} 1...e5 ({Sicilian} 1...c5 2. Nf3) 2. Nf3 Nc6 ({Petroff} 2...Nf6 {equal game})",
+      )
     })
-  });
+  })
 
   describe('startingComment methods', () => {
     it('getStartingComment returns undefined when no starting comment', () => {

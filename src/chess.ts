@@ -749,22 +749,19 @@ export class Chess {
     return this.boardState.turn
   }
 
-
-  private findMoveChildNode(move: string | PartialMove, key?:number[]| string)
-  {
+  private findMoveChildNode(
+    move: string | PartialMove,
+    key?: number[] | string,
+  ) {
     const node = this.getNode(key)
-    if(node) 
-    {
+    if (node) {
       return node.children.find((child) => {
         const childMove = nodeMove(child)!
         return typeof move === 'string'
           ? childMove.san === move || moveToUci(childMove) === move
           : moveToUci(childMove) === moveToUci(move)
       })
-     }
-
-    
-
+    }
   }
 
   /**
@@ -834,7 +831,11 @@ export class Chess {
    */
   public move(
     move: string | PartialMove,
-    options: { asVariation?: boolean; dry_run?: boolean; strict?: boolean } = {},
+    options: {
+      asVariation?: boolean
+      dry_run?: boolean
+      strict?: boolean
+    } = {},
   ): Move | null {
     const asVariation = options.asVariation ?? false
 
@@ -1107,9 +1108,7 @@ export class Chess {
       const { comment } = node.model
       if (comment) {
         const k =
-          key === 'fen'
-            ? getFen(node.model.boardState)
-            : node.indices.join(',')
+          key === 'fen' ? getFen(node.model.boardState) : node.indices.join(',')
         comments[k] = comment
       }
     })
@@ -1165,9 +1164,7 @@ export class Chess {
       const { startingComment } = node.model
       if (startingComment) {
         const k =
-          key === 'fen'
-            ? getFen(node.model.boardState)
-            : node.indices.join(',')
+          key === 'fen' ? getFen(node.model.boardState) : node.indices.join(',')
         comments[k] = startingComment
       }
     })
@@ -1434,20 +1431,20 @@ export class Chess {
   /**
    * Promotes a variation by moving it up in the list of sibling nodes.
    */
-  public promoteVariation(key?: number[]|string): void {
-    const node = this.getNode(key);
+  public promoteVariation(key?: number[] | string): void {
+    const node = this.getNode(key)
     if (node && canPromote(node)) {
-      node.parent!.swap(node.index, node.index - 1);
+      node.parent!.swap(node.index, node.index - 1)
     }
   }
 
   /**
    * Demotes a variation by moving it down in the list of sibling nodes.
    */
-  public demoteVariation(key?: number[]|string): void {
-    const node = this.getNode(key);
+  public demoteVariation(key?: number[] | string): void {
+    const node = this.getNode(key)
     if (node && canDemote(node)) {
-      node.parent!.swap(node.index, node.index + 1);
+      node.parent!.swap(node.index, node.index + 1)
     }
   }
 
@@ -1457,30 +1454,27 @@ export class Chess {
    * and delete the path leading to it.
    */
   public deleteVariation(key?: number[]): void {
-    const node = this.getNode(key);
-    if(node)
-    {
-      let ancestor = node.parent;
-      let childLeadingToAncestor = node; // Initialize with the current node
-  
+    const node = this.getNode(key)
+    if (node) {
+      let ancestor = node.parent
+      let childLeadingToAncestor = node // Initialize with the current node
+
       // Find the first ancestor with more than one child and not null
       while (ancestor && ancestor.children.length <= 1) {
-        childLeadingToAncestor = ancestor; // Update the child leading to the ancestor
-        ancestor = ancestor.parent;
+        childLeadingToAncestor = ancestor // Update the child leading to the ancestor
+        ancestor = ancestor.parent
       }
-  
+
       if (ancestor && ancestor.children.length > 1) {
-        childLeadingToAncestor.drop();
+        childLeadingToAncestor.drop()
       }
     }
-
   }
-    /**
+  /**
    * Deletes all remaining moves from the given node.
    */
-    public deleteRemainingMoves(key?: number[]|string): void {
-      const node = this.getNode(key)
-      if(node) node.children.forEach((child) => child.drop())
-    }
-
+  public deleteRemainingMoves(key?: number[] | string): void {
+    const node = this.getNode(key)
+    if (node) node.children.forEach((child) => child.drop())
+  }
 }

@@ -85,7 +85,9 @@ describe('gameTree', () => {
     chess.undo()
     chess.move('e4')
     expect(chess.tree.children.length).toBe(1)
-    expect(chess.fen()).toBe('rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1')
+    expect(chess.fen()).toBe(
+      'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1',
+    )
   })
 })
 

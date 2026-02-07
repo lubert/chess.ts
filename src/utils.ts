@@ -1,6 +1,14 @@
 import { TreeNode } from 'treenode.ts'
 import { BITS, BLACK, WHITE } from './constants'
-import { Color, FlagKey, GameState, HexState, Piece, PieceSymbol, Square } from './interfaces/types'
+import {
+  Color,
+  FlagKey,
+  GameState,
+  HexState,
+  Piece,
+  PieceSymbol,
+  Square,
+} from './interfaces/types'
 
 /**
  * Extracts the zero-based rank of an 0x88 square.
@@ -298,7 +306,12 @@ export function splitStr(str: string, char: string): string[] {
  * @public
  */
 export const canPromote = (node: TreeNode<HexState | GameState>): boolean => {
-  return node.parent !== null && node.parent.hasChildren && node.parent.children.length > 1 && node.index > 0;
+  return (
+    node.parent !== null &&
+    node.parent.hasChildren &&
+    node.parent.children.length > 1 &&
+    node.index > 0
+  )
 }
 
 /**
@@ -306,6 +319,10 @@ export const canPromote = (node: TreeNode<HexState | GameState>): boolean => {
  * @public
  */
 export const canDemote = (node: TreeNode<HexState | GameState>): boolean => {
-  return node.parent !== null && node.parent.hasChildren && node.parent.children.length > 1 && node.index < node.parent.children.length - 1;
+  return (
+    node.parent !== null &&
+    node.parent.hasChildren &&
+    node.parent.children.length > 1 &&
+    node.index < node.parent.children.length - 1
+  )
 }
-

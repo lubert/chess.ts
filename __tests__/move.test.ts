@@ -252,8 +252,7 @@ describe('pin-aware move generation', () => {
       const moves = generateMoves(state)
       // b5xc6 en passant should NOT be in the move list
       const epMoves = moves.filter(
-        (m) =>
-          algebraic(m.from) === 'b5' && algebraic(m.to) === 'c6',
+        (m) => algebraic(m.from) === 'b5' && algebraic(m.to) === 'c6',
       )
       expect(epMoves.length).toBe(0)
     })
@@ -268,8 +267,7 @@ describe('pin-aware move generation', () => {
       if (!state) throw new Error('state is undefined')
       const moves = generateMoves(state)
       const epMoves = moves.filter(
-        (m) =>
-          algebraic(m.from) === 'e4' && algebraic(m.to) === 'd3',
+        (m) => algebraic(m.from) === 'e4' && algebraic(m.to) === 'd3',
       )
       expect(epMoves.length).toBe(1)
     })
