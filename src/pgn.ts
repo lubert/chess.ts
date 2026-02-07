@@ -284,7 +284,9 @@ export function walkPgn(pgn: string, options: WalkPgnOptions): HeaderMap {
       }
       if (commentTokens.length) {
         const commentText = commentTokens.join(' ')
-        if (pendingMoveInfo) {
+        if (inVariationStart || atRootNoMoves) {
+          pendingStartingComment = commentText
+        } else if (pendingMoveInfo) {
           pendingMoveInfo.comment = commentText
         }
       }
