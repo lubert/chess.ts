@@ -231,10 +231,10 @@ export const PIECE_TYPE_NUM: Record<PieceSymbol, number> = {
   k: PT_KING,
 }
 
-// Maps numeric piece type back to PieceSymbol
+// Maps numeric piece type back to PieceSymbol (index 0 is intentionally undefined)
 // prettier-ignore
-export const NUM_PIECE_TYPE: PieceSymbol[] = [
-  'p', // 0 unused placeholder
+export const NUM_PIECE_TYPE: (PieceSymbol | undefined)[] = [
+  undefined, // 0 = empty square, should never be looked up
   'p', // 1
   'n', // 2
   'b', // 3

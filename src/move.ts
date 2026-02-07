@@ -75,7 +75,7 @@ export function encodePiece(type: PieceSymbol, color: Color): number {
 /** Decode an encoded byte to a Piece object */
 export function decodePiece(encoded: number): Piece {
   return {
-    type: NUM_PIECE_TYPE[encoded & 7],
+    type: NUM_PIECE_TYPE[encoded & 7]!,
     color: encoded & 8 ? BLACK : WHITE,
   }
 }
@@ -155,7 +155,7 @@ export function getFen(state: BoardState, strict = false): string {
         fen += empty
         empty = 0
       }
-      const piece_type = NUM_PIECE_TYPE[encoded & 7]
+      const piece_type = NUM_PIECE_TYPE[encoded & 7]!
       fen += encoded & 8 ? piece_type.toLowerCase() : piece_type.toUpperCase()
     }
 
@@ -370,7 +370,7 @@ export function removePiece(
   if (!encoded) return null
 
   const state = cloneBoardState(prevState)
-  const type = NUM_PIECE_TYPE[encoded & 7]
+  const type = NUM_PIECE_TYPE[encoded & 7]!
   const color: Color = encoded & 8 ? BLACK : WHITE
   if (type === KING) {
     state.kings[color] = EMPTY
@@ -671,7 +671,7 @@ export function generateMoves(
       if (!encoded || decodePieceColor(encoded) !== usBit) continue
 
       const pt = decodePieceType(encoded)
-      const symbol = NUM_PIECE_TYPE[pt]
+      const symbol = NUM_PIECE_TYPE[pt]!
       if (forPiece && forPiece !== symbol) continue
 
       // King moves handled separately below
@@ -713,7 +713,7 @@ export function generateMoves(
           const p = state.board[toSq]
           if (p && decodePieceColor(p) === themBit) {
             if (isLegalDest(toSq, pinDir, fromSq)) {
-              addMove(PAWN, fromSq, toSq, BITS.CAPTURE, NUM_PIECE_TYPE[p & 7])
+              addMove(PAWN, fromSq, toSq, BITS.CAPTURE, NUM_PIECE_TYPE[p & 7]!)
             }
           } else if (toSq === state.ep_square) {
             // En passant — special case: pin detection alone can miss
@@ -779,7 +779,7 @@ export function generateMoves(
                     fromSq,
                     toSq,
                     BITS.CAPTURE,
-                    NUM_PIECE_TYPE[p & 7],
+                    NUM_PIECE_TYPE[p & 7]!,
                   )
                 }
               }
@@ -809,7 +809,7 @@ export function generateMoves(
 
         if (posInfo ? !isAttacked(state, toSq, them, kingSq) : true) {
           if (p) {
-            addMove(KING, kingSq, toSq, BITS.CAPTURE, NUM_PIECE_TYPE[p & 7])
+            addMove(KING, kingSq, toSq, BITS.CAPTURE, NUM_PIECE_TYPE[p & 7]!)
           } else {
             addMove(KING, kingSq, toSq, BITS.NORMAL)
           }
@@ -1266,7 +1266,7 @@ export function isThreatening(
 
   const byType = decodePieceType(byEncoded)
   const byColor: Color = byEncoded & 8 ? BLACK : WHITE
-  const bySymbol = NUM_PIECE_TYPE[byType]
+  const bySymbol = NUM_PIECE_TYPE[byType]!
   switch (byType) {
     case PT_PAWN:
       return PAWN_ATTACK_OFFSETS[byColor]
@@ -1422,7 +1422,7 @@ export function insufficientMaterial(state: Readonly<BoardState>): boolean {
 
     const encoded = state.board[i]
     if (encoded) {
-      const pt = NUM_PIECE_TYPE[encoded & 7]
+      const pt = NUM_PIECE_TYPE[encoded & 7]!
       pieces[pt] = pt in pieces ? pieces[pt] + 1 : 1
       if ((encoded & 7) === PT_BISHOP) {
         bishops.push(sq_color)
@@ -1665,7 +1665,7 @@ export function buildMove(
     from: from,
     to: to,
     flags: flags,
-    piece: NUM_PIECE_TYPE[encoded & 7],
+    piece: NUM_PIECE_TYPE[encoded & 7]!,
   }
 
   if (promotion && isPieceSymbol(promotion)) {
@@ -1675,7 +1675,7 @@ export function buildMove(
 
   const toEncoded = state.board[to]
   if (toEncoded) {
-    move.captured = NUM_PIECE_TYPE[toEncoded & 7]
+    move.captured = NUM_PIECE_TYPE[toEncoded & 7]!
   } else if (flags & BITS.EP_CAPTURE) {
     move.captured = PAWN
   }
