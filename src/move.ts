@@ -1343,19 +1343,6 @@ export function isAttacked(
     }
   }
 
-  // One square
-  for (let i = 0; i < DIRECTIONS.length; i++) {
-    const offset = DIRECTIONS[i]
-    const p = state.board[square + offset]
-    if (p && decodePieceColor(p) === colorBit) {
-      const pt = decodePieceType(p)
-      if (i < 4 && (pt === PT_ROOK || pt === PT_QUEEN || pt === PT_KING))
-        return true
-      if (i >= 4 && (pt === PT_BISHOP || pt === PT_QUEEN || pt === PT_KING))
-        return true
-    }
-  }
-
   // Knight
   for (let i = 0; i < PIECE_OFFSETS[KNIGHT].length; i++) {
     const offset = PIECE_OFFSETS[KNIGHT][i]
@@ -1369,25 +1356,29 @@ export function isAttacked(
     }
   }
 
-  // Multi square
-  for (let i = 0; i < DIRECTIONS.length; i++) {
+  // Sliding + one-square (king) in a single pass per direction
+  for (let i = 0; i < 8; i++) {
     const offset = DIRECTIONS[i]
     let sq = square + offset
+    let dist = 0
     while ((sq & 0x88) === 0) {
       if (sq === skipSq) {
         sq += offset
+        dist++
         continue
       }
       const p = state.board[sq]
       if (p) {
         if (decodePieceColor(p) === colorBit) {
           const pt = decodePieceType(p)
+          if (dist === 0 && pt === PT_KING) return true
           if (i < 4 && (pt === PT_ROOK || pt === PT_QUEEN)) return true
           if (i >= 4 && (pt === PT_BISHOP || pt === PT_QUEEN)) return true
         }
         break
       }
       sq += offset
+      dist++
     }
   }
 
