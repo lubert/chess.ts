@@ -59,34 +59,45 @@ for (let i = 0; i < 64; i++) {
   BIT_SHIFT[i] = BigInt(1) << BigInt(i)
 }
 
-const PIECE_SYM: PieceSymbol[] = [
-  'p',
-  'p',
-  'n',
-  'b',
-  'r',
-  'q',
-  'k', // index 0 unused but typed for safety
-] as unknown as PieceSymbol[]
-// Fix index 0 — keep array dense; callers never hit 0 because encoded is nonzero
-PIECE_SYM[0] = 'p' // placeholder, never actually accessed
+// Precomputed: 64 valid 0x88 square indices
+const VALID_SQ: number[] = []
+for (let i = 0; i < 128; i++) {
+  if (!(i & 0x88)) VALID_SQ.push(i)
+}
+
+// Precomputed: 0x88 square index → BigInt bit mask
+const SQ_BIT: bigint[] = new Array(128)
+for (let i = 0; i < 128; i++) {
+  if (i & 0x88) {
+    SQ_BIT[i] = 0n
+    continue
+  }
+  SQ_BIT[i] = BIT_SHIFT[(i >> 4) * 8 + (i & 7)]
+}
+
+// Precomputed: encoded byte → flat bitboard index (0-11)
+// white pieces: p=0, n=1, b=2, r=3, q=4, k=5
+// black pieces: p=6, n=7, b=8, r=9, q=10, k=11
+const ENC_TO_BB: number[] = new Array(16)
+for (let e = 0; e < 16; e++) {
+  const pt = e & 7
+  const color = (e >> 3) & 1
+  ENC_TO_BB[e] = pt ? color * 6 + (pt - 1) : 0
+}
 
 export function toBitBoard(board: Board): BitBoard {
-  const bitboard: BitBoard = {
-    w: { p: 0n, n: 0n, b: 0n, r: 0n, q: 0n, k: 0n },
-    b: { p: 0n, n: 0n, b: 0n, r: 0n, q: 0n, k: 0n },
-  }
-  for (let i = 0; i < 128; i++) {
-    if (i & 0x88) continue
-    const encoded = board[i]
+  const bb: bigint[] = [0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n]
+  for (let si = 0; si < 64; si++) {
+    const sq = VALID_SQ[si]
+    const encoded = board[sq]
     if (encoded) {
-      const bit = (i >> 4) * 8 + (i & 7)
-      const color = encoded & 8 ? 'b' : 'w'
-      const type = PIECE_SYM[encoded & 7]
-      bitboard[color][type] |= BIT_SHIFT[bit]
+      bb[ENC_TO_BB[encoded]] |= SQ_BIT[sq]
     }
   }
-  return bitboard
+  return {
+    w: { p: bb[0], n: bb[1], b: bb[2], r: bb[3], q: bb[4], k: bb[5] },
+    b: { p: bb[6], n: bb[7], b: bb[8], r: bb[9], q: bb[10], k: bb[11] },
+  }
 }
 
 export function toCastlingBits(castling: ColorState): number {
