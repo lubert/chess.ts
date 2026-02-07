@@ -142,7 +142,7 @@ export function getDisambiguator(
   return ''
 }
 
-export function getFen(state: Readonly<BoardState>, strict = false): string {
+export function getFen(state: BoardState, strict = false): string {
   let empty = 0
   let fen = ''
 
@@ -213,8 +213,7 @@ export function getFen(state: Readonly<BoardState>, strict = false): string {
           decodePieceType(sq_encoded) === PT_PAWN
         ) {
           // if the pawn makes an ep capture, does it leave it's king in check?
-          const mutableState = state as BoardState
-          const epUndo = makeMove(mutableState, {
+          const epUndo = makeMove(state, {
             color,
             from: square,
             to: state.ep_square,
@@ -224,8 +223,8 @@ export function getFen(state: Readonly<BoardState>, strict = false): string {
           })
 
           // if ep is legal, break and set the ep square in the FEN output
-          const epLegal = !isKingAttacked(mutableState, color)
-          unmakeMove(mutableState, epUndo)
+          const epLegal = !isKingAttacked(state, color)
+          unmakeMove(state, epUndo)
           if (epLegal) {
             epflags = algebraic(state.ep_square) || '-'
             break
@@ -548,7 +547,7 @@ function computeCheckMask(
  * @public
  */
 export function generateMoves(
-  state: Readonly<BoardState>,
+  state: BoardState,
   options: {
     legal?: boolean
     piece?: PieceSymbol
@@ -745,7 +744,7 @@ export function generateMoves(
                 captured: PAWN,
                 flags: BITS.EP_CAPTURE,
               }
-              if (isLegal(state as BoardState, epMove)) {
+              if (isLegal(state, epMove)) {
                 addMove(PAWN, fromSq, state.ep_square, BITS.EP_CAPTURE, PAWN)
               }
             }
@@ -867,7 +866,7 @@ export function generateMoves(
  * @public
  */
 export function moveToSan(
-  state: Readonly<BoardState>,
+  state: BoardState,
   move: HexMove,
   moves: HexMove[] = generateMoves(state, { piece: move.piece }),
   options: { addPromotion?: boolean } = {},
@@ -904,10 +903,9 @@ export function moveToSan(
     }
   }
 
-  const mutableState = state as BoardState
-  const undo = makeMove(mutableState, move)
-  if (inCheck(mutableState)) {
-    if (inCheckmate(mutableState)) {
+  const undo = makeMove(state, move)
+  if (inCheck(state)) {
+    if (inCheckmate(state)) {
       move.flags |= BITS.CHECKMATE
       output += '#'
     } else {
@@ -915,7 +913,7 @@ export function moveToSan(
       output += '+'
     }
   }
-  unmakeMove(mutableState, undo)
+  unmakeMove(state, undo)
 
   return output
 }
@@ -971,7 +969,7 @@ function strippedSan(move: string) {
 }
 
 export function sanToMove(
-  state: Readonly<BoardState>,
+  state: BoardState,
   move: string,
   options: { strict?: boolean; matchPromotion?: boolean } = {},
 ): HexMove | null {
@@ -1035,10 +1033,9 @@ export function sanToMove(
 
     // Validate check indicator if present — reject if PGN says check but move doesn't give check
     if (candidates.length === 1 && parsed.check) {
-      const mutableState = state as BoardState
-      const checkUndo = makeMove(mutableState, candidates[0])
-      const givesCheck = inCheck(mutableState)
-      unmakeMove(mutableState, checkUndo)
+      const checkUndo = makeMove(state, candidates[0])
+      const givesCheck = inCheck(state)
+      unmakeMove(state, checkUndo)
       if (!givesCheck) candidates = []
     }
 
