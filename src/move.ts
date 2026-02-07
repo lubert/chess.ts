@@ -1013,31 +1013,31 @@ export function sanToMove(
   // Skip for castling moves — extractMove doesn't parse them usefully.
   if (moves.length > 0 && cleanMove !== 'O-O' && cleanMove !== 'O-O-O') {
     const parsed = extractMove(move)
-    let candidates = moves
+    const toIdx = parsed.to ? SQUARES[parsed.to] : undefined
+    let candidates: HexMove[] = []
 
-    // Filter by promotion if specified
-    if (matchPromotion && parsed.promotion) {
-      candidates = candidates.filter((m) => m.promotion === parsed.promotion)
-    }
-
-    // Filter by target square
-    if (parsed.to) {
-      const toIdx = SQUARES[parsed.to]
-      candidates = candidates.filter((m) => m.to === toIdx)
-    }
-
-    // Filter by source square or disambiguator
-    if (parsed.from) {
-      candidates = candidates.filter((m) => algebraic(m.from) === parsed.from)
-    } else if (parsed.disambiguator) {
-      candidates = candidates.filter((m) => {
+    // Single-pass filter instead of chained .filter() calls
+    for (let i = 0, len = moves.length; i < len; i++) {
+      const m = moves[i]
+      if (
+        matchPromotion &&
+        parsed.promotion &&
+        m.promotion !== parsed.promotion
+      )
+        continue
+      if (toIdx !== undefined && m.to !== toIdx) continue
+      if (parsed.from) {
+        if (algebraic(m.from) !== parsed.from) continue
+      } else if (parsed.disambiguator) {
         const fromSq = algebraic(m.from)
-        return (
-          fromSq !== undefined &&
-          (fromSq[0] === parsed.disambiguator ||
-            fromSq[1] === parsed.disambiguator)
+        if (
+          fromSq === undefined ||
+          (fromSq[0] !== parsed.disambiguator &&
+            fromSq[1] !== parsed.disambiguator)
         )
-      })
+          continue
+      }
+      candidates.push(m)
     }
 
     // Validate check indicator if present — reject if PGN says check but move doesn't give check
