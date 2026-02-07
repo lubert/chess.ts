@@ -727,8 +727,8 @@ export function generateMoves(
               break
             }
 
-            // Break if knight or king
-            if (symbol === KNIGHT || symbol === KING) break
+            // Break if knight (king is handled separately)
+            if (symbol === KNIGHT) break
           }
         }
       }
@@ -799,7 +799,6 @@ export function generateMoves(
     }
   }
 
-  if (legal && !posInfo) return moves.filter((m) => isLegal(state, m))
   return moves
 }
 
