@@ -180,6 +180,21 @@ export type UndoInfo = {
   captured_encoded: number
 }
 
+/** @public */
+export type WalkPgnOptions = {
+  newline?: string
+  skipSan?: boolean
+  onMove: (
+    move: HexMove,
+    boardState: Readonly<BoardState>,
+    comment?: string,
+    startingComment?: string,
+    nags?: number[],
+  ) => boolean | void
+  onStartVariation?: () => void
+  onEndVariation?: () => void
+}
+
 export type ParsedMove = {
   san?: string
   to?: Square

@@ -1131,9 +1131,13 @@ function strippedSan(move: string) {
 export function sanToMove(
   state: BoardState,
   move: string,
-  options: { strict?: boolean; matchPromotion?: boolean } = {},
+  options: {
+    strict?: boolean
+    matchPromotion?: boolean
+    skipSan?: boolean
+  } = {},
 ): HexMove | null {
-  const { strict, matchPromotion = true } = options
+  const { strict, matchPromotion = true, skipSan } = options
 
   // Handle null moves (pass)
   if (NULL_MOVES.includes(move)) {
@@ -1200,7 +1204,7 @@ export function sanToMove(
     }
 
     if (candidates.length === 1) {
-      candidates[0].san = moveToSan(state, candidates[0], moves)
+      if (!skipSan) candidates[0].san = moveToSan(state, candidates[0], moves)
       return candidates[0]
     }
   }
