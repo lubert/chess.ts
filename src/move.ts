@@ -774,39 +774,43 @@ export function generateMoves(
       }
 
       // Castling — skip entirely if in check
+      // When posInfo is set, checkerCount === 0 is already guaranteed by the
+      // guard, so we can skip the redundant isAttacked(kingSq) call.
       if (!posInfo || posInfo.checkerCount === 0) {
-        // King-side castling
-        if (state.castling[state.turn] & BITS.KSIDE_CASTLE) {
-          const castlingFrom = kingSq
-          const castlingTo = castlingFrom + 2
+        const notInCheck = posInfo
+          ? true
+          : !isAttacked(state, kingSq)
 
-          if (
-            (toSquare === undefined || toSquare === castlingTo) &&
-            !state.board[castlingFrom + 1] &&
-            !state.board[castlingTo] &&
-            !isAttacked(state, kingSq) &&
-            !isAttacked(state, castlingFrom + 1) &&
-            !isAttacked(state, castlingTo)
-          ) {
-            addMove(KING, kingSq, castlingTo, BITS.KSIDE_CASTLE)
+        if (notInCheck) {
+          // King-side castling
+          if (state.castling[state.turn] & BITS.KSIDE_CASTLE) {
+            const castlingTo = kingSq + 2
+
+            if (
+              (toSquare === undefined || toSquare === castlingTo) &&
+              !state.board[kingSq + 1] &&
+              !state.board[castlingTo] &&
+              !isAttacked(state, kingSq + 1) &&
+              !isAttacked(state, castlingTo)
+            ) {
+              addMove(KING, kingSq, castlingTo, BITS.KSIDE_CASTLE)
+            }
           }
-        }
 
-        // Queen-side castling
-        if (state.castling[state.turn] & BITS.QSIDE_CASTLE) {
-          const castlingFrom = kingSq
-          const castlingTo = castlingFrom - 2
+          // Queen-side castling
+          if (state.castling[state.turn] & BITS.QSIDE_CASTLE) {
+            const castlingTo = kingSq - 2
 
-          if (
-            (toSquare === undefined || toSquare === castlingTo) &&
-            !state.board[castlingFrom - 1] &&
-            !state.board[castlingFrom - 2] &&
-            !state.board[castlingFrom - 3] &&
-            !isAttacked(state, kingSq) &&
-            !isAttacked(state, castlingFrom - 1) &&
-            !isAttacked(state, castlingTo)
-          ) {
-            addMove(KING, kingSq, castlingTo, BITS.QSIDE_CASTLE)
+            if (
+              (toSquare === undefined || toSquare === castlingTo) &&
+              !state.board[kingSq - 1] &&
+              !state.board[kingSq - 2] &&
+              !state.board[kingSq - 3] &&
+              !isAttacked(state, kingSq - 1) &&
+              !isAttacked(state, castlingTo)
+            ) {
+              addMove(KING, kingSq, castlingTo, BITS.QSIDE_CASTLE)
+            }
           }
         }
       }
