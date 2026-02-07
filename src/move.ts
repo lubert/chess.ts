@@ -214,7 +214,7 @@ export function getFen(state: Readonly<BoardState>, strict = false): string {
         ) {
           // if the pawn makes an ep capture, does it leave it's king in check?
           const mutableState = state as BoardState
-          const epUndo = makeMoveInPlace(mutableState, {
+          const epUndo = makeMove(mutableState, {
             color,
             from: square,
             to: state.ep_square,
@@ -225,7 +225,7 @@ export function getFen(state: Readonly<BoardState>, strict = false): string {
 
           // if ep is legal, break and set the ep square in the FEN output
           const epLegal = !isKingAttacked(mutableState, color)
-          unmakeMoveInPlace(mutableState, epUndo)
+          unmakeMove(mutableState, epUndo)
           if (epLegal) {
             epflags = algebraic(state.ep_square) || '-'
             break
@@ -382,9 +382,9 @@ export function removePiece(
 
 export function isLegal(state: BoardState, move: HexMove): boolean {
   const us = state.turn
-  const undo = makeMoveInPlace(state, move)
+  const undo = makeMove(state, move)
   const legal = !isKingAttacked(state, us)
-  unmakeMoveInPlace(state, undo)
+  unmakeMove(state, undo)
   return legal
 }
 
@@ -905,7 +905,7 @@ export function moveToSan(
   }
 
   const mutableState = state as BoardState
-  const undo = makeMoveInPlace(mutableState, move)
+  const undo = makeMove(mutableState, move)
   if (inCheck(mutableState)) {
     if (inCheckmate(mutableState)) {
       move.flags |= BITS.CHECKMATE
@@ -915,7 +915,7 @@ export function moveToSan(
       output += '+'
     }
   }
-  unmakeMoveInPlace(mutableState, undo)
+  unmakeMove(mutableState, undo)
 
   return output
 }
@@ -1036,9 +1036,9 @@ export function sanToMove(
     // Validate check indicator if present — reject if PGN says check but move doesn't give check
     if (candidates.length === 1 && parsed.check) {
       const mutableState = state as BoardState
-      const checkUndo = makeMoveInPlace(mutableState, candidates[0])
+      const checkUndo = makeMove(mutableState, candidates[0])
       const givesCheck = inCheck(mutableState)
-      unmakeMoveInPlace(mutableState, checkUndo)
+      unmakeMove(mutableState, checkUndo)
       if (!givesCheck) candidates = []
     }
 
@@ -1458,120 +1458,7 @@ export function insufficientMaterial(state: Readonly<BoardState>): boolean {
   return false
 }
 
-export function makeMove(
-  prevState: Readonly<BoardState>,
-  move: Readonly<HexMove>,
-): BoardState {
-  const state = cloneBoardState(prevState)
-  const us = state.turn
-  const them = swapColor(us)
-
-  // Handle null moves (pass)
-  if (move.flags & BITS.NULL_MOVE) {
-    state.ep_square = -1
-    state.half_moves++
-    state.turn = them
-    if (state.turn === WHITE) {
-      state.move_number++
-    }
-    return state
-  }
-
-  state.board[move.to] = state.board[move.from]
-  state.board[move.from] = 0
-
-  // if ep capture, remove the captured pawn
-  if (move.flags & BITS.EP_CAPTURE) {
-    if (state.turn === BLACK) {
-      state.board[move.to - 16] = 0
-    } else {
-      state.board[move.to + 16] = 0
-    }
-  }
-
-  // if pawn promotion, replace with new piece
-  if (move.promotion) {
-    state.board[move.to] = encodePiece(move.promotion, us)
-  }
-
-  // if we moved the king
-  if (move.piece === KING) {
-    state.kings[us] = move.to
-
-    // if we castled, move the rook next to the king
-    if (move.flags & BITS.KSIDE_CASTLE) {
-      const castling_to = move.to - 1
-      const castling_from = move.to + 1
-      state.board[castling_to] = state.board[castling_from]
-      state.board[castling_from] = 0
-    } else if (move.flags & BITS.QSIDE_CASTLE) {
-      const castling_to = move.to + 1
-      const castling_from = move.to - 2
-      state.board[castling_to] = state.board[castling_from]
-      state.board[castling_from] = 0
-    }
-
-    // turn off castling
-    state.castling[us] = 0
-  }
-
-  // turn off castling if we move a rook
-  if (state.castling[us]) {
-    for (let i = 0, len = ROOKS[us].length; i < len; i++) {
-      if (
-        move.from === ROOKS[us][i].square &&
-        state.castling[us] & ROOKS[us][i].flag
-      ) {
-        state.castling[us] ^= ROOKS[us][i].flag
-        break
-      }
-    }
-  }
-
-  // turn off castling if we capture a rook
-  if (state.castling[them]) {
-    for (let i = 0, len = ROOKS[them].length; i < len; i++) {
-      if (
-        move.to === ROOKS[them][i].square &&
-        state.castling[them] & ROOKS[them][i].flag
-      ) {
-        state.castling[them] ^= ROOKS[them][i].flag
-        break
-      }
-    }
-  }
-
-  // if big pawn move, update the en passant square
-  if (move.flags & BITS.BIG_PAWN) {
-    if (state.turn === BLACK) {
-      state.ep_square = move.to - 16
-    } else {
-      state.ep_square = move.to + 16
-    }
-  } else {
-    state.ep_square = EMPTY
-  }
-
-  // reset the 50 move counter if a pawn is moved or a piece is captured
-  if (move.piece === PAWN) {
-    state.half_moves = 0
-  } else if (move.flags & (BITS.CAPTURE | BITS.EP_CAPTURE)) {
-    state.half_moves = 0
-  } else {
-    state.half_moves++
-  }
-
-  if (state.turn === BLACK) {
-    state.move_number++
-  }
-  state.turn = swapColor(state.turn)
-  return state
-}
-
-export function makeMoveInPlace(
-  state: BoardState,
-  move: Readonly<HexMove>,
-): UndoInfo {
+export function makeMove(state: BoardState, move: Readonly<HexMove>): UndoInfo {
   const undo: UndoInfo = {
     move,
     castling_w: state.castling.w,
@@ -1687,7 +1574,7 @@ export function makeMoveInPlace(
   return undo
 }
 
-export function unmakeMoveInPlace(state: BoardState, undo: UndoInfo): void {
+export function unmakeMove(state: BoardState, undo: UndoInfo): void {
   const move = undo.move
   const us = move.color
   const them = swapColor(us)
@@ -1752,7 +1639,7 @@ export function perft(state: BoardState, depth: number): number {
   const color = state.turn
 
   for (let i = 0, len = moves.length; i < len; i++) {
-    const undo = makeMoveInPlace(state, moves[i])
+    const undo = makeMove(state, moves[i])
     if (!isKingAttacked(state, color)) {
       if (depth - 1 > 0) {
         nodes += perft(state, depth - 1)
@@ -1760,7 +1647,7 @@ export function perft(state: BoardState, depth: number): number {
         nodes++
       }
     }
-    unmakeMoveInPlace(state, undo)
+    unmakeMove(state, undo)
   }
 
   return nodes

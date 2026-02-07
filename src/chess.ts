@@ -1,7 +1,6 @@
 import { TreeNode } from 'treenode.ts'
 import {
   makeMove,
-  makeMoveInPlace,
   putPiece,
   loadFen,
   getPiece,
@@ -891,7 +890,7 @@ export class Chess {
         return null
       }
       validMoves.push(hexToMove(boardState, validMove))
-      makeMoveInPlace(boardState, validMove)
+      makeMove(boardState, validMove)
     }
     return validMoves
   }
@@ -1394,7 +1393,8 @@ export class Chess {
     if (!move.san) {
       move.san = moveToSan(this.boardState, move)
     }
-    const boardState = makeMove(this.boardState, move)
+    const boardState = cloneBoardState(this.boardState)
+    makeMove(boardState, move)
     const parent = this._currentNode
     const model = {
       boardState,

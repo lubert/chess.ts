@@ -9,6 +9,7 @@ import {
   CASTLING_MOVES,
 } from './constants'
 import { loadFen, sanToMove, makeMove, moveToSan } from './move'
+import { cloneBoardState } from './state'
 import {
   REGEXP_HEADER_KEY,
   REGEXP_HEADER_VAL,
@@ -309,7 +310,8 @@ export function loadPgn(
         // Null move not allowed (e.g., in check) - skip it
         continue
       }
-      const nextState = makeMove(boardState, move)
+      const nextState = cloneBoardState(boardState)
+      makeMove(nextState, move)
       currentNode = currentNode.addModel({
         boardState: nextState,
         move,
@@ -340,7 +342,8 @@ export function loadPgn(
       if (!move) {
         throw new Error(`Invalid move token: "${token}"`)
       }
-      const nextState = makeMove(boardState, move)
+      const nextState = cloneBoardState(boardState)
+      makeMove(nextState, move)
       currentNode = currentNode.addModel({
         boardState: nextState,
         nags: extractNags(token),
