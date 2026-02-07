@@ -1,6 +1,7 @@
-import { loadPgn } from '../src/pgn'
+import { loadPgn, walkPgn } from '../src/pgn'
 import { Chess } from '../src/chess'
 import { moveToSan, getFen } from '../src/move'
+import { HexMove, BoardState } from '../src/interfaces/types'
 
 describe('pgn', () => {
   describe('loadPgn', () => {
@@ -619,6 +620,274 @@ describe('pgn', () => {
 
       expect(chess.getComment()).toBeUndefined()
       expect(chess.getStartingComment()).toBeUndefined()
+    })
+  })
+
+  describe('walkPgn', () => {
+    it('walks mainline moves with correct SANs', () => {
+      const pgn = '1. e4 e5 2. Nf3 Nc6'
+      const sans: string[] = []
+      walkPgn(pgn, {
+        onMove: (move) => {
+          sans.push(move.san!)
+        },
+      })
+      expect(sans).toEqual(['e4', 'e5', 'Nf3', 'Nc6'])
+    })
+
+    it('walks a full game and reaches correct final FEN', () => {
+      const expectedFen =
+        '4q2k/2r1r3/4PR1p/p1p5/P1Bp1Q1P/1P6/6P1/6K1 b - - 4 41'
+      const pgn = `[Event "Reykjavik WCh"]
+[Result "1-0"]
+
+1. c4 e6 2. Nf3 d5 3. d4 Nf6 4. Nc3 Be7 5. Bg5 O-O 6. e3 h6
+7. Bh4 b6 8. cxd5 Nxd5 9. Bxe7 Qxe7 10. Nxd5 exd5 11. Rc1 Be6
+12. Qa4 c5 13. Qa3 Rc8 14. Bb5 a6 15. dxc5 bxc5 16. O-O Ra7
+17. Be2 Nd7 18. Nd4 Qf8 19. Nxe6 fxe6 20. e4 d4 21. f4 Qe7
+22. e5 Rb8 23. Bc4 Kh8 24. Qh3 Nf8 25. b3 a5 26. f5 exf5
+27. Rxf5 Nh7 28. Rcf1 Qd8 29. Qg3 Re7 30. h4 Rbb7 31. e6 Rbc7
+32. Qe5 Qe8 33. a4 Qd8 34. R1f2 Qe8 35. R2f3 Qd8 36. Bd3 Qe8
+37. Qe4 Nf6 38. Rxf6 gxf6 39. Rxf6 Kg8 40. Bc4 Kh8 41. Qf4 1-0`
+
+      let lastState: BoardState | undefined
+      walkPgn(pgn, {
+        onMove: (_move, boardState) => {
+          lastState = boardState
+        },
+      })
+      expect(getFen(lastState!)).toEqual(expectedFen)
+    })
+
+    it('returns correct headers', () => {
+      const pgn = `[Event "Test"]
+[White "Alice"]
+[Black "Bob"]
+[Result "1-0"]
+
+1. e4 e5 1-0`
+
+      const header = walkPgn(pgn, { onMove: () => {} })
+      expect(header.Event).toBe('Test')
+      expect(header.White).toBe('Alice')
+      expect(header.Black).toBe('Bob')
+      expect(header.Result).toBe('1-0')
+    })
+
+    it('handles variations with onStartVariation/onEndVariation', () => {
+      const pgn = '1. e4 (1. d4) 1...e5'
+      const events: string[] = []
+      walkPgn(pgn, {
+        onMove: (move) => {
+          events.push(`move:${move.san}`)
+        },
+        onStartVariation: () => {
+          events.push('start')
+        },
+        onEndVariation: () => {
+          events.push('end')
+        },
+      })
+      expect(events).toEqual(['move:e4', 'start', 'move:d4', 'end', 'move:e5'])
+    })
+
+    it('handles nested variations', () => {
+      const pgn = '1. e4 (1. d4 d5 (1...Nf6)) 1...e5'
+      const events: string[] = []
+      walkPgn(pgn, {
+        onMove: (move) => {
+          events.push(`move:${move.san}`)
+        },
+        onStartVariation: () => {
+          events.push('start')
+        },
+        onEndVariation: () => {
+          events.push('end')
+        },
+      })
+      expect(events).toEqual([
+        'move:e4',
+        'start',
+        'move:d4',
+        'move:d5',
+        'start',
+        'move:Nf6',
+        'end',
+        'end',
+        'move:e5',
+      ])
+    })
+
+    it('board state is correct when re-entering mainline after variation', () => {
+      const pgn = '1. e4 (1. d4) 1...e5 2. Nf3'
+      const fens: string[] = []
+      walkPgn(pgn, {
+        onMove: (_move, boardState) => {
+          fens.push(getFen(boardState))
+        },
+      })
+      // After e4
+      expect(fens[0]).toBe(
+        'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1',
+      )
+      // After d4 (variation)
+      expect(fens[1]).toBe(
+        'rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b KQkq d3 0 1',
+      )
+      // After e5 (back to mainline after e4)
+      expect(fens[2]).toBe(
+        'rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2',
+      )
+      // After Nf3
+      expect(fens[3]).toBe(
+        'rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2',
+      )
+    })
+
+    it('passes comments to the correct onMove call', () => {
+      const pgn = '1. e4 {best by test} e5 {solid}'
+      const comments: (string | undefined)[] = []
+      walkPgn(pgn, {
+        onMove: (_move, _boardState, comment) => {
+          comments.push(comment)
+        },
+      })
+      expect(comments).toEqual(['best by test', 'solid'])
+    })
+
+    it('passes starting comments', () => {
+      const pgn = '{Opening comment} 1. e4 e5'
+      const startingComments: (string | undefined)[] = []
+      walkPgn(pgn, {
+        onMove: (_move, _boardState, _comment, startingComment) => {
+          startingComments.push(startingComment)
+        },
+      })
+      expect(startingComments).toEqual(['Opening comment', undefined])
+    })
+
+    it('passes variation starting comments', () => {
+      const pgn = '1. e4 ({Alternative} 1. d4) 1...e5'
+      const results: { san: string; startingComment?: string }[] = []
+      walkPgn(pgn, {
+        onMove: (move, _boardState, _comment, startingComment) => {
+          results.push({ san: move.san!, startingComment })
+        },
+      })
+      expect(results).toEqual([
+        { san: 'e4', startingComment: undefined },
+        { san: 'd4', startingComment: 'Alternative' },
+        { san: 'e5', startingComment: undefined },
+      ])
+    })
+
+    it('passes NAGs to onMove', () => {
+      const pgn = '1. e4 $1 e5 $2'
+      const nags: (number[] | undefined)[] = []
+      walkPgn(pgn, {
+        onMove: (_move, _boardState, _comment, _startingComment, moveNags) => {
+          nags.push(moveNags)
+        },
+      })
+      expect(nags).toEqual([[1], [2]])
+    })
+
+    it('passes inline NAGs (! ? !! ?? !? ?!) to onMove', () => {
+      const pgn = '1. e4! e5?'
+      const nags: (number[] | undefined)[] = []
+      walkPgn(pgn, {
+        onMove: (_move, _boardState, _comment, _startingComment, moveNags) => {
+          nags.push(moveNags)
+        },
+      })
+      expect(nags[0]).toContain(1) // GOOD_MOVE
+      expect(nags[1]).toContain(2) // MISTAKE
+    })
+
+    it('skipSan: true omits san on the fast path', () => {
+      const pgn = '1. e4 e5'
+      const moves: HexMove[] = []
+      walkPgn(pgn, {
+        skipSan: true,
+        onMove: (move) => {
+          moves.push({ ...move })
+        },
+      })
+      expect(moves[0].san).toBeUndefined()
+      expect(moves[1].san).toBeUndefined()
+    })
+
+    it('onMove returning false aborts parsing early', () => {
+      const pgn = '1. e4 e5 2. Nf3 Nc6'
+      const sans: string[] = []
+      walkPgn(pgn, {
+        onMove: (move) => {
+          sans.push(move.san!)
+          if (sans.length === 2) return false
+        },
+      })
+      expect(sans).toEqual(['e4', 'e5'])
+    })
+
+    it('handles sibling variations', () => {
+      const pgn = '1. e4 (1. d4) (1. c4) 1...e5'
+      const events: string[] = []
+      walkPgn(pgn, {
+        onMove: (move) => {
+          events.push(`move:${move.san}`)
+        },
+        onStartVariation: () => {
+          events.push('start')
+        },
+        onEndVariation: () => {
+          events.push('end')
+        },
+      })
+      expect(events).toEqual([
+        'move:e4',
+        'start',
+        'move:d4',
+        'end',
+        'start',
+        'move:c4',
+        'end',
+        'move:e5',
+      ])
+    })
+
+    it('handles FEN header for non-standard starting position', () => {
+      const pgn = `[FEN "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1"]
+
+1...e5 2. Nf3`
+      const sans: string[] = []
+      const header = walkPgn(pgn, {
+        onMove: (move) => {
+          sans.push(move.san!)
+        },
+      })
+      expect(sans).toEqual(['e5', 'Nf3'])
+      expect(header.FEN).toBe(
+        'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1',
+      )
+    })
+
+    it('depth tracking via onStartVariation/onEndVariation', () => {
+      const pgn = '1. e4 (1. d4 d5 (1...Nf6)) 1...e5'
+      let depth = 0
+      const depths: number[] = []
+      walkPgn(pgn, {
+        onMove: () => {
+          depths.push(depth)
+        },
+        onStartVariation: () => {
+          depth++
+        },
+        onEndVariation: () => {
+          depth--
+        },
+      })
+      // e4=0, d4=1, d5=1, Nf6=2, e5=0
+      expect(depths).toEqual([0, 1, 1, 2, 0])
     })
   })
 })

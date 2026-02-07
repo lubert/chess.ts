@@ -1,5 +1,11 @@
 import { TreeNode } from 'treenode.ts'
-import { HexState, HeaderMap } from './interfaces/types'
+import {
+  HexMove,
+  HexState,
+  HeaderMap,
+  UndoInfo,
+  WalkPgnOptions,
+} from './interfaces/types'
 import { Nag, extractNags } from './interfaces/nag'
 import {
   WHITE,
@@ -8,7 +14,7 @@ import {
   NULL_MOVES,
   CASTLING_MOVES,
 } from './constants'
-import { loadFen, sanToMove, makeMove, moveToSan } from './move'
+import { loadFen, sanToMove, makeMove, unmakeMove, moveToSan } from './move'
 import { cloneBoardState } from './state'
 import {
   REGEXP_HEADER_KEY,
@@ -140,16 +146,29 @@ export function getPgn(
   return pgn.trim()
 }
 
+function extractFen(pgn: string, newline = '\r\n|\n|\r'): string | undefined {
+  const newlineRe = new RegExp(newline)
+  const lines = pgn.split(newlineRe)
+  for (const line of lines) {
+    if (!line || line.startsWith('%')) continue
+    if (!line.startsWith('[')) break
+    const key = line.replace(REGEXP_HEADER_KEY, '$1').trim()
+    if (key === 'FEN') {
+      return line.replace(REGEXP_HEADER_VAL, '$1').trim()
+    }
+  }
+  return undefined
+}
+
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-export function loadPgn(
-  pgn: string,
-  options: { newline?: string; width?: number } = {},
-): {
-  tree: TreeNode<HexState>
-  currentNode: TreeNode<HexState>
-  header: HeaderMap
-} {
-  const { newline = '\r\n|\n|\r' } = options
+export function walkPgn(pgn: string, options: WalkPgnOptions): HeaderMap {
+  const {
+    newline = '\r\n|\n|\r',
+    skipSan,
+    onMove,
+    onStartVariation,
+    onEndVariation,
+  } = options
 
   // Split on newlines and read line by line
   const newlineRe = new RegExp(newline)
@@ -168,50 +187,74 @@ export function loadPgn(
 
   const NULL_CHAR = '\0'
   const splitMove = (line: string) => {
-    // Add a newline as a hint for discerning nested commentary tokens
     moveTokens.push(...line.split(/\s+/), NULL_CHAR)
   }
 
-  // Process lines
-  let state: 'header' | 'moves' = 'header'
+  // Process lines into header + move tokens
+  let lineState: 'header' | 'moves' = 'header'
   for (let li = 0; li < lines.length; li++) {
     const line = lines[li]
-    if (state === 'header') {
-      // Skip empty lines and comments
+    if (lineState === 'header') {
       if (!line || line.startsWith('%')) continue
-      // Parse header
       if (line.startsWith('[')) {
         parseHeader(line)
         continue
       }
-      // Transition to move parsing
-      state = 'moves'
+      lineState = 'moves'
       splitMove(line)
-    } else if (state === 'moves') {
-      // End game parsing on empty line
+    } else if (lineState === 'moves') {
       if (!line) break
       splitMove(line)
     }
   }
 
-  // Set FEN if present, ignore SetUp for compatibility
+  // Set up board state
   const fen = header.FEN || DEFAULT_POSITION
   const boardState = loadFen(fen)
   if (!boardState) {
     throw new Error(`Invalid FEN: ${fen}`)
   }
 
-  // Build move tree
-  const tree = new TreeNode<HexState>({ boardState })
-  const parentNodes: TreeNode<HexState>[] = []
-  let currentNode = tree
-  // Track pending starting comment (comment before a move)
-  let pendingStartingComment: string | undefined
-  // Track if we just entered a variation (comment after '(' should be startingComment)
-  let inVariationStart = false
-  // Track if we're at root with no moves yet
-  let atRootNoMoves = true
+  // Undo stack for make/unmake
+  const undoStack: UndoInfo[] = []
+  // Variation stack: when entering a variation, we unmake the last mainline move
+  // and save the undo info so we can replay it when exiting the variation
+  const variationStack: Array<{ restoreDepth: number; replayUndo: UndoInfo }> =
+    []
 
+  // Deferred move callback — buffer the move until the next move/structure token
+  // so that post-move comments and NAGs are included
+  type PendingMove = {
+    move: HexMove
+    comment?: string
+    startingComment?: string
+    nags?: number[]
+  }
+  let pendingMoveInfo: PendingMove | undefined
+  let pendingStartingComment: string | undefined
+  let inVariationStart = false
+  let atRootNoMoves = true
+  let aborted = false
+
+  const flushPending = (): boolean => {
+    if (!pendingMoveInfo) return true
+    const { move, comment, startingComment, nags } = pendingMoveInfo
+    pendingMoveInfo = undefined
+    const result = onMove(move, boardState, comment, startingComment, nags)
+    if (result === false) {
+      aborted = true
+      return false
+    }
+    return true
+  }
+
+  const addPendingNag = (nag: number) => {
+    if (!pendingMoveInfo) return
+    if (!pendingMoveInfo.nags) pendingMoveInfo.nags = [nag]
+    else if (!pendingMoveInfo.nags.includes(nag)) pendingMoveInfo.nags.push(nag)
+  }
+
+  // Tokenizer state
   let mi = 0
   const pending: string[] = []
 
@@ -224,32 +267,33 @@ export function loadPgn(
     pending.push(t)
   }
   const pushBackMultiple = (ts: string[]) => {
-    // Push in reverse so first element comes out first via pop()
     for (let i = ts.length - 1; i >= 0; i--) pending.push(ts[i])
   }
 
   for (let token = nextToken(); token !== undefined; token = nextToken()) {
     if (!token) continue
+    if (aborted) break
 
     if (token.startsWith(';')) {
+      // Line comment — collect until NULL_CHAR (end of line)
       if (token.length > 1) pushBack(token.substring(1))
       const commentTokens: string[] = []
       for (token = nextToken(); token !== undefined; token = nextToken()) {
-        if (token === NULL_CHAR) {
-          if (commentTokens.length) {
-            currentNode.model.comment = commentTokens.join(' ')
-          }
-          break
-        } else {
-          commentTokens.push(token)
-        }
+        if (token === NULL_CHAR) break
+        commentTokens.push(token)
       }
       if (commentTokens.length) {
-        currentNode.model.comment = commentTokens.join(' ')
+        const commentText = commentTokens.join(' ')
+        if (inVariationStart || atRootNoMoves) {
+          pendingStartingComment = commentText
+        } else if (pendingMoveInfo) {
+          pendingMoveInfo.comment = commentText
+        }
       }
     } else if (token.includes(';')) {
       pushBackMultiple(splitStr(token, ';'))
     } else if (token.startsWith('{')) {
+      // Block comment
       if (token.length > 1) pushBack(token.substring(1))
       const commentTokens: string[] = []
       for (token = nextToken(); token !== undefined; token = nextToken()) {
@@ -259,12 +303,10 @@ export function loadPgn(
           }
           break
         } else if (token.includes('}')) {
-          // Handle case like "comment})" where } is followed by other chars
           const idx = token.indexOf('}')
           if (idx > 0) {
             commentTokens.push(token.substring(0, idx))
           }
-          // Push remaining chars back for processing (e.g., the ")")
           if (idx < token.length - 1) {
             pushBack(token.substring(idx + 1))
           }
@@ -275,95 +317,149 @@ export function loadPgn(
         commentTokens.push(token)
       }
       const commentText = commentTokens.join(' ')
-      // If we're in a variation start or at root with no moves, this is a starting comment
       if (inVariationStart || atRootNoMoves) {
         pendingStartingComment = commentText
-      } else {
-        currentNode.model.comment = commentText
+      } else if (pendingMoveInfo) {
+        pendingMoveInfo.comment = commentText
       }
     } else if (token.startsWith('(')) {
-      // Start variation - go to parent position to add alternative move
-      if (!currentNode.parent) throw new Error('Missing parent')
+      // Start variation
+      if (!flushPending()) break
+      if (!undoStack.length) throw new Error('Missing parent')
       if (token.length > 1) pushBack(token.substring(1))
-      parentNodes.push(currentNode)
-      currentNode = currentNode.parent
+
+      // Unmake the last move to get back to the parent position
+      const lastUndo = undoStack.pop()!
+      unmakeMove(boardState, lastUndo)
+      variationStack.push({
+        restoreDepth: undoStack.length,
+        replayUndo: lastUndo,
+      })
+      if (onStartVariation) onStartVariation()
       inVariationStart = true
     } else if (token.startsWith(')')) {
-      // End variation and return to original node
-      if (!parentNodes.length) throw new Error('Mismatched parentheses')
+      // End variation
+      if (!flushPending()) break
+      if (!variationStack.length) throw new Error('Mismatched parentheses')
       if (token.length > 1) pushBack(token.substring(1))
-      currentNode = parentNodes.pop()!
+
+      if (onEndVariation) onEndVariation()
+      const { restoreDepth, replayUndo } = variationStack.pop()!
+      // Unmake all moves back to restoreDepth
+      while (undoStack.length > restoreDepth) {
+        unmakeMove(boardState, undoStack.pop()!)
+      }
+      // Re-make the mainline move
+      const redo = makeMove(boardState, replayUndo.move)
+      undoStack.push(redo)
       inVariationStart = false
       pendingStartingComment = undefined
     } else if (token.includes(')')) {
       pushBackMultiple(splitStr(token, ')'))
     } else if (token.startsWith('$')) {
-      addNag(currentNode, parseInt(token.substring(1), 10))
+      addPendingNag(parseInt(token.substring(1), 10))
     } else if (token === '!') {
-      addNag(currentNode, Nag.GOOD_MOVE)
+      addPendingNag(Nag.GOOD_MOVE)
     } else if (token === '?') {
-      addNag(currentNode, Nag.MISTAKE)
+      addPendingNag(Nag.MISTAKE)
     } else if (token === '!!') {
-      addNag(currentNode, Nag.BRILLIANT_MOVE)
+      addPendingNag(Nag.BRILLIANT_MOVE)
     } else if (token === '??') {
-      addNag(currentNode, Nag.BLUNDER)
+      addPendingNag(Nag.BLUNDER)
     } else if (token === '!?') {
-      addNag(currentNode, Nag.SPECULATIVE_MOVE)
+      addPendingNag(Nag.SPECULATIVE_MOVE)
     } else if (token === '?!') {
-      addNag(currentNode, Nag.DUBIOUS_MOVE)
+      addPendingNag(Nag.DUBIOUS_MOVE)
     } else if (POSSIBLE_RESULTS.includes(token)) {
-      if (!header.Result && isMainline(currentNode)) {
+      if (!header.Result && variationStack.length === 0) {
         header.Result = token
       }
     } else if (NULL_MOVES.includes(token)) {
-      // Null moves (--) represent a "pass" - handled by sanToMove/makeMove
-      const boardState = currentNode.model.boardState
-      const move = sanToMove(boardState, '--')
-      if (!move) {
-        // Null move not allowed (e.g., in check) - skip it
-        continue
-      }
-      const nextState = cloneBoardState(boardState)
-      makeMove(nextState, move)
-      currentNode = currentNode.addModel({
-        boardState: nextState,
+      if (!flushPending()) break
+      const move = sanToMove(boardState, '--', { skipSan })
+      if (!move) continue
+      const undo = makeMove(boardState, move)
+      undoStack.push(undo)
+      pendingMoveInfo = {
         move,
         startingComment: pendingStartingComment,
-      })
+      }
       pendingStartingComment = undefined
       inVariationStart = false
       atRootNoMoves = false
-      continue
     } else if (REGEXP_MOVE_NUMBER.test(token)) {
       continue
     } else if (token === NULL_CHAR) {
       continue
     } else {
-      const boardState = currentNode.model.boardState
+      // Regular move token
+      if (!flushPending()) break
       if (CASTLING_MOVES.includes(token)) {
         token = token.replace(/0/g, 'O')
       }
-      // Strip move numbers, leading dots, and trailing commas in one pass
       token = token.replace(/^\d+\.{1,3}|^\.+|,$/g, '')
-      // Skip if token is now empty (was only dots or move number)
       if (!token) continue
-      const move = sanToMove(boardState, token)
+      const nags = extractNags(token)
+      const move = sanToMove(boardState, token, { skipSan })
       if (!move) {
         throw new Error(`Invalid move token: "${token}"`)
       }
-      const nextState = cloneBoardState(boardState)
-      makeMove(nextState, move)
-      currentNode = currentNode.addModel({
-        boardState: nextState,
-        nags: extractNags(token),
+      const undo = makeMove(boardState, move)
+      undoStack.push(undo)
+      pendingMoveInfo = {
         move,
+        nags,
         startingComment: pendingStartingComment,
-      })
+      }
       pendingStartingComment = undefined
       inVariationStart = false
       atRootNoMoves = false
     }
   }
+
+  // Flush final pending move
+  flushPending()
+
+  return header
+}
+
+export function loadPgn(
+  pgn: string,
+  options: { newline?: string; width?: number } = {},
+): {
+  tree: TreeNode<HexState>
+  currentNode: TreeNode<HexState>
+  header: HeaderMap
+} {
+  const fen = extractFen(pgn, options.newline) || DEFAULT_POSITION
+  const rootState = loadFen(fen)
+  if (!rootState) {
+    throw new Error(`Invalid FEN: ${fen}`)
+  }
+
+  const tree = new TreeNode<HexState>({ boardState: rootState })
+  let currentNode = tree
+  const parentNodes: TreeNode<HexState>[] = []
+
+  const header = walkPgn(pgn, {
+    newline: options.newline,
+    onMove: (move, boardState, comment, startingComment, nags) => {
+      currentNode = currentNode.addModel({
+        boardState: cloneBoardState(boardState),
+        move,
+        comment,
+        startingComment,
+        nags,
+      })
+    },
+    onStartVariation: () => {
+      parentNodes.push(currentNode)
+      currentNode = currentNode.parent!
+    },
+    onEndVariation: () => {
+      currentNode = parentNodes.pop()!
+    },
+  })
   return { tree, currentNode, header }
 }
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
