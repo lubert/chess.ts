@@ -1,6 +1,7 @@
 # chess.ts
 
 [![Build Status](https://travis-ci.org/lubert/chess.ts.svg?branch=master)](https://travis-ci.org/lubert/chess.ts)
+[![codecov](https://codecov.io/github/lubert/chess.ts/graph/badge.svg?token=50L5KFJEWD)](https://codecov.io/github/lubert/chess.ts)
 [![npm](https://img.shields.io/npm/v/@lubert/chess.ts)](https://www.npmjs.com/package/@lubert/chess.ts)
 
 chess.ts is a Typescript chess library and rewrite of [chess.js](https://github.com/jhlywa/chess.js).
