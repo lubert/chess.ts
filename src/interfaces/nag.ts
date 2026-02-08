@@ -1,4 +1,4 @@
-import { REGEXP_NAG } from '../regex'
+import { CC_BANG, CC_QMARK } from '../constants'
 
 /**
  * @public
@@ -70,23 +70,16 @@ export const NagMap: Partial<Record<Nag, string>> = {
 }
 
 export function extractNags(move: string): number[] | undefined {
-  const nagMatches = move.match(REGEXP_NAG)
-  if (!nagMatches) return
-  const nag = nagMatches[0]
-  switch (nag) {
-    case '!':
-      return [Nag.GOOD_MOVE]
-    case '?':
-      return [Nag.MISTAKE]
-    case '!!':
-      return [Nag.BRILLIANT_MOVE]
-    case '??':
-      return [Nag.BLUNDER]
-    case '!?':
-      return [Nag.SPECULATIVE_MOVE]
-    case '?!':
-      return [Nag.DUBIOUS_MOVE]
-    default:
-      return
+  const len = move.length
+  if (len < 2) return
+  const last = move.charCodeAt(len - 1)
+  if (last !== CC_BANG && last !== CC_QMARK) return
+  const prev = move.charCodeAt(len - 2)
+  if (prev === CC_BANG) {
+    return last === CC_BANG ? [Nag.BRILLIANT_MOVE] : [Nag.SPECULATIVE_MOVE]
   }
+  if (prev === CC_QMARK) {
+    return last === CC_QMARK ? [Nag.BLUNDER] : [Nag.DUBIOUS_MOVE]
+  }
+  return last === CC_BANG ? [Nag.GOOD_MOVE] : [Nag.MISTAKE]
 }

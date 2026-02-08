@@ -18,7 +18,7 @@ export {
   WalkPgnOptions,
 } from './interfaces/types'
 export { Nag, NagMap } from './interfaces/nag'
-export { boardToMap, mapToAscii } from './board'
+export { boardToMap, mapToAscii, SQ_BIT, toCastlingBits } from './board'
 export {
   WHITE,
   BLACK,

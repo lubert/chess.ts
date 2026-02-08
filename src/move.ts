@@ -32,6 +32,26 @@ import {
   PT_ROOK,
   PT_QUEEN,
   PT_KING,
+  CC_a,
+  CC_h,
+  CC_1,
+  CC_8,
+  CC_x,
+  CC_DASH,
+  CC_EQ,
+  CC_PLUS,
+  CC_HASH,
+  CC_BANG,
+  CC_QMARK,
+  CC_N,
+  CC_B,
+  CC_R,
+  CC_Q,
+  CC_K,
+  CC_n,
+  CC_b,
+  CC_r,
+  CC_q,
 } from './constants'
 import {
   Board,
@@ -41,7 +61,6 @@ import {
   Move,
   Square,
   PartialMove,
-  ParsedMove,
   HexState,
   GameState,
   PieceSymbol,
@@ -1078,21 +1097,193 @@ export function moveToSan(
   return output
 }
 
+// Convert file charCode (CC_a–CC_h) and rank charCode (CC_1–CC_8) to 0x88 index
+function sqIdx(fc: number, rc: number): number {
+  return fc - CC_a + (CC_8 - rc) * 16
+}
+
+function isFile(c: number): boolean {
+  return c >= CC_a && c <= CC_h
+}
+
+function isRank(c: number): boolean {
+  return c >= CC_1 && c <= CC_8
+}
+
+function isPieceChar(c: number): boolean {
+  return c === CC_N || c === CC_B || c === CC_R || c === CC_Q || c === CC_K
+}
+
+function isPromotionChar(c: number): boolean {
+  return (
+    c === CC_q ||
+    c === CC_r ||
+    c === CC_b ||
+    c === CC_n ||
+    c === CC_Q ||
+    c === CC_R ||
+    c === CC_B ||
+    c === CC_N
+  )
+}
+
+type ParsedMove = {
+  toIdx?: number // 0x88 index of target square
+  fromIdx?: number // 0x88 index of source square
+  disambiguator?: number // charCode: file 'a'-'h' (CC_a–CC_h) or rank '1'-'8' (CC_1–CC_8)
+  piece?: PieceSymbol
+  promotion?: PieceSymbol
+  check?: string
+}
+
 function extractMove(move: string): ParsedMove {
-  const cleaned = move.replace(REGEXP_NAG, '')
-  const matches: Partial<RegExpMatchArray> | null = cleaned.match(REGEXP_MOVE)
-  if (!matches) return {}
-  return {
-    san: matches[0]?.replace(/=([qrbn])/, (c) => c.toUpperCase()),
-    piece: toPieceSymbol(matches[1]),
-    disambiguator:
-      matches[2] && matches[2].length === 1 ? matches[2] : undefined,
-    from:
-      matches[2] && matches[2].length === 2 ? toSquare(matches[2]) : undefined,
-    to: toSquare(matches[3]),
-    promotion: matches[4] ? toPieceSymbol(matches[4]) : undefined,
-    check: matches[5],
+  const len = move.length
+  if (len < 2) return {}
+
+  let i = 0
+  let piece: PieceSymbol | undefined
+  let disambiguator: number | undefined // charCode of disambiguator char
+  let fromIdx: number | undefined
+  let toIdx: number | undefined
+  let promotion: PieceSymbol | undefined
+  let check: string | undefined
+
+  const c0 = move.charCodeAt(0)
+
+  // Piece letter: NBRQK (not P — pawn has no prefix in SAN)
+  if (isPieceChar(c0)) {
+    piece = move[0].toLowerCase() as PieceSymbol
+    i = 1
+
+    const c1 = move.charCodeAt(1)
+    // Check for disambiguator or 'x'
+    if (isFile(c1)) {
+      const c2 = move.charCodeAt(2)
+      if (isRank(c2)) {
+        // [1-8]: could be "to" or "from"
+        const c3 = move.charCodeAt(3)
+        if (c3 === CC_x) {
+          // 'x': this is from square, e.g. Re1xd1
+          fromIdx = sqIdx(c1, c2)
+          i = 4
+        } else if (isFile(c3)) {
+          // another [a-h]: this is from square, e.g. Rc1c4
+          fromIdx = sqIdx(c1, c2)
+          i = 3
+        } else {
+          // Just piece + to, e.g. Nf3
+          i = 1
+        }
+      } else if (c2 === CC_x) {
+        // 'x' after file disambiguator, e.g. Nxe5 or Raxd1
+        disambiguator = c1
+        i = 3
+      } else if (isFile(c2)) {
+        // file disambiguator + file, e.g. Rae1
+        disambiguator = c1
+        i = 2
+      } else {
+        i = 1
+      }
+    } else if (isRank(c1)) {
+      // [1-8] rank disambiguator, e.g. N1e3
+      const c2 = move.charCodeAt(2)
+      if (c2 === CC_x) {
+        disambiguator = c1
+        i = 3
+      } else {
+        disambiguator = c1
+        i = 2
+      }
+    } else if (c1 === CC_x) {
+      // 'x' capture, e.g. Nxe5
+      i = 2
+    }
+
+    // Now parse target square [a-h][1-8]
+    const cf = move.charCodeAt(i)
+    const cr = move.charCodeAt(i + 1)
+    if (isFile(cf) && isRank(cr)) {
+      toIdx = sqIdx(cf, cr)
+      i += 2
+    }
+  } else if (isFile(c0)) {
+    // Pawn move: starts with [a-h]
+    const c1 = move.charCodeAt(1)
+    if (isRank(c1)) {
+      // [a-h][1-8] — pawn push or could be from-square in long algebraic
+      const c2 = move.charCodeAt(2)
+      if (c2 === CC_x || c2 === CC_DASH || isFile(c2)) {
+        // This is a from-square (e.g. e2-e4, e2e4, e7xd8)
+        fromIdx = sqIdx(c0, c1)
+        i = c2 === CC_x || c2 === CC_DASH ? 3 : 2
+        const cf = move.charCodeAt(i)
+        const cr = move.charCodeAt(i + 1)
+        if (isFile(cf) && isRank(cr)) {
+          toIdx = sqIdx(cf, cr)
+          i += 2
+        }
+      } else {
+        // Simple pawn push e.g. e4
+        toIdx = sqIdx(c0, c1)
+        i = 2
+      }
+    } else if (c1 === CC_x) {
+      // Pawn capture: exd5
+      disambiguator = c0
+      i = 2
+      const cf = move.charCodeAt(i)
+      const cr = move.charCodeAt(i + 1)
+      if (isFile(cf) && isRank(cr)) {
+        toIdx = sqIdx(cf, cr)
+        i += 2
+      }
+    }
+
+    // Promotion: =Q or just Q after to-square
+    if (i < len) {
+      let pi = i
+      if (move.charCodeAt(pi) === CC_EQ) pi++
+      const pc = move.charCodeAt(pi)
+      if (isPromotionChar(pc)) {
+        promotion = move[pi].toLowerCase() as PieceSymbol
+        i = pi + 1
+      }
+    }
+  } else {
+    // Castling or unparseable — fall back to regex
+    const cleaned = move.replace(REGEXP_NAG, '')
+    const matches: Partial<RegExpMatchArray> | null = cleaned.match(REGEXP_MOVE)
+    if (!matches) return {}
+    const mTo = toSquare(matches[3])
+    return {
+      piece: toPieceSymbol(matches[1]),
+      disambiguator:
+        matches[2] && matches[2].length === 1
+          ? matches[2].charCodeAt(0)
+          : undefined,
+      fromIdx:
+        matches[2] && matches[2].length === 2
+          ? SQUARES[matches[2] as Square]
+          : undefined,
+      toIdx: mTo ? SQUARES[mTo] : undefined,
+      promotion: matches[4] ? toPieceSymbol(matches[4]) : undefined,
+      check: matches[5],
+    }
   }
+
+  // Check indicator (+, #) — skip past any NAG chars (!?)
+  while (i < len) {
+    const c = move.charCodeAt(i)
+    if (c === CC_PLUS || c === CC_HASH) {
+      check = move[i]
+      break
+    }
+    if (c !== CC_BANG && c !== CC_QMARK) break
+    i++
+  }
+
+  return { piece, disambiguator, fromIdx, toIdx, promotion, check }
 }
 
 function inferSquare(
@@ -1157,18 +1348,46 @@ export function sanToMove(
     }
   }
 
-  // strip off any move decorations: e.g Nf3+?! becomes Nf3
-  const cleanMove = strippedSan(move)
-  const pieceType = inferPieceType(cleanMove)
-  const toSq = inferSquare(cleanMove, state)
+  // Parse the SAN into structured components (one regex pass)
+  const parsed = extractMove(move)
+
+  // Derive piece type and target square from parsed result
+  const isCastling = move.startsWith('O-O') || move.startsWith('0-0')
+  let pieceType: PieceSymbol | undefined
+  let toSq: Square | number | undefined
+  if (isCastling) {
+    pieceType = KING
+    toSq =
+      move.startsWith('O-O-O') || move.startsWith('0-0-0')
+        ? state.turn === WHITE
+          ? SQUARES.c1
+          : SQUARES.c8
+        : state.turn === WHITE
+          ? SQUARES.g1
+          : SQUARES.g8
+  } else if (parsed.piece) {
+    pieceType = parsed.piece
+    toSq = parsed.toIdx
+  } else if (parsed.toIdx !== undefined) {
+    // No piece specified: pawn if no full from-square (e.g. "e4", "exd5"),
+    // otherwise leave undefined for long algebraic like "e2-e4" so
+    // generateMoves is unfiltered by piece (fromIdx filter narrows it down)
+    pieceType = parsed.fromIdx !== undefined ? undefined : PAWN
+    toSq = parsed.toIdx
+  } else {
+    // extractMove couldn't parse — fall through to legacy path
+    pieceType = inferPieceType(strippedSan(move))
+    toSq = inferSquare(strippedSan(move), state)
+  }
   let moves = generateMoves(state, { piece: pieceType, to: toSq })
 
-  // Structural matching: parse the SAN and match against candidate moves
+  // Structural matching: match against candidate moves
   // without converting back to SAN via moveToSan.
   // Skip for castling moves — extractMove doesn't parse them usefully.
-  if (moves.length > 0 && cleanMove !== 'O-O' && cleanMove !== 'O-O-O') {
-    const parsed = extractMove(move)
-    const toIdx = parsed.to ? SQUARES[parsed.to] : undefined
+  if (moves.length > 0 && !isCastling) {
+    const pToIdx = parsed.toIdx
+    const pFromIdx = parsed.fromIdx
+    const pDisambig = parsed.disambiguator
     let candidates: HexMove[] = []
 
     // Single-pass filter instead of chained .filter() calls
@@ -1180,15 +1399,16 @@ export function sanToMove(
         m.promotion !== parsed.promotion
       )
         continue
-      if (toIdx !== undefined && m.to !== toIdx) continue
-      if (parsed.from) {
-        if (algebraic(m.from) !== parsed.from) continue
-      } else if (parsed.disambiguator) {
-        const fromSq = algebraic(m.from)
+      if (pToIdx !== undefined && m.to !== pToIdx) continue
+      if (pFromIdx !== undefined) {
+        if (m.from !== pFromIdx) continue
+      } else if (pDisambig !== undefined) {
+        // File charCode ('a'=97..): extract file from 0x88 index via (& 7)
+        // Rank charCode ('1'=49..): extract rank via (>> 4), mapped so '1'→7 '8'→0
         if (
-          fromSq === undefined ||
-          (fromSq[0] !== parsed.disambiguator &&
-            fromSq[1] !== parsed.disambiguator)
+          pDisambig >= CC_a
+            ? (m.from & 7) !== pDisambig - CC_a
+            : m.from >> 4 !== CC_8 - pDisambig
         )
           continue
       }
@@ -1210,6 +1430,7 @@ export function sanToMove(
   }
 
   // Fall back to SAN round-trip for edge cases
+  const cleanMove = strippedSan(move)
   let strippedMoves = []
   for (let i = 0, len = moves.length; i < len; i++) {
     const fullSan = moveToSan(state, moves[i], moves, {
@@ -1292,7 +1513,8 @@ export function sanToMove(
   if (!to) return null
 
   // Regenerate the moves if the arguments don't match
-  if (piece?.toLowerCase() !== pieceType || toSq !== to) {
+  const toSqStr = typeof toSq === 'number' ? algebraic(toSq) : toSq
+  if (piece?.toLowerCase() !== pieceType || toSqStr !== to) {
     moves = generateMoves(state, {
       piece: piece ? (piece.toLowerCase() as PieceSymbol) : pieceType,
       to,

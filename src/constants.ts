@@ -30,6 +30,28 @@ export const DEFAULT_POSITION =
 
 export const POSSIBLE_RESULTS: string[] = ['1-0', '0-1', '1/2-1/2', '*']
 
+// CharCode constants for hand-rolled SAN/NAG parsing
+export const CC_a = 97
+export const CC_h = 104
+export const CC_1 = 49
+export const CC_8 = 56
+export const CC_x = 120
+export const CC_DASH = 45
+export const CC_EQ = 61
+export const CC_PLUS = 43
+export const CC_HASH = 35
+export const CC_BANG = 33
+export const CC_QMARK = 63
+export const CC_N = 78
+export const CC_B = 66
+export const CC_R = 82
+export const CC_Q = 81
+export const CC_K = 75
+export const CC_n = 110
+export const CC_b = 98
+export const CC_r = 114
+export const CC_q = 113
+
 // 0-3 are horizontal/vertical, 4-7 are diagonal
 export const DIRECTIONS = [-16, 16, -1, 1, -17, 17, -15, 15]
 

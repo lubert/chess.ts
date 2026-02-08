@@ -194,13 +194,3 @@ export type WalkPgnOptions = {
   onStartVariation?: () => void
   onEndVariation?: () => void
 }
-
-export type ParsedMove = {
-  san?: string
-  to?: Square
-  from?: Square
-  disambiguator?: string
-  piece?: PieceSymbol
-  promotion?: PieceSymbol
-  check?: string
-}
