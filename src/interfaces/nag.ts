@@ -1,5 +1,3 @@
-import { REGEXP_NAG } from '../regex'
-
 /**
  * @public
  * https://en.wikipedia.org/wiki/Numeric_Annotation_Glyphs
@@ -70,23 +68,20 @@ export const NagMap: Partial<Record<Nag, string>> = {
 }
 
 export function extractNags(move: string): number[] | undefined {
-  const nagMatches = move.match(REGEXP_NAG)
-  if (!nagMatches) return
-  const nag = nagMatches[0]
-  switch (nag) {
-    case '!':
-      return [Nag.GOOD_MOVE]
-    case '?':
-      return [Nag.MISTAKE]
-    case '!!':
-      return [Nag.BRILLIANT_MOVE]
-    case '??':
-      return [Nag.BLUNDER]
-    case '!?':
-      return [Nag.SPECULATIVE_MOVE]
-    case '?!':
-      return [Nag.DUBIOUS_MOVE]
-    default:
-      return
+  const len = move.length
+  if (len < 2) return
+  const last = move.charCodeAt(len - 1)
+  // '!' = 33, '?' = 63
+  if (last !== 33 && last !== 63) return
+  const prev = move.charCodeAt(len - 2)
+  if (prev === 33) {
+    // '!!' or '!?'
+    return last === 33 ? [Nag.BRILLIANT_MOVE] : [Nag.SPECULATIVE_MOVE]
   }
+  if (prev === 63) {
+    // '??' or '?!'
+    return last === 63 ? [Nag.BLUNDER] : [Nag.DUBIOUS_MOVE]
+  }
+  // single '!' or '?'
+  return last === 33 ? [Nag.GOOD_MOVE] : [Nag.MISTAKE]
 }

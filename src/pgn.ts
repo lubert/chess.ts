@@ -16,11 +16,7 @@ import {
 } from './constants'
 import { loadFen, sanToMove, makeMove, unmakeMove, moveToSan } from './move'
 import { cloneBoardState } from './state'
-import {
-  REGEXP_HEADER_KEY,
-  REGEXP_HEADER_VAL,
-  REGEXP_MOVE_NUMBER,
-} from './regex'
+import { REGEXP_HEADER, REGEXP_MOVE_NUMBER } from './regex'
 import { splitStr } from './utils'
 
 export function addNag(node: TreeNode<HexState>, nag: number): void {
@@ -152,9 +148,9 @@ function extractFen(pgn: string, newline = '\r\n|\n|\r'): string | undefined {
   for (const line of lines) {
     if (!line || line.startsWith('%')) continue
     if (!line.startsWith('[')) break
-    const key = line.replace(REGEXP_HEADER_KEY, '$1').trim()
-    if (key === 'FEN') {
-      return line.replace(REGEXP_HEADER_VAL, '$1').trim()
+    const match = line.match(REGEXP_HEADER)
+    if (match && match[1] === 'FEN') {
+      return match[2]
     }
   }
   return undefined
@@ -178,10 +174,9 @@ export function walkPgn(pgn: string, options: WalkPgnOptions): HeaderMap {
   const moveTokens: string[] = []
 
   const parseHeader = (line: string) => {
-    const key = line.replace(REGEXP_HEADER_KEY, '$1').trim()
-    const val = line.replace(REGEXP_HEADER_VAL, '$1').trim()
-    if (key.length && val.length) {
-      header[key] = val
+    const match = line.match(REGEXP_HEADER)
+    if (match) {
+      header[match[1]] = match[2]
     }
   }
 
