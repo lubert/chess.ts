@@ -32,6 +32,26 @@ import {
   PT_ROOK,
   PT_QUEEN,
   PT_KING,
+  CC_a,
+  CC_h,
+  CC_1,
+  CC_8,
+  CC_x,
+  CC_DASH,
+  CC_EQ,
+  CC_PLUS,
+  CC_HASH,
+  CC_BANG,
+  CC_QMARK,
+  CC_N,
+  CC_B,
+  CC_R,
+  CC_Q,
+  CC_K,
+  CC_n,
+  CC_b,
+  CC_r,
+  CC_q,
 } from './constants'
 import {
   Board,
@@ -1077,15 +1097,40 @@ export function moveToSan(
   return output
 }
 
-// Convert file charCode (97-104) and rank charCode (49-56) to 0x88 index
+// Convert file charCode (CC_a–CC_h) and rank charCode (CC_1–CC_8) to 0x88 index
 function sqIdx(fc: number, rc: number): number {
-  return fc - 97 + (56 - rc) * 16
+  return fc - CC_a + (CC_8 - rc) * 16
+}
+
+function isFile(c: number): boolean {
+  return c >= CC_a && c <= CC_h
+}
+
+function isRank(c: number): boolean {
+  return c >= CC_1 && c <= CC_8
+}
+
+function isPieceChar(c: number): boolean {
+  return c === CC_N || c === CC_B || c === CC_R || c === CC_Q || c === CC_K
+}
+
+function isPromotionChar(c: number): boolean {
+  return (
+    c === CC_q ||
+    c === CC_r ||
+    c === CC_b ||
+    c === CC_n ||
+    c === CC_Q ||
+    c === CC_R ||
+    c === CC_B ||
+    c === CC_N
+  )
 }
 
 type ParsedMove = {
   toIdx?: number // 0x88 index of target square
   fromIdx?: number // 0x88 index of source square
-  disambiguator?: number // charCode: file 'a'-'h' (97-104) or rank '1'-'8' (49-56)
+  disambiguator?: number // charCode: file 'a'-'h' (CC_a–CC_h) or rank '1'-'8' (CC_1–CC_8)
   piece?: PieceSymbol
   promotion?: PieceSymbol
   check?: string
@@ -1106,29 +1151,22 @@ function extractMove(move: string): ParsedMove {
   const c0 = move.charCodeAt(0)
 
   // Piece letter: NBRQK (not P — pawn has no prefix in SAN)
-  if (
-    c0 === 78 ||
-    c0 === 66 ||
-    c0 === 82 ||
-    c0 === 81 ||
-    c0 === 75 // N,B,R,Q,K
-  ) {
+  if (isPieceChar(c0)) {
     piece = move[0].toLowerCase() as PieceSymbol
     i = 1
 
     const c1 = move.charCodeAt(1)
     // Check for disambiguator or 'x'
-    if (c1 >= 97 && c1 <= 104) {
-      // [a-h]
+    if (isFile(c1)) {
       const c2 = move.charCodeAt(2)
-      if (c2 >= 49 && c2 <= 56) {
+      if (isRank(c2)) {
         // [1-8]: could be "to" or "from"
         const c3 = move.charCodeAt(3)
-        if (c3 === 120) {
+        if (c3 === CC_x) {
           // 'x': this is from square, e.g. Re1xd1
           fromIdx = sqIdx(c1, c2)
           i = 4
-        } else if (c3 >= 97 && c3 <= 104) {
+        } else if (isFile(c3)) {
           // another [a-h]: this is from square, e.g. Rc1c4
           fromIdx = sqIdx(c1, c2)
           i = 3
@@ -1136,28 +1174,28 @@ function extractMove(move: string): ParsedMove {
           // Just piece + to, e.g. Nf3
           i = 1
         }
-      } else if (c2 === 120) {
+      } else if (c2 === CC_x) {
         // 'x' after file disambiguator, e.g. Nxe5 or Raxd1
         disambiguator = c1
         i = 3
-      } else if (c2 >= 97 && c2 <= 104) {
+      } else if (isFile(c2)) {
         // file disambiguator + file, e.g. Rae1
         disambiguator = c1
         i = 2
       } else {
         i = 1
       }
-    } else if (c1 >= 49 && c1 <= 56) {
+    } else if (isRank(c1)) {
       // [1-8] rank disambiguator, e.g. N1e3
       const c2 = move.charCodeAt(2)
-      if (c2 === 120) {
+      if (c2 === CC_x) {
         disambiguator = c1
         i = 3
       } else {
         disambiguator = c1
         i = 2
       }
-    } else if (c1 === 120) {
+    } else if (c1 === CC_x) {
       // 'x' capture, e.g. Nxe5
       i = 2
     }
@@ -1165,27 +1203,23 @@ function extractMove(move: string): ParsedMove {
     // Now parse target square [a-h][1-8]
     const cf = move.charCodeAt(i)
     const cr = move.charCodeAt(i + 1)
-    if (cf >= 97 && cf <= 104 && cr >= 49 && cr <= 56) {
+    if (isFile(cf) && isRank(cr)) {
       toIdx = sqIdx(cf, cr)
       i += 2
     }
-  } else if (c0 >= 97 && c0 <= 104) {
+  } else if (isFile(c0)) {
     // Pawn move: starts with [a-h]
     const c1 = move.charCodeAt(1)
-    if (c1 >= 49 && c1 <= 56) {
+    if (isRank(c1)) {
       // [a-h][1-8] — pawn push or could be from-square in long algebraic
       const c2 = move.charCodeAt(2)
-      if (
-        c2 === 120 ||
-        c2 === 45 || // 'x' or '-'
-        (c2 >= 97 && c2 <= 104) // another file (long algebraic without separator)
-      ) {
+      if (c2 === CC_x || c2 === CC_DASH || isFile(c2)) {
         // This is a from-square (e.g. e2-e4, e2e4, e7xd8)
         fromIdx = sqIdx(c0, c1)
-        i = c2 === 120 || c2 === 45 ? 3 : 2
+        i = c2 === CC_x || c2 === CC_DASH ? 3 : 2
         const cf = move.charCodeAt(i)
         const cr = move.charCodeAt(i + 1)
-        if (cf >= 97 && cf <= 104 && cr >= 49 && cr <= 56) {
+        if (isFile(cf) && isRank(cr)) {
           toIdx = sqIdx(cf, cr)
           i += 2
         }
@@ -1194,13 +1228,13 @@ function extractMove(move: string): ParsedMove {
         toIdx = sqIdx(c0, c1)
         i = 2
       }
-    } else if (c1 === 120) {
+    } else if (c1 === CC_x) {
       // Pawn capture: exd5
       disambiguator = c0
       i = 2
       const cf = move.charCodeAt(i)
       const cr = move.charCodeAt(i + 1)
-      if (cf >= 97 && cf <= 104 && cr >= 49 && cr <= 56) {
+      if (isFile(cf) && isRank(cr)) {
         toIdx = sqIdx(cf, cr)
         i += 2
       }
@@ -1209,18 +1243,9 @@ function extractMove(move: string): ParsedMove {
     // Promotion: =Q or just Q after to-square
     if (i < len) {
       let pi = i
-      if (move.charCodeAt(pi) === 61) pi++ // '='
+      if (move.charCodeAt(pi) === CC_EQ) pi++
       const pc = move.charCodeAt(pi)
-      if (
-        pc === 113 ||
-        pc === 114 ||
-        pc === 98 ||
-        pc === 110 || // q,r,b,n
-        pc === 81 ||
-        pc === 82 ||
-        pc === 66 ||
-        pc === 78 // Q,R,B,N
-      ) {
+      if (isPromotionChar(pc)) {
         promotion = move[pi].toLowerCase() as PieceSymbol
         i = pi + 1
       }
@@ -1250,12 +1275,11 @@ function extractMove(move: string): ParsedMove {
   // Check indicator (+, #) — skip past any NAG chars (!?)
   while (i < len) {
     const c = move.charCodeAt(i)
-    if (c === 43 || c === 35) {
-      // '+' or '#'
+    if (c === CC_PLUS || c === CC_HASH) {
       check = move[i]
       break
     }
-    if (c !== 33 && c !== 63) break // not '!' or '?'
+    if (c !== CC_BANG && c !== CC_QMARK) break
     i++
   }
 
@@ -1378,11 +1402,10 @@ export function sanToMove(
       if (pFromIdx !== undefined) {
         if (m.from !== pFromIdx) continue
       } else if (pDisambig !== undefined) {
-        // File disambiguator: 'a'-'h' (97-104), rank: '1'-'8' (49-56)
         if (
-          pDisambig >= 97
-            ? (m.from & 7) !== pDisambig - 97
-            : m.from >> 4 !== 56 - pDisambig
+          pDisambig >= CC_a
+            ? (m.from & 7) !== pDisambig - CC_a
+            : m.from >> 4 !== CC_8 - pDisambig
         )
           continue
       }
