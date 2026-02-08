@@ -4,17 +4,18 @@
 
 ## getFen() function
 
+
 **Signature:**
 
 ```typescript
-declare function getFen(state: Readonly<BoardState>, strict?: boolean): string;
+declare function getFen(state: BoardState, strict?: boolean): string;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  state | Readonly&lt;[BoardState](./chess.ts.boardstate.md)<!-- -->&gt; |  |
+|  state | [BoardState](./chess.ts.boardstate.md) |  |
 |  strict | boolean | _(Optional)_ |
 
 **Returns:**

@@ -19,8 +19,8 @@ validateFen(fen: string, options?: {
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  fen | string |  |
-|  options | { positionOnly?: boolean; legal?: boolean; } | _(Optional)_ |
+|  fen | string | FEN string |
+|  options | { positionOnly?: boolean; legal?: boolean; } | _(Optional)_ Validation options |
 
 **Returns:**
 

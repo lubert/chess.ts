@@ -268,6 +268,7 @@ const SQUARE_TO_BIT = new Int8Array([
   56, 57, 58, 59, 60, 61, 62, 63, -1, -1, -1, -1, -1, -1, -1, -1,
 ])
 
+/** @public */
 export function squareToBit(sq: number): number {
   return SQUARE_TO_BIT[sq] ?? -1
 }

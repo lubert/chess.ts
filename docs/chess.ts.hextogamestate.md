@@ -4,6 +4,7 @@
 
 ## hexToGameState() function
 
+
 **Signature:**
 
 ```typescript

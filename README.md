@@ -6,15 +6,6 @@
 
 chess.ts is a Typescript chess library and rewrite of [chess.js](https://github.com/jhlywa/chess.js).
 
-## Installation
-
-To install the stable version:
-
-```
-# NPM
-npm install chess.ts
-```
-
 ## Documentation
 
 The docs are generated from docstrings and are available [here](./docs/chess.ts.md).

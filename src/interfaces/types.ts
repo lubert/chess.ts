@@ -129,7 +129,7 @@ export type NibbleState = BaseState & {
   board: NibblePiece[]
 }
 
-/** Private types */
+/** @public */
 export type Board = Uint8Array
 
 export type ColorState = Record<Color, number> & {
@@ -149,6 +149,7 @@ export type FlagKey =
   | 'CHECK'
   | 'CHECKMATE'
 
+/** @public */
 export type HexState = {
   boardState: BoardState
   nags?: number[] // Array instead of set for easier serialization
@@ -157,6 +158,7 @@ export type HexState = {
   startingComment?: string
 }
 
+/** @public */
 export type HeaderMap = Partial<Record<string, string>>
 
 export type HexMove = {

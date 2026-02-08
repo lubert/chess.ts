@@ -93,12 +93,18 @@ const _checkMaskBuf = new Uint8Array(128)
 const SECOND_RANK: Record<string, number> = { b: RANK_7, w: RANK_2 }
 const PROMOTION_PIECES: PieceSymbol[] = [QUEEN, ROOK, BISHOP, KNIGHT]
 
-/** Encode a piece symbol + color into a single byte for Uint8Array board */
+/**
+ * Encode a piece symbol + color into a single byte for Uint8Array board
+ * @public
+ */
 export function encodePiece(type: PieceSymbol, color: Color): number {
   return COLOR_NUM[color] | PIECE_TYPE_NUM[type]
 }
 
-/** Decode an encoded byte to a Piece object */
+/**
+ * Decode an encoded byte to a Piece object
+ * @public
+ */
 export function decodePiece(encoded: number): Piece {
   return {
     type: NUM_PIECE_TYPE[encoded & 7]!,
@@ -168,6 +174,7 @@ export function getDisambiguator(
   return ''
 }
 
+/** @public */
 export function getFen(state: BoardState, strict = false): string {
   let empty = 0
   let fen = ''
@@ -568,10 +575,8 @@ function computeCheckMask(
 
 /**
  * Return all moves for a given board state.
- * @param options.legal[=true] - Filter by legal moves
- * @param options.piece - Filter by piece type
- * @param options.from - Filter by initial square
- * @param options.to - Filter by target square
+ * @param state - The board state
+ * @param options - Move generation options
  * @public
  */
 export function generateMoves(
@@ -1017,7 +1022,7 @@ function hasLegalMove(state: Readonly<BoardState>): boolean {
   return false
 }
 
-/*
+/**
  * Convert a move from 0x88 coordinates to Standard Algebraic Notation (SAN)
  * @public
  */
@@ -2048,6 +2053,7 @@ export function nodeMove(node: Readonly<TreeNode<HexState>>): Move | null {
   return null
 }
 
+/** @public */
 export function hexToGameState(
   node: Readonly<TreeNode<HexState>>,
 ): Omit<GameState, 'isCurrent'> {

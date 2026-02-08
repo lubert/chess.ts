@@ -9,7 +9,7 @@ Return all moves for a given board state.
 **Signature:**
 
 ```typescript
-declare function generateMoves(state: Readonly<BoardState>, options?: {
+declare function generateMoves(state: BoardState, options?: {
     legal?: boolean;
     piece?: PieceSymbol;
     from?: Square | number;
@@ -21,8 +21,8 @@ declare function generateMoves(state: Readonly<BoardState>, options?: {
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  state | Readonly&lt;[BoardState](./chess.ts.boardstate.md)<!-- -->&gt; |  |
-|  options | { legal?: boolean; piece?: [PieceSymbol](./chess.ts.piecesymbol.md)<!-- -->; from?: [Square](./chess.ts.square.md) \| number; to?: [Square](./chess.ts.square.md) \| number; } | _(Optional)_ |
+|  state | [BoardState](./chess.ts.boardstate.md) | The board state |
+|  options | { legal?: boolean; piece?: [PieceSymbol](./chess.ts.piecesymbol.md)<!-- -->; from?: [Square](./chess.ts.square.md) \| number; to?: [Square](./chess.ts.square.md) \| number; } | _(Optional)_ Move generation options |
 
 **Returns:**
 

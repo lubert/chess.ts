@@ -38,6 +38,7 @@ export function cloneBoardState(state: BoardState): BoardState {
   }
 }
 
+/** @public */
 export function fromBitState(state: BitState): BoardState {
   const board = new Uint8Array(128)
   const kings = { w: EMPTY, b: EMPTY }
@@ -69,6 +70,7 @@ export function fromBitState(state: BitState): BoardState {
   }
 }
 
+/** @public */
 export function toBitState(state: BoardState): BitState {
   return {
     board: toBitBoard(state.board),

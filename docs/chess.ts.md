@@ -24,6 +24,8 @@
 |  [bitToAlgebraic(bit)](./chess.ts.bittoalgebraic.md) | Converts a bit index (0-63) to algebraic notation. |
 |  [bitToSquare(sq)](./chess.ts.bittosquare.md) | Converts a bit index (0-63) to a 0x88 square index. |
 |  [boardToMap(board)](./chess.ts.boardtomap.md) | Converts a board state to a map of squares to piece symbols. |
+|  [decodePiece(encoded)](./chess.ts.decodepiece.md) | Decode an encoded byte to a Piece object |
+|  [encodePiece(type, color)](./chess.ts.encodepiece.md) | Encode a piece symbol + color into a single byte for Uint8Array board |
 |  [file(i)](./chess.ts.file.md) | Extracts the zero-based file of an 0x88 square. |
 |  [fromBitState(state)](./chess.ts.frombitstate.md) |  |
 |  [generateMoves(state, options)](./chess.ts.generatemoves.md) | Return all moves for a given board state. |
@@ -31,14 +33,14 @@
 |  [getFen(state, strict)](./chess.ts.getfen.md) |  |
 |  [hexToGameState(node)](./chess.ts.hextogamestate.md) |  |
 |  [hexToMove(state, move)](./chess.ts.hextomove.md) | Converts a HexMove to a Move. |
-|  [isAttacked(state, square, color)](./chess.ts.isattacked.md) | Checks if a square is attacked. If an attacking color is not provided, the opposite color of the piece on the square or the current turn is used. This function does not check if the attacking piece is pinned. |
+|  [isAttacked(state, square, color, skipSq)](./chess.ts.isattacked.md) | Checks if a square is attacked. If an attacking color is not provided, the opposite color of the piece on the square or the current turn is used. This function does not check if the attacking piece is pinned. |
 |  [isAttacking(state, square, targetSquare)](./chess.ts.isattacking.md) | Checks if a square is attacking a target square. |
 |  [isColor(color)](./chess.ts.iscolor.md) |  |
 |  [isPieceSymbol(symbol)](./chess.ts.ispiecesymbol.md) |  |
 |  [isSquare(sq)](./chess.ts.issquare.md) |  |
 |  [isThreatening(board, square, targetSquare)](./chess.ts.isthreatening.md) | Checks if a square is threatening a target square. |
 |  [mapToAscii(charMap, eol)](./chess.ts.maptoascii.md) | Renders a map of squares to characters on an ASCII board. |
-|  [moveToSan(state, move, moves, options)](./chess.ts.movetosan.md) |  |
+|  [moveToSan(state, move, moves, options)](./chess.ts.movetosan.md) | Convert a move from 0x88 coordinates to Standard Algebraic Notation (SAN) |
 |  [rank(i)](./chess.ts.rank.md) | Extracts the zero-based rank of an 0x88 square. |
 |  [sameDiagonal(sq1, sq2)](./chess.ts.samediagonal.md) | Tests if two squares are on the same diagonal. |
 |  [sameFile(sq1, sq2)](./chess.ts.samefile.md) | Tests if two squares are on the same file. |
@@ -46,8 +48,10 @@
 |  [sameMinorDiagonal(sq1, sq2)](./chess.ts.sameminordiagonal.md) | Tests if two squares are on the same minor diagonal. |
 |  [sameRank(sq1, sq2)](./chess.ts.samerank.md) | Tests if two squares are on the same rank. |
 |  [sameRankOrFile(sq1, sq2)](./chess.ts.samerankorfile.md) | Tests if two squares are on the same rank or file. |
-|  [squareToBit(sq)](./chess.ts.squaretobit.md) | Converts a 0x88 square index to a bit index (0-63). |
+|  [squareToBit(sq)](./chess.ts.squaretobit.md) |  |
 |  [toBitState(state)](./chess.ts.tobitstate.md) |  |
+|  [toCastlingBits(castling)](./chess.ts.tocastlingbits.md) |  |
+|  [walkPgn(pgn, options)](./chess.ts.walkpgn.md) |  |
 
 ## Variables
 
@@ -67,6 +71,7 @@
 |  [QUEEN](./chess.ts.queen.md) |  |
 |  [RANK\_MASKS](./chess.ts.rank_masks.md) | Pre-computed bitmasks for each rank (row). Each mask has all 8 squares on that rank set. |
 |  [ROOK](./chess.ts.rook.md) |  |
+|  [SQ\_BIT](./chess.ts.sq_bit.md) |  |
 |  [SQUARES](./chess.ts.squares.md) |  |
 |  [WHITE](./chess.ts.white.md) |  |
 
@@ -77,15 +82,17 @@
 |  [BaseState](./chess.ts.basestate.md) |  |
 |  [BitBoard](./chess.ts.bitboard.md) |  |
 |  [BitState](./chess.ts.bitstate.md) |  |
-|  [Board](./chess.ts.board.md) | Private types |
+|  [Board](./chess.ts.board.md) |  |
 |  [BoardState](./chess.ts.boardstate.md) |  |
 |  [Color](./chess.ts.color.md) |  |
 |  [CommentMap](./chess.ts.commentmap.md) |  |
 |  [GameState](./chess.ts.gamestate.md) |  |
+|  [HeaderMap](./chess.ts.headermap.md) |  |
 |  [HexState](./chess.ts.hexstate.md) |  |
 |  [Move](./chess.ts.move.md) | Represents a chess move |
 |  [PartialMove](./chess.ts.partialmove.md) |  |
 |  [Piece](./chess.ts.piece.md) |  |
 |  [PieceSymbol](./chess.ts.piecesymbol.md) |  |
 |  [Square](./chess.ts.square.md) |  |
+|  [WalkPgnOptions](./chess.ts.walkpgnoptions.md) |  |
 

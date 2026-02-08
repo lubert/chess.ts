@@ -9,7 +9,7 @@ Checks if a square is attacked. If an attacking color is not provided, the oppos
 **Signature:**
 
 ```typescript
-declare function isAttacked(state: Readonly<BoardState>, square: number, color?: Color): boolean;
+declare function isAttacked(state: Readonly<BoardState>, square: number, color?: Color, skipSq?: number): boolean;
 ```
 
 ## Parameters
@@ -19,6 +19,7 @@ declare function isAttacked(state: Readonly<BoardState>, square: number, color?:
 |  state | Readonly&lt;[BoardState](./chess.ts.boardstate.md)<!-- -->&gt; | Board state |
 |  square | number | Square to check |
 |  color | [Color](./chess.ts.color.md) | _(Optional)_ Color of the attacking side |
+|  skipSq | number | _(Optional)_ Optional square to skip in slider rays (used for king move validation so sliders "see through" the king's current square) |
 
 **Returns:**
 

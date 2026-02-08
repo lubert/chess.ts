@@ -4,10 +4,12 @@
 
 ## moveToSan() function
 
+Convert a move from 0x88 coordinates to Standard Algebraic Notation (SAN)
+
 **Signature:**
 
 ```typescript
-declare function moveToSan(state: Readonly<BoardState>, move: HexMove, moves?: HexMove[], options?: {
+declare function moveToSan(state: BoardState, move: HexMove, moves?: HexMove[], options?: {
     addPromotion?: boolean;
 }): string;
 ```
@@ -16,7 +18,7 @@ declare function moveToSan(state: Readonly<BoardState>, move: HexMove, moves?: H
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  state | Readonly&lt;[BoardState](./chess.ts.boardstate.md)<!-- -->&gt; |  |
+|  state | [BoardState](./chess.ts.boardstate.md) |  |
 |  move | HexMove |  |
 |  moves | HexMove\[\] | _(Optional)_ |
 |  options | { addPromotion?: boolean; } | _(Optional)_ |

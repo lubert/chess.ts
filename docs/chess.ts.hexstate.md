@@ -4,6 +4,7 @@
 
 ## HexState type
 
+
 **Signature:**
 
 ```typescript

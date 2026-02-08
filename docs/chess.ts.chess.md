@@ -23,7 +23,7 @@ declare class Chess
 |  --- | --- | --- | --- |
 |  [currentHexNode](./chess.ts.chess.currenthexnode.md) | <code>readonly</code> | Readonly&lt;TreeNode&lt;[HexState](./chess.ts.hexstate.md)<!-- -->&gt;&gt; |  |
 |  [currentNode](./chess.ts.chess.currentnode.md) | <code>readonly</code> | Readonly&lt;TreeNode&lt;[GameState](./chess.ts.gamestate.md)<!-- -->&gt;&gt; |  |
-|  [header](./chess.ts.chess.header.md) |  | HeaderMap |  |
+|  [header](./chess.ts.chess.header.md) |  | [HeaderMap](./chess.ts.headermap.md) |  |
 |  [hexTree](./chess.ts.chess.hextree.md) | <code>readonly</code> | Readonly&lt;TreeNode&lt;[HexState](./chess.ts.hexstate.md)<!-- -->&gt;&gt; |  |
 |  [state](./chess.ts.chess.state.md) | <code>readonly</code> | Readonly&lt;[BoardState](./chess.ts.boardstate.md)<!-- -->&gt; |  |
 |  [tree](./chess.ts.chess.tree.md) | <code>readonly</code> | Readonly&lt;TreeNode&lt;[GameState](./chess.ts.gamestate.md)<!-- -->&gt;&gt; |  |

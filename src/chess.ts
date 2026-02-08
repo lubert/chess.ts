@@ -142,8 +142,7 @@ export class Chess {
    * Clears the board and loads the Forsyth–Edwards Notation (FEN) string.
    *
    * @param fen - FEN string
-   * @param options.positionOnly - Validate the position only
-   * @param options.legal - Basic position legality check
+   * @param options - Load options
    * @returns True if the position was successfully loaded, otherwise false.
    */
   public load(
@@ -1077,7 +1076,7 @@ export class Chess {
    * // -> "giuoco piano"*
    * ```
    *
-   * @param [key] - FEN string or node indices, defaults to the current position
+   * @param key - FEN string or node indices, defaults to the current position
    */
   public getComment(key?: string | number[]): string | undefined {
     const node = this.getNode(key)
@@ -1118,7 +1117,7 @@ export class Chess {
   /**
    * Retrieve the starting comment (comment before the move) if it exists.
    *
-   * @param [key] - FEN string or node indices, defaults to the current position
+   * @param key - FEN string or node indices, defaults to the current position
    */
   public getStartingComment(key?: string | number[]): string | undefined {
     const node = this.getNode(key)
@@ -1297,9 +1296,8 @@ export class Chess {
    * chess.validateFen('4r3/8/X12XPk/1p6/pP2p1R1/P1B5/2P2K2/3r4 w - - 1 45')
    * // -> { 'INVALID_PIECE': '1st field (piece positions) is invalid [invalid piece].' }
    * ```
-   * @param options.fen - FEN string
-   * @param options.positionOnly - Validate the position only
-   * @param options.legal - Basic position legality check
+   * @param fen - FEN string
+   * @param options - Validation options
    */
   public validateFen(
     fen: string,

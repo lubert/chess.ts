@@ -65,7 +65,7 @@ for (let i = 0; i < 128; i++) {
   if (!(i & 0x88)) VALID_SQ.push(i)
 }
 
-// Precomputed: 0x88 square index → BigInt bit mask
+/** @public */
 export const SQ_BIT: bigint[] = new Array(128)
 for (let i = 0; i < 128; i++) {
   if (i & 0x88) {
@@ -100,6 +100,7 @@ export function toBitBoard(board: Board): BitBoard {
   }
 }
 
+/** @public */
 export function toCastlingBits(castling: ColorState): number {
   return (
     (+!!(BITS.KSIDE_CASTLE & castling.w) << 3) +

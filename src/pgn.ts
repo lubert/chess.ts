@@ -157,6 +157,7 @@ function extractFen(pgn: string, newline = '\r\n|\n|\r'): string | undefined {
 }
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+/** @public */
 export function walkPgn(pgn: string, options: WalkPgnOptions): HeaderMap {
   const {
     newline = '\r\n|\n|\r',

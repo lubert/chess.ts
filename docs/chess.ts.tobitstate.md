@@ -4,6 +4,7 @@
 
 ## toBitState() function
 
+
 **Signature:**
 
 ```typescript

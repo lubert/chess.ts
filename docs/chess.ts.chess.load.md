@@ -20,7 +20,7 @@ load(fen: string, options?: {
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  fen | string | FEN string |
-|  options | { positionOnly?: boolean; legal?: boolean; } | _(Optional)_ |
+|  options | { positionOnly?: boolean; legal?: boolean; } | _(Optional)_ Load options |
 
 **Returns:**
 
