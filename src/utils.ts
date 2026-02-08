@@ -108,7 +108,6 @@ export function linearOffset(
     return toFile > fromFile ? 1 : -1
   }
   if (toFile === fromFile) {
-    if (toRank === fromRank) return 0
     return toRank > fromRank ? 16 : -16
   }
   return

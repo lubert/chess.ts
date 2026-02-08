@@ -1014,29 +1014,6 @@ function hasLegalMove(state: Readonly<BoardState>): boolean {
     if (!isAttacked(state, toSq, them, kingSq)) return true
   }
 
-  // Castling (only if not in check)
-  if (posInfo.checkerCount === 0) {
-    if (state.castling[state.turn] & BITS.KSIDE_CASTLE) {
-      if (
-        !state.board[kingSq + 1] &&
-        !state.board[kingSq + 2] &&
-        !isAttacked(state, kingSq + 1) &&
-        !isAttacked(state, kingSq + 2)
-      )
-        return true
-    }
-    if (state.castling[state.turn] & BITS.QSIDE_CASTLE) {
-      if (
-        !state.board[kingSq - 1] &&
-        !state.board[kingSq - 2] &&
-        !state.board[kingSq - 3] &&
-        !isAttacked(state, kingSq - 1) &&
-        !isAttacked(state, kingSq - 2)
-      )
-        return true
-    }
-  }
-
   return false
 }
 
@@ -1136,7 +1113,7 @@ type ParsedMove = {
   check?: string
 }
 
-function extractMove(move: string): ParsedMove {
+export function extractMove(move: string): ParsedMove {
   const len = move.length
   if (len < 2) return {}
 
@@ -1286,35 +1263,6 @@ function extractMove(move: string): ParsedMove {
   return { piece, disambiguator, fromIdx, toIdx, promotion, check }
 }
 
-function inferSquare(
-  san: string,
-  state: Readonly<BoardState>,
-): Square | undefined {
-  const matches = san.match(/[a-h][1-8]/g)
-  if (matches && matches.length) {
-    const square = matches[matches.length - 1]
-    if (square in SQUARES) return square as Square
-  }
-  if (san === 'O-O') return state.turn === WHITE ? 'g1' : 'g8'
-  if (san === 'O-O-O') return state.turn === WHITE ? 'c1' : 'c8'
-}
-
-function inferPieceType(san: string) {
-  let pieceType = san.charAt(0)
-  if (pieceType >= 'a' && pieceType <= 'h') {
-    const matches = san.match(/[a-h]\d.*[a-h]\d/)
-    if (matches) {
-      return undefined
-    }
-    return PAWN
-  }
-  pieceType = pieceType.toLowerCase()
-  if (pieceType === 'o') {
-    return KING
-  }
-  return pieceType as PieceSymbol
-}
-
 function strippedSan(move: string) {
   return move.replace(/=/, '').replace(/[+#]?[?!]*$/, '')
 }
@@ -1374,10 +1322,6 @@ export function sanToMove(
     // generateMoves is unfiltered by piece (fromIdx filter narrows it down)
     pieceType = parsed.fromIdx !== undefined ? undefined : PAWN
     toSq = parsed.toIdx
-  } else {
-    // extractMove couldn't parse — fall through to legacy path
-    pieceType = inferPieceType(strippedSan(move))
-    toSq = inferSquare(strippedSan(move), state)
   }
   let moves = generateMoves(state, { piece: pieceType, to: toSq })
 
@@ -1482,10 +1426,6 @@ export function sanToMove(
     from = matches[2] as Square
     to = matches[3] as Square
     promotion = matches[4]
-
-    if (from.length == 1) {
-      overlyDisambiguated = true
-    }
   } else {
     /*
      * The [a-h]?[1-8]? portion of the regex below handles moves that may be
@@ -1528,19 +1468,10 @@ export function sanToMove(
     }
   }
 
+  if (!from) return null
+
   for (let i = 0, len = moves.length; i < len; i++) {
-    if (!from) {
-      // if there is no from square, it could be just 'x' missing from a capture
-      // or the wrong letter case with the piece or promotion
-      if (
-        cleanMove.toLowerCase() ===
-        strippedMoves[i].replace('x', '').toLowerCase()
-      ) {
-        moves[i].san = moveToSan(state, moves[i], moves)
-        return moves[i]
-      }
-      // hand-compare move properties with the results from our permissive regex
-    } else if (
+    if (
       (!piece || piece.toLowerCase() == moves[i].piece) &&
       SQUARES[from] == moves[i].from &&
       SQUARES[to] == moves[i].to &&
