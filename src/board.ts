@@ -66,7 +66,7 @@ for (let i = 0; i < 128; i++) {
 }
 
 // Precomputed: 0x88 square index → BigInt bit mask
-const SQ_BIT: bigint[] = new Array(128)
+export const SQ_BIT: bigint[] = new Array(128)
 for (let i = 0; i < 128; i++) {
   if (i & 0x88) {
     SQ_BIT[i] = 0n
