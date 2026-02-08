@@ -1,7 +1,10 @@
-import { loadPgn, walkPgn } from '../src/pgn'
+import { loadPgn, walkPgn, addNag, isMainline } from '../src/pgn'
 import { Chess } from '../src/chess'
-import { moveToSan, getFen } from '../src/move'
-import { HexMove, BoardState } from '../src/interfaces/types'
+import { moveToSan, getFen, loadFen } from '../src/move'
+import { HexMove, BoardState, HexState } from '../src/interfaces/types'
+import { TreeNode } from 'treenode.ts'
+import { Nag } from '../src/interfaces/nag'
+import { cloneBoardState } from '../src/state'
 
 describe('pgn', () => {
   describe('loadPgn', () => {
@@ -889,5 +892,135 @@ describe('pgn', () => {
       // e4=0, d4=1, d5=1, Nf6=2, e5=0
       expect(depths).toEqual([0, 1, 1, 2, 0])
     })
+
+    it('parses standalone NAG shortcuts (! ? !! ?? !? ?!)', () => {
+      // Standalone NAG tokens separated by space from the move
+      const pgn = '1. e4 ! e5 ? 2. Nf3 !! Nc6 ?? 3. Bc4 !? Bc5 ?!'
+      const nags: (number[] | undefined)[] = []
+      walkPgn(pgn, {
+        onMove: (_move, _boardState, _comment, _startingComment, moveNags) => {
+          nags.push(moveNags)
+        },
+      })
+      expect(nags[0]).toContain(Nag.GOOD_MOVE) // !
+      expect(nags[1]).toContain(Nag.MISTAKE) // ?
+      expect(nags[2]).toContain(Nag.BRILLIANT_MOVE) // !!
+      expect(nags[3]).toContain(Nag.BLUNDER) // ??
+      expect(nags[4]).toContain(Nag.SPECULATIVE_MOVE) // !?
+      expect(nags[5]).toContain(Nag.DUBIOUS_MOVE) // ?!
+    })
+  })
+})
+
+describe('addNag', () => {
+  it('adds a NAG to a node without existing NAGs', () => {
+    const boardState = loadFen(
+      'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+    )!
+    const node = new TreeNode<HexState>({ boardState })
+    addNag(node, Nag.GOOD_MOVE)
+    expect(node.model.nags).toEqual([Nag.GOOD_MOVE])
+  })
+
+  it('does not add duplicate NAGs', () => {
+    const boardState = loadFen(
+      'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+    )!
+    const node = new TreeNode<HexState>({ boardState })
+    addNag(node, Nag.GOOD_MOVE)
+    addNag(node, Nag.GOOD_MOVE)
+    expect(node.model.nags).toEqual([Nag.GOOD_MOVE])
+  })
+})
+
+describe('isMainline', () => {
+  it('returns true for root node', () => {
+    const boardState = loadFen(
+      'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+    )!
+    const root = new TreeNode<HexState>({ boardState })
+    expect(isMainline(root)).toBe(true)
+  })
+
+  it('returns true for mainline child', () => {
+    const boardState = loadFen(
+      'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+    )!
+    const root = new TreeNode<HexState>({ boardState })
+    const child = root.addModel({ boardState: cloneBoardState(boardState) })
+    expect(isMainline(child)).toBe(true)
+  })
+
+  it('returns false for variation child', () => {
+    const boardState = loadFen(
+      'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+    )!
+    const root = new TreeNode<HexState>({ boardState })
+    root.addModel({ boardState: cloneBoardState(boardState) }) // child 0 (mainline)
+    const variation = root.addModel({
+      boardState: cloneBoardState(boardState),
+    }) // child 1
+    expect(isMainline(variation)).toBe(false)
+  })
+})
+
+describe('walkPgn edge cases', () => {
+  it('handles line comments with ;', () => {
+    const pgn = '1. e4 ;this is a comment\ne5'
+    const comments: (string | undefined)[] = []
+    walkPgn(pgn, {
+      onMove: (_move, _boardState, comment) => {
+        comments.push(comment)
+      },
+    })
+    expect(comments[0]).toBe('this is a comment')
+  })
+
+  it('handles NAG added to pending move that has no existing nags', () => {
+    const pgn = '1. e4 $1 $3 e5'
+    const nags: (number[] | undefined)[] = []
+    walkPgn(pgn, {
+      onMove: (_move, _boardState, _comment, _startingComment, moveNags) => {
+        nags.push(moveNags)
+      },
+    })
+    expect(nags[0]).toContain(1)
+    expect(nags[0]).toContain(3)
+  })
+
+  it('addPendingNag does nothing when no pending move', () => {
+    // A NAG at the very start before any move - should be ignored
+    const pgn = '$1 1. e4 e5'
+    const nags: (number[] | undefined)[] = []
+    walkPgn(pgn, {
+      onMove: (_move, _boardState, _comment, _startingComment, moveNags) => {
+        nags.push(moveNags)
+      },
+    })
+    // The first move shouldn't have the orphaned NAG
+    expect(nags[0]).toBeUndefined()
+  })
+
+  it('handles line comment as starting comment', () => {
+    const pgn = ';Opening line comment\n1. e4 e5'
+    const startingComments: (string | undefined)[] = []
+    walkPgn(pgn, {
+      onMove: (_move, _boardState, _comment, startingComment) => {
+        startingComments.push(startingComment)
+      },
+    })
+    expect(startingComments[0]).toBe('Opening line comment')
+  })
+})
+
+describe('invalid FEN error paths', () => {
+  it('walkPgn throws on invalid FEN in header (line 210)', () => {
+    const pgn = '[FEN "invalid/fen"]\n\n1. e4'
+    expect(() => walkPgn(pgn, { onMove: () => {} })).toThrow('Invalid FEN')
+  })
+
+  it('loadPgn throws on invalid FEN in header (line 432)', () => {
+    const pgn = '[FEN "invalid/fen"]\n\n1. e4'
+    expect(() => loadPgn(pgn)).toThrow('Invalid FEN')
   })
 })

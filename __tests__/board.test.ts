@@ -1,5 +1,11 @@
 import { Chess } from '../src/chess'
-import { fromBitBoard, mapToAscii, toBitBoard } from '../src/board'
+import {
+  fromBitBoard,
+  mapToAscii,
+  toBitBoard,
+  toNibbleBoard,
+  fromNibbleBoard,
+} from '../src/board'
 import { DEFAULT_POSITION } from '../src/constants'
 import { loadFen } from '../src/move'
 
@@ -33,5 +39,25 @@ describe('mapToAscii', () => {
         '  +------------------------+\n' +
         '    a  b  c  d  e  f  g  h',
     )
+  })
+})
+
+describe('nibbleBoard', () => {
+  it('round-trips through toNibbleBoard and fromNibbleBoard', () => {
+    const chess = new Chess()
+    const board = chess.state.board
+    const nibble = toNibbleBoard(board)
+    const restored = fromNibbleBoard(nibble)
+    expect(restored).toEqual(board)
+  })
+
+  it('round-trips a position with pawns and pieces of both colors', () => {
+    const chess = new Chess(
+      'r1bqkbnr/pppppppp/2n5/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 1 2',
+    )
+    const board = chess.state.board
+    const nibble = toNibbleBoard(board)
+    const restored = fromNibbleBoard(nibble)
+    expect(restored).toEqual(board)
   })
 })

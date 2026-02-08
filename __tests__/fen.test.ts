@@ -363,7 +363,9 @@ describe('validateFen', () => {
       {
         fen: '3r2k1/p1q2pp1/1n2rn1p/1B2p3/P1p1P3/2P3BP/4QPP1/1R2R1K1 b - - 1 25',
       },
-      { fen: '8/p7/1b2BkR1/5P2/4K3/7r/P7/8 b - - 9 52' },
+      {
+        fen: '8/p7/1b2BkR1/5P2/4K3/7r/P7/8 b - - 9 52',
+      },
       {
         fen: '2rq2k1/p4p1p/1p1prp2/1Ppb4/8/P1QPP1P1/1B3P1P/R3R1K1 w - - 2 20',
       },
@@ -465,6 +467,32 @@ describe('validateFen', () => {
           expect(Object.keys(errors)).toContain(errorType)
         }
       })
+    })
+  })
+
+  describe('legal validation', () => {
+    it('returns KINGS error when a king is missing', () => {
+      const errors = validateFen(
+        'rnbq1bnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+        { legal: true },
+      )
+      expect(Object.keys(errors)).toContain('KINGS')
+    })
+
+    it('returns PAWNS error when pawns are on rank 1 or 8', () => {
+      const errors = validateFen(
+        'Pnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+        { legal: true },
+      )
+      expect(Object.keys(errors)).toContain('PAWNS')
+    })
+
+    it('returns no errors for valid legal FEN', () => {
+      const errors = validateFen(
+        'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+        { legal: true },
+      )
+      expect(Object.keys(errors).length).toBe(0)
     })
   })
 })
