@@ -199,7 +199,9 @@ export type ParsedMove = {
   san?: string
   to?: Square
   from?: Square
-  disambiguator?: string
+  toIdx?: number // 0x88 index of target square
+  fromIdx?: number // 0x88 index of source square
+  disambiguator?: number // file (0-7) or rank (0-7 + 8 offset) as charCode
   piece?: PieceSymbol
   promotion?: PieceSymbol
   check?: string
