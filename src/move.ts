@@ -41,7 +41,6 @@ import {
   Move,
   Square,
   PartialMove,
-  ParsedMove,
   HexState,
   GameState,
   PieceSymbol,
@@ -1083,6 +1082,15 @@ function sqIdx(fc: number, rc: number): number {
   return fc - 97 + (56 - rc) * 16
 }
 
+type ParsedMove = {
+  toIdx?: number // 0x88 index of target square
+  fromIdx?: number // 0x88 index of source square
+  disambiguator?: number // charCode: file 'a'-'h' (97-104) or rank '1'-'8' (49-56)
+  piece?: PieceSymbol
+  promotion?: PieceSymbol
+  check?: string
+}
+
 function extractMove(move: string): ParsedMove {
   const len = move.length
   if (len < 2) return {}
@@ -1224,21 +1232,15 @@ function extractMove(move: string): ParsedMove {
     if (!matches) return {}
     const mTo = toSquare(matches[3])
     return {
-      san: matches[0]?.replace(/=([qrbn])/, (c) => c.toUpperCase()),
       piece: toPieceSymbol(matches[1]),
       disambiguator:
         matches[2] && matches[2].length === 1
           ? matches[2].charCodeAt(0)
           : undefined,
-      from:
-        matches[2] && matches[2].length === 2
-          ? toSquare(matches[2])
-          : undefined,
       fromIdx:
         matches[2] && matches[2].length === 2
           ? SQUARES[matches[2] as Square]
           : undefined,
-      to: mTo,
       toIdx: mTo ? SQUARES[mTo] : undefined,
       promotion: matches[4] ? toPieceSymbol(matches[4]) : undefined,
       check: matches[5],
