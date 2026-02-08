@@ -1352,13 +1352,13 @@ export function sanToMove(
   const parsed = extractMove(move)
 
   // Derive piece type and target square from parsed result
-  const isCastling = move[0] === 'O' || move[0] === '0'
+  const isCastling = move.startsWith('O-O') || move.startsWith('0-0')
   let pieceType: PieceSymbol | undefined
   let toSq: Square | number | undefined
   if (isCastling) {
     pieceType = KING
     toSq =
-      move.includes('O-O-O') || move.includes('0-0-0')
+      move.startsWith('O-O-O') || move.startsWith('0-0-0')
         ? state.turn === WHITE
           ? SQUARES.c1
           : SQUARES.c8
@@ -1370,7 +1370,8 @@ export function sanToMove(
     toSq = parsed.toIdx
   } else if (parsed.toIdx !== undefined) {
     // No piece specified: pawn if no full from-square (e.g. "e4", "exd5"),
-    // otherwise leave undefined for long algebraic like "e2-e4"
+    // otherwise leave undefined for long algebraic like "e2-e4" so
+    // generateMoves is unfiltered by piece (fromIdx filter narrows it down)
     pieceType = parsed.fromIdx !== undefined ? undefined : PAWN
     toSq = parsed.toIdx
   } else {
@@ -1402,6 +1403,8 @@ export function sanToMove(
       if (pFromIdx !== undefined) {
         if (m.from !== pFromIdx) continue
       } else if (pDisambig !== undefined) {
+        // File charCode ('a'=97..): extract file from 0x88 index via (& 7)
+        // Rank charCode ('1'=49..): extract rank via (>> 4), mapped so '1'→7 '8'→0
         if (
           pDisambig >= CC_a
             ? (m.from & 7) !== pDisambig - CC_a
