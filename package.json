@@ -47,6 +47,7 @@
     "lint": "prettier --write . && eslint . --ext .js,.jsx,.ts,.tsx --fix",
     "prepare": "npm run build && husky",
     "test": "jest",
+    "test:coverage": "jest --coverage",
     "typecheck": "tsc --noEmit"
   },
   "lint-staged": {

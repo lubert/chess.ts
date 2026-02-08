@@ -12,9 +12,16 @@ import {
   KING,
   WHITE,
   BLACK,
+  BITS,
 } from '../src/constants'
 import { algebraic } from '../src/utils'
-import { PieceSymbol, Move, PartialMove, Square } from '../src/interfaces/types'
+import {
+  PieceSymbol,
+  Move,
+  PartialMove,
+  Square,
+  HexMove,
+} from '../src/interfaces/types'
 
 const SQUARES_LIST: string[] = []
 for (let i = SQUARES.a8; i <= SQUARES.h1; i++) {
@@ -2466,5 +2473,318 @@ describe('.clone', () => {
     expect(chess.state).not.toBe(clone.state)
     clone.putPiece({ type: 'q', color: 'w' }, 'e4')
     expect(chess.fen()).not.toBe(clone.fen())
+  })
+})
+
+describe('currentHexNode', () => {
+  it('returns the current hex node', () => {
+    const chess = new Chess()
+    chess.move('e4')
+    const node = chess.currentHexNode
+    expect(node.model.boardState).toBeDefined()
+    expect(node.model.move).toBeDefined()
+  })
+})
+
+describe('setCurrentNode', () => {
+  it('sets current node by indices', () => {
+    const chess = new Chess()
+    chess.move('e4')
+    chess.move('e5')
+    // Navigate to e4 node (index [0])
+    expect(chess.setCurrentNode([0])).toBe(true)
+    expect(chess.fen()).toBe(
+      'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1',
+    )
+  })
+
+  it('sets current node by pathKey string', () => {
+    const chess = new Chess()
+    chess.move('e4')
+    chess.move('e5')
+    // pathKey for [0,0] is "2" (two consecutive first-children)
+    const pathKey = chess.currentHexNode.pathKey
+    chess.undoAll()
+    expect(chess.setCurrentNode(pathKey)).toBe(true)
+  })
+
+  it('returns false for invalid key', () => {
+    const chess = new Chess()
+    expect(chess.setCurrentNode([99, 99])).toBe(false)
+  })
+})
+
+describe('undoAll', () => {
+  it('resets to root and returns empty path moves', () => {
+    const chess = new Chess()
+    chess.move('e4')
+    chess.move('e5')
+    const moves = chess.undoAll()
+    // undoAll sets current to root, then returns path from root (no moves)
+    expect(moves.length).toBe(0)
+    expect(chess.fen()).toBe(
+      'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+    )
+  })
+})
+
+describe('redo / redoAll', () => {
+  it('redo returns the next mainline move', () => {
+    const chess = new Chess()
+    chess.move('e4')
+    chess.move('e5')
+    chess.undoAll()
+    const move = chess.redo()
+    expect(move).not.toBeNull()
+    expect(move!.san).toBe('e4')
+  })
+
+  it('redo returns null at leaf', () => {
+    const chess = new Chess()
+    chess.move('e4')
+    const move = chess.redo()
+    // Already at the end, so redo returns current node's move
+    expect(move).not.toBeNull()
+  })
+
+  it('redoAll returns all mainline moves', () => {
+    const chess = new Chess()
+    chess.move('e4')
+    chess.move('e5')
+    chess.undoAll()
+    const moves = chess.redoAll()
+    expect(moves.length).toBe(2)
+  })
+})
+
+describe('turn', () => {
+  it('returns the current turn', () => {
+    const chess = new Chess()
+    expect(chess.turn()).toBe('w')
+    chess.move('e4')
+    expect(chess.turn()).toBe('b')
+  })
+})
+
+describe('inCheck', () => {
+  it('returns true when in check', () => {
+    const chess = new Chess(
+      'rnb1kbnr/pppp1ppp/8/4p3/5PPq/8/PPPPP2P/RNBQKBNR w KQkq - 1 3',
+    )
+    expect(chess.inCheck()).toBe(true)
+  })
+  it('returns false when not in check', () => {
+    const chess = new Chess()
+    expect(chess.inCheck()).toBe(false)
+  })
+})
+
+describe('gameOver', () => {
+  it('returns true for checkmate', () => {
+    const chess = new Chess(
+      'rnb1kbnr/pppp1ppp/8/4p3/5PPq/8/PPPPP2P/RNBQKBNR w KQkq - 1 3',
+    )
+    expect(chess.gameOver()).toBe(true)
+  })
+  it('returns true for stalemate', () => {
+    const chess = new Chess('4k3/4P3/4K3/8/8/8/8/8 b - - 0 78')
+    expect(chess.gameOver()).toBe(true)
+  })
+  it('returns false for ongoing game', () => {
+    const chess = new Chess()
+    expect(chess.gameOver()).toBe(false)
+  })
+})
+
+describe('squareColor', () => {
+  it('returns light for h1', () => {
+    const chess = new Chess()
+    expect(chess.squareColor('h1')).toBe('light')
+  })
+  it('returns dark for a1', () => {
+    const chess = new Chess()
+    expect(chess.squareColor('a1')).toBe('dark')
+  })
+  it('returns null for invalid square', () => {
+    const chess = new Chess()
+    expect(chess.squareColor('z9')).toBeNull()
+  })
+})
+
+describe('validateMoves', () => {
+  it('returns null for invalid sequence', () => {
+    const chess = new Chess()
+    expect(chess.validateMoves(['e4', 'INVALID'])).toBeNull()
+  })
+  it('returns move array for valid sequence', () => {
+    const chess = new Chess()
+    const result = chess.validateMoves(['e4', 'e5'])
+    expect(result).not.toBeNull()
+    expect(result!.length).toBe(2)
+  })
+})
+
+describe('validateFen wrapper', () => {
+  it('delegates to fen.ts validateFen', () => {
+    const chess = new Chess()
+    const errors = chess.validateFen(
+      'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+    )
+    expect(Object.keys(errors).length).toBe(0)
+  })
+})
+
+describe('isAttacked', () => {
+  it('returns true when square is attacked', () => {
+    const chess = new Chess()
+    chess.move('e4')
+    expect(chess.isAttacked('d5', 'w')).toBe(true)
+  })
+})
+
+describe('isAttacking', () => {
+  it('returns true when piece has legal move to target', () => {
+    // Use a position where a piece can actually move to the target
+    const chess = new Chess()
+    // Rook on a1 can attack a2 (pawn push doesn't count for isAttacking, use another piece)
+    // Let's use knight: Nc3 can reach e4
+    chess.move('Nc3')
+    chess.move('e5')
+    expect(chess.isAttacking('c3', 'e4')).toBe(true)
+  })
+})
+
+describe('isThreatening', () => {
+  it('returns true when piece threatens target', () => {
+    const chess = new Chess()
+    chess.move('e4')
+    expect(chess.isThreatening('e4', 'd5')).toBe(true)
+  })
+  it('returns false when piece does not threaten target', () => {
+    const chess = new Chess()
+    expect(chess.isThreatening('e2', 'e3')).toBe(false)
+  })
+})
+
+describe('annotations', () => {
+  it('addNag and getNags', () => {
+    const chess = new Chess()
+    chess.move('e4')
+    chess.addNag(1)
+    expect(chess.getNags()).toEqual([1])
+    // Adding same NAG again should not duplicate
+    chess.addNag(1)
+    expect(chess.getNags()).toEqual([1])
+    // Adding different NAG
+    chess.addNag(3)
+    expect(chess.getNags()).toEqual([1, 3])
+  })
+
+  it('setComment with { triggers cleanComment', () => {
+    const chess = new Chess()
+    chess.move('e4')
+    chess.setComment('test {brace} end')
+    expect(chess.getComment()).toBe('test [brace] end')
+  })
+})
+
+describe('deleteNode', () => {
+  it('deletes a node from the tree', () => {
+    const chess = new Chess()
+    chess.move('e4')
+    chess.move('e5')
+    // Delete the e5 node
+    expect(chess.deleteNode([0, 0])).toBe(true)
+    // The tree should only have e4 now
+    expect(chess.hexTree.children[0].children.length).toBe(0)
+  })
+
+  it('returns false when trying to delete root', () => {
+    const chess = new Chess()
+    expect(chess.deleteNode([])).toBe(false)
+  })
+})
+
+describe('promoteVariation / demoteVariation', () => {
+  it('promotes a variation', () => {
+    const chess = new Chess()
+    chess.move('e4')
+    chess.undo()
+    chess.move('d4', { asVariation: true })
+    // Tree: root -> [e4 (mainline), d4 (variation)]
+    // After promoting d4, it becomes index 0
+    chess.promoteVariation([1])
+    expect(chess.hexTree.children[0].model.move!.san).toBe('d4')
+  })
+
+  it('demotes a variation', () => {
+    const chess = new Chess()
+    chess.move('e4')
+    chess.undo()
+    chess.move('d4', { asVariation: true })
+    // Tree: root -> [e4 (mainline), d4 (variation)]
+    // After demoting e4 (index 0), d4 goes to index 0
+    chess.demoteVariation([0])
+    expect(chess.hexTree.children[0].model.move!.san).toBe('d4')
+  })
+})
+
+describe('deleteVariation', () => {
+  it('deletes a variation from the tree', () => {
+    const chess = new Chess()
+    chess.move('e4')
+    chess.undo()
+    chess.move('d4', { asVariation: true })
+    chess.deleteVariation([1])
+    expect(chess.hexTree.children.length).toBe(1)
+  })
+
+  it('traverses up to find deletable ancestor', () => {
+    const chess = new Chess()
+    chess.move('e4')
+    chess.undo()
+    chess.move('d4', { asVariation: true })
+    chess.move('d5') // deep in variation
+    // Delete the d5 node — should walk up to d4 and delete it
+    chess.deleteVariation([1, 0])
+    expect(chess.hexTree.children.length).toBe(1)
+  })
+})
+
+describe('deleteRemainingMoves', () => {
+  it('deletes all children from a node', () => {
+    const chess = new Chess()
+    chess.move('e4')
+    chess.move('e5')
+    chess.move('Nf3')
+    // Delete remaining from e4 node (index [0])
+    chess.deleteRemainingMoves([0])
+    const e4Node = chess.hexTree.children[0]
+    expect(e4Node.children.length).toBe(0)
+  })
+})
+
+describe('move with object (no san)', () => {
+  it('assigns san when making a move via object notation', () => {
+    const chess = new Chess()
+    // Use object notation - no child nodes exist, so processMove is called
+    const move = chess.move({ from: 'e2', to: 'e4' })
+    expect(move).not.toBeNull()
+    expect(move!.san).toBe('e4')
+  })
+
+  it('makeMove assigns san when HexMove has no san', () => {
+    const chess = new Chess()
+    // Call protected makeMove directly with a HexMove that has no san
+    const hexMove: Omit<HexMove, 'san'> = {
+      color: 'w',
+      from: SQUARES.e2,
+      to: SQUARES.e4,
+      flags: BITS.BIG_PAWN,
+      piece: 'p',
+    }
+    ;(chess as any).makeMove(hexMove)
+    // makeMove should have assigned san
+    expect((hexMove as HexMove).san).toBe('e4')
   })
 })
