@@ -163,6 +163,13 @@ export function createWalkPgnContext(): WalkPgnContext {
   }
 }
 
+type PendingMove = {
+  move: HexMove
+  comment?: string
+  startingComment?: string
+  nags?: number[]
+}
+
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /** @public */
 export function walkPgn(pgn: string, options: WalkPgnOptions): HeaderMap {
@@ -214,12 +221,6 @@ export function walkPgn(pgn: string, options: WalkPgnOptions): HeaderMap {
 
   // Deferred move callback — buffer the move until the next move/structure token
   // so that post-move comments and NAGs are included
-  type PendingMove = {
-    move: HexMove
-    comment?: string
-    startingComment?: string
-    nags?: number[]
-  }
   let pendingMoveInfo: PendingMove | undefined
   let pendingStartingComment: string | undefined
   let inVariationStart = false
@@ -285,9 +286,10 @@ export function walkPgn(pgn: string, options: WalkPgnOptions): HeaderMap {
     skipWhitespace()
     if (pos >= len) break
 
-    const ch = movetext[pos]
+    const ch = movetext.charCodeAt(pos)
 
-    if (ch === '{') {
+    if (ch === 123) {
+      // {
       // Block comment — scan to closing }
       const start = pos + 1
       const end = movetext.indexOf('}', start)
@@ -299,7 +301,8 @@ export function walkPgn(pgn: string, options: WalkPgnOptions): HeaderMap {
         setComment(movetext.substring(start, end))
         pos = end + 1
       }
-    } else if (ch === ';') {
+    } else if (ch === 59) {
+      // ;
       // Line comment — scan to end of line; setComment handles trim
       const start = pos + 1
       let end = movetext.indexOf('\n', start)
@@ -308,7 +311,8 @@ export function walkPgn(pgn: string, options: WalkPgnOptions): HeaderMap {
         setComment(movetext.substring(start, end))
       }
       pos = end
-    } else if (ch === '(') {
+    } else if (ch === 40) {
+      // (
       // Start variation
       if (!flushPending()) break
       if (!undoStack.length) throw new Error('Missing parent')
@@ -322,7 +326,8 @@ export function walkPgn(pgn: string, options: WalkPgnOptions): HeaderMap {
       })
       if (onStartVariation) onStartVariation()
       inVariationStart = true
-    } else if (ch === ')') {
+    } else if (ch === 41) {
+      // )
       // End variation
       if (!flushPending()) break
       if (!variationStack.length) throw new Error('Mismatched parentheses')
@@ -342,7 +347,6 @@ export function walkPgn(pgn: string, options: WalkPgnOptions): HeaderMap {
       const start = pos
       while (pos < len && !isStructural(movetext.charCodeAt(pos))) pos++
       let token = movetext.substring(start, pos)
-      if (!token) continue
 
       if (token.startsWith('$')) {
         addPendingNag(parseInt(token.substring(1), 10))
