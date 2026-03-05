@@ -181,34 +181,23 @@ export function walkPgn(pgn: string, options: WalkPgnOptions): HeaderMap {
 
   const header: HeaderMap = {}
 
-  // Phase 1: Extract headers and concatenate movetext into a single string
-  let movetextStart = -1
+  // Extract headers, then concatenate movetext lines into a single string
+  const movetextParts: string[] = []
+  let inHeaders = true
   for (let li = 0; li < lines.length; li++) {
     const line = lines[li]
-    if (movetextStart === -1) {
+    if (inHeaders) {
       if (!line || line.startsWith('%')) continue
       if (line.startsWith('[')) {
         const match = line.match(REGEXP_HEADER)
         if (match) header[match[1]] = match[2]
         continue
       }
-      movetextStart = li
-    } else {
-      if (!line) break
-    }
+      inHeaders = false
+    } else if (!line) break
+    movetextParts.push(line)
   }
-
-  // Build movetext string — join the relevant lines with \n
-  let movetext = ''
-  if (movetextStart !== -1) {
-    const parts: string[] = []
-    for (let li = movetextStart; li < lines.length; li++) {
-      const line = lines[li]
-      if (li > movetextStart && !line) break
-      parts.push(line)
-    }
-    movetext = parts.join('\n')
-  }
+  const movetext = movetextParts.join('\n')
 
   // Set up board state
   const fen = header.FEN || DEFAULT_POSITION
@@ -270,22 +259,22 @@ export function walkPgn(pgn: string, options: WalkPgnOptions): HeaderMap {
   const len = movetext.length
   let pos = 0
 
-  // Characters that delimit tokens
-  const isStructural = (ch: string) =>
-    ch === '{' ||
-    ch === '}' ||
-    ch === '(' ||
-    ch === ')' ||
-    ch === ';' ||
-    ch === ' ' ||
-    ch === '\t' ||
-    ch === '\n' ||
-    ch === '\r'
+  // Character codes that delimit tokens: { ( ) ; and whitespace
+  // Note: } is not included — it only appears inside {…} comments which
+  // are handled by indexOf before the token scanner runs.
+  const isStructural = (code: number) =>
+    code === 123 || // {
+    code === 40 || // (
+    code === 41 || // )
+    code === 59 || // ;
+    code === 32 || // space
+    code === 9 || // tab
+    code === 10 || // \n
+    code === 13 // \r
 
   const skipWhitespace = () => {
     while (pos < len) {
       const ch = movetext.charCodeAt(pos)
-      // space=32, tab=9, newline=10, carriage-return=13
       if (ch === 32 || ch === 9 || ch === 10 || ch === 13) pos++
       else break
     }
@@ -311,20 +300,12 @@ export function walkPgn(pgn: string, options: WalkPgnOptions): HeaderMap {
         pos = end + 1
       }
     } else if (ch === ';') {
-      // Line comment — scan to end of line
+      // Line comment — scan to end of line; setComment handles trim
       const start = pos + 1
       let end = movetext.indexOf('\n', start)
       if (end === -1) end = len
-      // Trim leading whitespace from line comment
-      let trimStart = start
-      while (
-        trimStart < end &&
-        (movetext[trimStart] === ' ' || movetext[trimStart] === '\t')
-      ) {
-        trimStart++
-      }
-      if (trimStart < end) {
-        setComment(movetext.substring(trimStart, end))
+      if (start < end) {
+        setComment(movetext.substring(start, end))
       }
       pos = end
     } else if (ch === '(') {
@@ -359,7 +340,7 @@ export function walkPgn(pgn: string, options: WalkPgnOptions): HeaderMap {
     } else {
       // Scan a token: read until whitespace or structural char
       const start = pos
-      while (pos < len && !isStructural(movetext[pos])) pos++
+      while (pos < len && !isStructural(movetext.charCodeAt(pos))) pos++
       let token = movetext.substring(start, pos)
       if (!token) continue
 
