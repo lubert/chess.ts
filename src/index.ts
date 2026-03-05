@@ -15,6 +15,7 @@ export {
   Piece,
   PieceSymbol,
   Square,
+  WalkPgnContext,
   WalkPgnOptions,
 } from './interfaces/types'
 export { Nag, NagMap } from './interfaces/nag'
@@ -67,4 +68,4 @@ export {
   isAttacking,
   isThreatening,
 } from './move'
-export { walkPgn } from './pgn'
+export { walkPgn, createWalkPgnContext } from './pgn'

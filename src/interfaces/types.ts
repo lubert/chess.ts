@@ -183,9 +183,16 @@ export type UndoInfo = {
 }
 
 /** @public */
+export type WalkPgnContext = {
+  undoStack: UndoInfo[]
+  variationStack: Array<{ restoreDepth: number; replayUndo: UndoInfo }>
+}
+
+/** @public */
 export type WalkPgnOptions = {
   newline?: string
   skipSan?: boolean
+  context?: WalkPgnContext
   onMove: (
     move: HexMove,
     boardState: Readonly<BoardState>,
