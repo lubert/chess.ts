@@ -163,6 +163,8 @@ export function createWalkPgnContext(): WalkPgnContext {
   }
 }
 
+const REGEXP_WHITESPACE_RUN = /\s+/g
+
 type PendingMove = {
   move: HexMove
   comment?: string
@@ -247,7 +249,7 @@ export function walkPgn(pgn: string, options: WalkPgnOptions): HeaderMap {
 
   const setComment = (raw: string) => {
     // Normalize: collapse whitespace runs (including newlines) to single space, trim
-    const commentText = raw.replace(/\s+/g, ' ').trim()
+    const commentText = raw.replace(REGEXP_WHITESPACE_RUN, ' ').trim()
     if (!commentText) return
     if (inVariationStart || atRootNoMoves) {
       pendingStartingComment = commentText
