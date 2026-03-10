@@ -401,6 +401,17 @@ describe('Chess960 / X-FEN', () => {
       const pgn = chess.pgn()
       expect(pgn).toContain('[Variant "Chess960"]')
     })
+
+    it('replays an existing move via object notation using UCI comparison', () => {
+      const chess = new Chess(generateChess960Fen(518), { chess960: true })
+      chess.move('e4')
+      chess.undo()
+      // Replay the same move using object notation — triggers the
+      // moveToUci(childMove, parentState) === moveToUci(move, parentState) branch
+      const result = chess.move({ from: 'e2', to: 'e4' })
+      expect(result).not.toBeNull()
+      expect(result!.san).toBe('e4')
+    })
   })
 
   describe('moveToUci with Chess960 castling', () => {
