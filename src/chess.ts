@@ -726,6 +726,9 @@ export class Chess {
     this._tree = tree
     this._currentNode = currentNode
     this.header = header
+    if (header.Variant === 'Chess960' || header.Variant === 'Fischerandom') {
+      this._chess960 = true
+    }
   }
 
   /**
@@ -1407,6 +1410,10 @@ export class Chess {
     } else {
       delete this.header['SetUp']
       delete this.header['FEN']
+    }
+
+    if (this._chess960) {
+      this.header['Variant'] = 'Chess960'
     }
   }
 

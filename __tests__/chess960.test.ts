@@ -369,6 +369,38 @@ describe('Chess960 / X-FEN', () => {
       const chess = new Chess()
       expect(chess.chess960).toBe(false)
     })
+
+    it('sets Variant header when chess960 is true', () => {
+      const chess = new Chess(generateChess960Fen(0), { chess960: true })
+      expect(chess.header.Variant).toBe('Chess960')
+    })
+
+    it('does not set Variant header when chess960 is false', () => {
+      const chess = new Chess()
+      expect(chess.header.Variant).toBeUndefined()
+    })
+
+    it('loadPgn sets chess960 flag from Variant header', () => {
+      const chess = new Chess()
+      chess.loadPgn(
+        '[Variant "Chess960"]\n[FEN "bbqnnrkr/pppppppp/8/8/8/8/PPPPPPPP/BBQNNRKR w KFkf - 0 1"]\n[SetUp "1"]\n\n*',
+      )
+      expect(chess.chess960).toBe(true)
+    })
+
+    it('loadPgn sets chess960 flag from Fischerandom variant', () => {
+      const chess = new Chess()
+      chess.loadPgn(
+        '[Variant "Fischerandom"]\n[FEN "bbqnnrkr/pppppppp/8/8/8/8/PPPPPPPP/BBQNNRKR w KFkf - 0 1"]\n[SetUp "1"]\n\n*',
+      )
+      expect(chess.chess960).toBe(true)
+    })
+
+    it('Variant header survives PGN round-trip', () => {
+      const chess = new Chess(generateChess960Fen(0), { chess960: true })
+      const pgn = chess.pgn()
+      expect(pgn).toContain('[Variant "Chess960"]')
+    })
   })
 
   describe('moveToUci with Chess960 castling', () => {
