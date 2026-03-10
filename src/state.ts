@@ -1,7 +1,7 @@
 import { BitState, BoardState, HexState, PieceSymbol } from './interfaces/types'
 import { fromCastlingBits, toBitBoard, toCastlingBits } from './board'
 import { bitToSquare, squareToBit } from './utils'
-import { EMPTY, WHITE, PIECE_TYPE_NUM, COLOR_NUM } from './constants'
+import { EMPTY, WHITE, PIECE_TYPE_NUM, COLOR_NUM, SQUARES } from './constants'
 import { cloneMove } from './move'
 
 export function defaultBoardState(): BoardState {
@@ -10,6 +10,10 @@ export function defaultBoardState(): BoardState {
     kings: { w: EMPTY, b: EMPTY },
     turn: WHITE,
     castling: { w: 0, b: 0 },
+    castlingRooks: {
+      w: { k: EMPTY, q: EMPTY },
+      b: { k: EMPTY, q: EMPTY },
+    },
     ep_square: EMPTY,
     half_moves: 0,
     move_number: 1,
@@ -32,6 +36,10 @@ export function cloneBoardState(state: BoardState): BoardState {
     kings: { ...state.kings },
     turn: state.turn,
     castling: { ...state.castling },
+    castlingRooks: {
+      w: { ...state.castlingRooks.w },
+      b: { ...state.castlingRooks.b },
+    },
     ep_square: state.ep_square,
     half_moves: state.half_moves,
     move_number: state.move_number,
@@ -59,11 +67,23 @@ export function fromBitState(state: BitState): BoardState {
       }
     }
   }
+  const castling = fromCastlingBits(state.castling)
+  const castlingRooks = {
+    w: {
+      k: castling.w & 32 ? SQUARES.h1 : EMPTY, // BITS.KSIDE_CASTLE = 32
+      q: castling.w & 64 ? SQUARES.a1 : EMPTY, // BITS.QSIDE_CASTLE = 64
+    },
+    b: {
+      k: castling.b & 32 ? SQUARES.h8 : EMPTY,
+      q: castling.b & 64 ? SQUARES.a8 : EMPTY,
+    },
+  }
   return {
     board,
     kings,
     turn: state.wtm ? 'w' : 'b',
-    castling: fromCastlingBits(state.castling),
+    castling,
+    castlingRooks,
     ep_square: bitToSquare(state.ep_square),
     half_moves: state.half_moves,
     move_number: state.move_number,

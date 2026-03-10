@@ -95,8 +95,12 @@ export function validateFen(
     errors.ACTIVE_COLOR = 'Active color is invalid'
   }
 
-  // 3rd field: Castling availability
-  if (!/^(KQ?k?q?|Qk?q?|kq?|q|-)$/.test(castling)) {
+  // 3rd field: Castling availability (standard KQkq or X-FEN A-Ha-h)
+  // Uppercase (white) must come before lowercase (black), no duplicates
+  if (
+    !/^([A-HKQ]{1,2}[a-hkq]{0,2}|[a-hkq]{1,2}|-)$/.test(castling) ||
+    (castling !== '-' && new Set(castling).size !== castling.length)
+  ) {
     errors.CASTLING = 'Castling availability is invalid'
   }
 

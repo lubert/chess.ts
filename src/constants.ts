@@ -270,14 +270,3 @@ export const COLOR_NUM: Record<Color, number> = {
   w: COLOR_W,
   b: COLOR_B,
 }
-
-export const ROOKS: Record<Color, { square: number; flag: number }[]> = {
-  w: [
-    { square: SQUARES.a1, flag: BITS.QSIDE_CASTLE },
-    { square: SQUARES.h1, flag: BITS.KSIDE_CASTLE },
-  ],
-  b: [
-    { square: SQUARES.a8, flag: BITS.QSIDE_CASTLE },
-    { square: SQUARES.h8, flag: BITS.KSIDE_CASTLE },
-  ],
-}
