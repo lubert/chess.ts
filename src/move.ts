@@ -1089,21 +1089,6 @@ function hasLegalMove(state: Readonly<BoardState>): boolean {
     if (!isAttacked(state, toSq, them, kingSq)) return true
   }
 
-  // Castling (only when not in check)
-  if (posInfo.checkerCount === 0) {
-    const backRank = kingSq & 0x70
-    if (state.castling[state.turn] & BITS.KSIDE_CASTLE) {
-      const rookSq = state.castlingRooks[state.turn].k
-      if (canCastle960(state, kingSq, rookSq, backRank + 6, backRank + 5, them))
-        return true
-    }
-    if (state.castling[state.turn] & BITS.QSIDE_CASTLE) {
-      const rookSq = state.castlingRooks[state.turn].q
-      if (canCastle960(state, kingSq, rookSq, backRank + 2, backRank + 3, them))
-        return true
-    }
-  }
-
   return false
 }
 
