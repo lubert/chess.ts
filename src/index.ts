@@ -1,10 +1,11 @@
-export { Chess } from './chess'
+export { Chess, ChessOptions } from './chess'
 export {
   BaseState,
   BitBoard,
   BitState,
   Board,
   BoardState,
+  CastlingRooks,
   Color,
   CommentMap,
   GameState,
@@ -67,5 +68,6 @@ export {
   isAttacked,
   isAttacking,
   isThreatening,
+  generateChess960Fen,
 } from './move'
 export { walkPgn, createWalkPgnContext } from './pgn'

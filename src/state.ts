@@ -1,7 +1,16 @@
 import { BitState, BoardState, HexState, PieceSymbol } from './interfaces/types'
 import { fromCastlingBits, toBitBoard, toCastlingBits } from './board'
 import { bitToSquare, squareToBit } from './utils'
-import { EMPTY, WHITE, PIECE_TYPE_NUM, COLOR_NUM } from './constants'
+import {
+  EMPTY,
+  WHITE,
+  PIECE_TYPE_NUM,
+  COLOR_NUM,
+  PT_ROOK,
+  COLOR_W,
+  COLOR_B,
+  BITS,
+} from './constants'
 import { cloneMove } from './move'
 
 export function defaultBoardState(): BoardState {
@@ -10,6 +19,10 @@ export function defaultBoardState(): BoardState {
     kings: { w: EMPTY, b: EMPTY },
     turn: WHITE,
     castling: { w: 0, b: 0 },
+    castlingRooks: {
+      w: { k: EMPTY, q: EMPTY },
+      b: { k: EMPTY, q: EMPTY },
+    },
     ep_square: EMPTY,
     half_moves: 0,
     move_number: 1,
@@ -32,6 +45,10 @@ export function cloneBoardState(state: BoardState): BoardState {
     kings: { ...state.kings },
     turn: state.turn,
     castling: { ...state.castling },
+    castlingRooks: {
+      w: { ...state.castlingRooks.w },
+      b: { ...state.castlingRooks.b },
+    },
     ep_square: state.ep_square,
     half_moves: state.half_moves,
     move_number: state.move_number,
@@ -59,11 +76,51 @@ export function fromBitState(state: BitState): BoardState {
       }
     }
   }
+  const castling = fromCastlingBits(state.castling)
+  const castlingRooks = {
+    w: { k: EMPTY, q: EMPTY },
+    b: { k: EMPTY, q: EMPTY },
+  }
+  // Infer castling rook squares from actual rook positions on the back rank.
+  // For each side with castling rights, find the outermost rook on each side
+  // of the king (rightmost for kside, leftmost for qside).
+  for (const color of ['w', 'b'] as const) {
+    const colorBit = color === 'w' ? COLOR_W : COLOR_B
+    const backRank = color === 'w' ? 0x70 : 0x00 // rank 1 or rank 8
+    const kingSq = kings[color]
+    if (castling[color] & BITS.KSIDE_CASTLE) {
+      // Rightmost rook to the right of the king
+      for (let sq = backRank + 7; sq > kingSq; sq--) {
+        if (
+          board[sq] &&
+          (board[sq] & 7) === PT_ROOK &&
+          (board[sq] & 8) === colorBit
+        ) {
+          castlingRooks[color].k = sq
+          break
+        }
+      }
+    }
+    if (castling[color] & BITS.QSIDE_CASTLE) {
+      // Leftmost rook to the left of the king
+      for (let sq = backRank; sq < kingSq; sq++) {
+        if (
+          board[sq] &&
+          (board[sq] & 7) === PT_ROOK &&
+          (board[sq] & 8) === colorBit
+        ) {
+          castlingRooks[color].q = sq
+          break
+        }
+      }
+    }
+  }
   return {
     board,
     kings,
     turn: state.wtm ? 'w' : 'b',
-    castling: fromCastlingBits(state.castling),
+    castling,
+    castlingRooks,
     ep_square: bitToSquare(state.ep_square),
     half_moves: state.half_moves,
     move_number: state.move_number,

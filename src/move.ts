@@ -17,7 +17,6 @@ import {
   RANK_7,
   RANK_8,
   ROOK,
-  ROOKS,
   SQUARES,
   WHITE,
   PAWN_ATTACK_OFFSETS,
@@ -32,6 +31,7 @@ import {
   PT_ROOK,
   PT_QUEEN,
   PT_KING,
+  CC_A,
   CC_a,
   CC_h,
   CC_1,
@@ -208,16 +208,24 @@ export function getFen(state: BoardState, strict = false): string {
 
   let cflags = ''
   if (state.castling[WHITE] & BITS.KSIDE_CASTLE) {
-    cflags += 'K'
+    const rookSq = state.castlingRooks.w.k
+    cflags +=
+      rookSq === SQUARES.h1 ? 'K' : String.fromCharCode(CC_A + (rookSq & 7))
   }
   if (state.castling[WHITE] & BITS.QSIDE_CASTLE) {
-    cflags += 'Q'
+    const rookSq = state.castlingRooks.w.q
+    cflags +=
+      rookSq === SQUARES.a1 ? 'Q' : String.fromCharCode(CC_A + (rookSq & 7))
   }
   if (state.castling[BLACK] & BITS.KSIDE_CASTLE) {
-    cflags += 'k'
+    const rookSq = state.castlingRooks.b.k
+    cflags +=
+      rookSq === SQUARES.h8 ? 'k' : String.fromCharCode(CC_a + (rookSq & 7))
   }
   if (state.castling[BLACK] & BITS.QSIDE_CASTLE) {
-    cflags += 'q'
+    const rookSq = state.castlingRooks.b.q
+    cflags +=
+      rookSq === SQUARES.a8 ? 'q' : String.fromCharCode(CC_a + (rookSq & 7))
   }
 
   /* do we have an empty castling flag? */
@@ -316,17 +324,49 @@ export function loadFen(
 
   state.turn = tokens[1] === BLACK ? BLACK : WHITE
 
-  if (tokens[2].indexOf('K') > -1) {
-    state.castling.w |= BITS.KSIDE_CASTLE
-  }
-  if (tokens[2].indexOf('Q') > -1) {
-    state.castling.w |= BITS.QSIDE_CASTLE
-  }
-  if (tokens[2].indexOf('k') > -1) {
-    state.castling.b |= BITS.KSIDE_CASTLE
-  }
-  if (tokens[2].indexOf('q') > -1) {
-    state.castling.b |= BITS.QSIDE_CASTLE
+  // Parse castling field (supports standard KQkq and X-FEN A-Ha-h)
+  const castlingField = tokens[2]
+  if (castlingField !== '-') {
+    for (let ci = 0; ci < castlingField.length; ci++) {
+      const ch = castlingField[ci]
+      if (ch === 'K') {
+        state.castling.w |= BITS.KSIDE_CASTLE
+        state.castlingRooks.w.k = SQUARES.h1
+      } else if (ch === 'Q') {
+        state.castling.w |= BITS.QSIDE_CASTLE
+        state.castlingRooks.w.q = SQUARES.a1
+      } else if (ch === 'k') {
+        state.castling.b |= BITS.KSIDE_CASTLE
+        state.castlingRooks.b.k = SQUARES.h8
+      } else if (ch === 'q') {
+        state.castling.b |= BITS.QSIDE_CASTLE
+        state.castlingRooks.b.q = SQUARES.a8
+      } else if (ch >= 'A' && ch <= 'H') {
+        // X-FEN: uppercase file letter = white rook
+        const rookFile = ch.charCodeAt(0) - CC_A
+        const rookSq = SQUARES.a1 + rookFile
+        const kingFile = state.kings.w & 7
+        if (rookFile > kingFile) {
+          state.castling.w |= BITS.KSIDE_CASTLE
+          state.castlingRooks.w.k = rookSq
+        } else {
+          state.castling.w |= BITS.QSIDE_CASTLE
+          state.castlingRooks.w.q = rookSq
+        }
+      } else if (ch >= 'a' && ch <= 'h') {
+        // X-FEN: lowercase file letter = black rook
+        const rookFile = ch.charCodeAt(0) - CC_a
+        const rookSq = SQUARES.a8 + rookFile
+        const kingFile = state.kings.b & 7
+        if (rookFile > kingFile) {
+          state.castling.b |= BITS.KSIDE_CASTLE
+          state.castlingRooks.b.k = rookSq
+        } else {
+          state.castling.b |= BITS.QSIDE_CASTLE
+          state.castlingRooks.b.q = rookSq
+        }
+      }
+    }
   }
 
   state.ep_square = tokens[3] === '-' ? EMPTY : SQUARES[tokens[3] as Square]
@@ -571,6 +611,41 @@ function computeCheckMask(
   }
 
   return mask
+}
+
+/**
+ * Check if castling is legal from the given king/rook squares.
+ * All squares between king and its destination, and between rook and its
+ * destination, must be empty (excluding king and rook themselves).
+ * All squares the king traverses (from exclusive, to inclusive) must not be attacked.
+ */
+function canCastle(
+  state: Readonly<BoardState>,
+  kingSq: number,
+  rookSq: number,
+  kingDest: number,
+  rookDest: number,
+  them: Color,
+): boolean {
+  // Check emptiness: all squares in the king's travel path and rook's travel
+  // path must be empty, excluding the king and rook themselves
+  const minSq = Math.min(kingSq, rookSq, kingDest, rookDest)
+  const maxSq = Math.max(kingSq, rookSq, kingDest, rookDest)
+  for (let sq = minSq; sq <= maxSq; sq++) {
+    if (sq === kingSq || sq === rookSq) continue
+    if (state.board[sq]) return false
+  }
+
+  // Check safety: all squares the king traverses must not be attacked
+  if (kingDest !== kingSq) {
+    const step = kingDest > kingSq ? 1 : -1
+    for (let sq = kingSq + step; ; sq += step) {
+      if (isAttacked(state, sq, them, kingSq)) return false
+      if (sq === kingDest) break
+    }
+  }
+
+  return true
 }
 
 /**
@@ -856,34 +931,30 @@ export function generateMoves(
         const notInCheck = posInfo ? true : !isAttacked(state, kingSq)
 
         if (notInCheck) {
+          const backRank = kingSq & 0x70
           // King-side castling
           if (state.castling[state.turn] & BITS.KSIDE_CASTLE) {
-            const castlingTo = kingSq + 2
-
+            const kingDest = backRank + 6
+            const rookDest = backRank + 5
+            const rookSq = state.castlingRooks[state.turn].k
             if (
-              (toSquare === undefined || toSquare === castlingTo) &&
-              !state.board[kingSq + 1] &&
-              !state.board[castlingTo] &&
-              !isAttacked(state, kingSq + 1) &&
-              !isAttacked(state, castlingTo)
+              (toSquare === undefined || toSquare === kingDest) &&
+              canCastle(state, kingSq, rookSq, kingDest, rookDest, them)
             ) {
-              addMove(KING, kingSq, castlingTo, BITS.KSIDE_CASTLE)
+              addMove(KING, kingSq, kingDest, BITS.KSIDE_CASTLE)
             }
           }
 
           // Queen-side castling
           if (state.castling[state.turn] & BITS.QSIDE_CASTLE) {
-            const castlingTo = kingSq - 2
-
+            const kingDest = backRank + 2
+            const rookDest = backRank + 3
+            const rookSq = state.castlingRooks[state.turn].q
             if (
-              (toSquare === undefined || toSquare === castlingTo) &&
-              !state.board[kingSq - 1] &&
-              !state.board[kingSq - 2] &&
-              !state.board[kingSq - 3] &&
-              !isAttacked(state, kingSq - 1) &&
-              !isAttacked(state, castlingTo)
+              (toSquare === undefined || toSquare === kingDest) &&
+              canCastle(state, kingSq, rookSq, kingDest, rookDest, them)
             ) {
-              addMove(KING, kingSq, castlingTo, BITS.QSIDE_CASTLE)
+              addMove(KING, kingSq, kingDest, BITS.QSIDE_CASTLE)
             }
           }
         }
@@ -1773,6 +1844,10 @@ export function makeMove(state: BoardState, move: Readonly<HexMove>): UndoInfo {
     move,
     castling_w: state.castling.w,
     castling_b: state.castling.b,
+    castlingRooks_wk: state.castlingRooks.w.k,
+    castlingRooks_wq: state.castlingRooks.w.q,
+    castlingRooks_bk: state.castlingRooks.b.k,
+    castlingRooks_bq: state.castlingRooks.b.q,
     ep_square: state.ep_square,
     half_moves: state.half_moves,
     move_number: state.move_number,
@@ -1793,66 +1868,67 @@ export function makeMove(state: BoardState, move: Readonly<HexMove>): UndoInfo {
     return undo
   }
 
-  state.board[move.to] = state.board[move.from]
-  state.board[move.from] = 0
+  // Handle castling specially: clear both sources, place both destinations
+  if (move.flags & (BITS.KSIDE_CASTLE | BITS.QSIDE_CASTLE)) {
+    const kingEncoded = state.board[move.from]
+    const isKside = !!(move.flags & BITS.KSIDE_CASTLE)
+    const rookFrom = isKside
+      ? state.castlingRooks[us].k
+      : state.castlingRooks[us].q
+    const rookEncoded = state.board[rookFrom]
+    const backRank = move.from & 0x70
+    const kingDest = isKside ? backRank + 6 : backRank + 2
+    const rookDest = isKside ? backRank + 5 : backRank + 3
 
-  // if ep capture, remove the captured pawn
-  if (move.flags & BITS.EP_CAPTURE) {
-    if (us === BLACK) {
-      state.board[move.to - 16] = 0
-    } else {
-      state.board[move.to + 16] = 0
-    }
-  }
+    // Clear both source squares
+    state.board[move.from] = 0
+    state.board[rookFrom] = 0
+    // Place at destinations
+    state.board[kingDest] = kingEncoded
+    state.board[rookDest] = rookEncoded
 
-  // if pawn promotion, replace with new piece
-  if (move.promotion) {
-    state.board[move.to] = encodePiece(move.promotion, us)
-  }
-
-  // if we moved the king
-  if (move.piece === KING) {
-    state.kings[us] = move.to
-
-    // if we castled, move the rook next to the king
-    if (move.flags & BITS.KSIDE_CASTLE) {
-      const castling_to = move.to - 1
-      const castling_from = move.to + 1
-      state.board[castling_to] = state.board[castling_from]
-      state.board[castling_from] = 0
-    } else if (move.flags & BITS.QSIDE_CASTLE) {
-      const castling_to = move.to + 1
-      const castling_from = move.to - 2
-      state.board[castling_to] = state.board[castling_from]
-      state.board[castling_from] = 0
-    }
-
-    // turn off castling
+    state.kings[us] = kingDest
+    undo.captured_encoded = 0 // no capture on castling
     state.castling[us] = 0
-  }
+  } else {
+    state.board[move.to] = state.board[move.from]
+    state.board[move.from] = 0
 
-  // turn off castling if we move a rook
-  if (state.castling[us]) {
-    for (let i = 0, len = ROOKS[us].length; i < len; i++) {
-      if (
-        move.from === ROOKS[us][i].square &&
-        state.castling[us] & ROOKS[us][i].flag
-      ) {
-        state.castling[us] ^= ROOKS[us][i].flag
-        break
+    // if ep capture, remove the captured pawn
+    if (move.flags & BITS.EP_CAPTURE) {
+      if (us === BLACK) {
+        state.board[move.to - 16] = 0
+      } else {
+        state.board[move.to + 16] = 0
       }
     }
-  }
 
-  // turn off castling if we capture a rook
-  if (state.castling[them]) {
-    for (let i = 0, len = ROOKS[them].length; i < len; i++) {
-      if (
-        move.to === ROOKS[them][i].square &&
-        state.castling[them] & ROOKS[them][i].flag
-      ) {
-        state.castling[them] ^= ROOKS[them][i].flag
-        break
+    // if pawn promotion, replace with new piece
+    if (move.promotion) {
+      state.board[move.to] = encodePiece(move.promotion, us)
+    }
+
+    // if we moved the king
+    if (move.piece === KING) {
+      state.kings[us] = move.to
+      state.castling[us] = 0
+    }
+
+    // turn off castling if we move a rook
+    if (state.castling[us]) {
+      if (move.from === state.castlingRooks[us].k) {
+        state.castling[us] &= ~BITS.KSIDE_CASTLE
+      } else if (move.from === state.castlingRooks[us].q) {
+        state.castling[us] &= ~BITS.QSIDE_CASTLE
+      }
+    }
+
+    // turn off castling if we capture a rook
+    if (state.castling[them]) {
+      if (move.to === state.castlingRooks[them].k) {
+        state.castling[them] &= ~BITS.KSIDE_CASTLE
+      } else if (move.to === state.castlingRooks[them].q) {
+        state.castling[them] &= ~BITS.QSIDE_CASTLE
       }
     }
   }
@@ -1901,44 +1977,55 @@ export function unmakeMove(state: BoardState, undo: UndoInfo): void {
   state.turn = us
   state.castling.w = undo.castling_w
   state.castling.b = undo.castling_b
+  state.castlingRooks.w.k = undo.castlingRooks_wk
+  state.castlingRooks.w.q = undo.castlingRooks_wq
+  state.castlingRooks.b.k = undo.castlingRooks_bk
+  state.castlingRooks.b.q = undo.castlingRooks_bq
   state.ep_square = undo.ep_square
   state.half_moves = undo.half_moves
   state.move_number = undo.move_number
 
-  // Move piece back
-  if (move.promotion) {
-    // Undo promotion: put the original pawn back
-    state.board[move.from] = encodePiece(PAWN, us)
-  } else {
-    state.board[move.from] = state.board[move.to]
-  }
+  // Undo castling: restore king and rook to original squares
+  if (move.flags & (BITS.KSIDE_CASTLE | BITS.QSIDE_CASTLE)) {
+    const isKside = !!(move.flags & BITS.KSIDE_CASTLE)
+    const backRank = move.from & 0x70
+    const kingDest = isKside ? backRank + 6 : backRank + 2
+    const rookDest = isKside ? backRank + 5 : backRank + 3
+    // castlingRooks already restored from undo above
+    const rookFrom = isKside
+      ? state.castlingRooks[us].k
+      : state.castlingRooks[us].q
 
-  // Restore captured piece or clear destination
-  if (move.flags & BITS.EP_CAPTURE) {
-    // Clear the to square and restore the captured pawn
-    state.board[move.to] = 0
-    const capturedPawnSq = us === WHITE ? move.to + 16 : move.to - 16
-    state.board[capturedPawnSq] = encodePiece(PAWN, them)
-  } else {
-    // Restore captured piece (or 0 if no capture)
-    state.board[move.to] = undo.captured_encoded
-  }
+    const kingEncoded = state.board[kingDest]
+    const rookEncoded = state.board[rookDest]
 
-  // Restore king position
-  if (move.piece === KING) {
+    // Clear destinations
+    state.board[kingDest] = 0
+    state.board[rookDest] = 0
+    // Restore to original squares
+    state.board[move.from] = kingEncoded
+    state.board[rookFrom] = rookEncoded
     state.kings[us] = move.from
+  } else {
+    // Move piece back
+    if (move.promotion) {
+      state.board[move.from] = encodePiece(PAWN, us)
+    } else {
+      state.board[move.from] = state.board[move.to]
+    }
 
-    // Undo castling rook move
-    if (move.flags & BITS.KSIDE_CASTLE) {
-      const castling_to = move.to - 1
-      const castling_from = move.to + 1
-      state.board[castling_from] = state.board[castling_to]
-      state.board[castling_to] = 0
-    } else if (move.flags & BITS.QSIDE_CASTLE) {
-      const castling_to = move.to + 1
-      const castling_from = move.to - 2
-      state.board[castling_from] = state.board[castling_to]
-      state.board[castling_to] = 0
+    // Restore captured piece or clear destination
+    if (move.flags & BITS.EP_CAPTURE) {
+      state.board[move.to] = 0
+      const capturedPawnSq = us === WHITE ? move.to + 16 : move.to - 16
+      state.board[capturedPawnSq] = encodePiece(PAWN, them)
+    } else {
+      state.board[move.to] = undo.captured_encoded
+    }
+
+    // Restore king position
+    if (move.piece === KING) {
+      state.kings[us] = move.from
     }
   }
 }
@@ -2040,6 +2127,30 @@ export function validateMove(
         return m
       }
     }
+
+    // Chess960: king-captures-rook notation for castling
+    const fromSq = isSquare(move.from) ? SQUARES[move.from] : undefined
+    const toSq = isSquare(move.to) ? SQUARES[move.to] : undefined
+    if (fromSq !== undefined && toSq !== undefined) {
+      const kingSq = state.kings[state.turn]
+      if (fromSq === kingSq) {
+        const cr = state.castlingRooks[state.turn]
+        if (toSq === cr.k && state.castling[state.turn] & BITS.KSIDE_CASTLE) {
+          const castleMoves = generateMoves(state, { from: move.from })
+          for (let i = 0; i < castleMoves.length; i++) {
+            if (castleMoves[i].flags & BITS.KSIDE_CASTLE) return castleMoves[i]
+          }
+        } else if (
+          toSq === cr.q &&
+          state.castling[state.turn] & BITS.QSIDE_CASTLE
+        ) {
+          const castleMoves = generateMoves(state, { from: move.from })
+          for (let i = 0; i < castleMoves.length; i++) {
+            if (castleMoves[i].flags & BITS.QSIDE_CASTLE) return castleMoves[i]
+          }
+        }
+      }
+    }
   }
 
   return null
@@ -2066,6 +2177,130 @@ export function hexToGameState(
     move: move || undefined,
   }
 }
-export function moveToUci(move: PartialMove) {
-  return move.from + move.to + move.promotion
+
+export function moveToUci(
+  move: PartialMove,
+  state?: Readonly<BoardState>,
+): string {
+  // Chess960 UCI: castling is encoded as king-captures-rook
+  if (state && typeof move.from === 'string' && typeof move.to === 'string') {
+    const fromSq = SQUARES[move.from as Square]
+    const toSq = SQUARES[move.to as Square]
+    if (fromSq !== undefined && toSq !== undefined) {
+      const encoded = state.board[fromSq]
+      if (encoded && decodePieceType(encoded) === PT_KING) {
+        const color: Color = encoded & 8 ? BLACK : WHITE
+        const cr = state.castlingRooks[color]
+        const backRank = fromSq & 0x70
+
+        // Use move flags when available (HexMove/Move) for reliable detection;
+        // fall back to destination heuristic for bare PartialMove.
+        const f = (move as { flags?: string | number }).flags
+        let isKside: boolean
+        let isQside: boolean
+        if (typeof f === 'number') {
+          isKside = !!(f & BITS.KSIDE_CASTLE)
+          isQside = !!(f & BITS.QSIDE_CASTLE)
+        } else if (typeof f === 'string') {
+          isKside = f.includes('k')
+          isQside = f.includes('q')
+        } else {
+          isKside = toSq === backRank + 6
+          isQside = toSq === backRank + 2
+        }
+
+        if (isKside && cr.k !== EMPTY) {
+          return move.from + (algebraic(cr.k) || move.to)
+        }
+        if (isQside && cr.q !== EMPTY) {
+          return move.from + (algebraic(cr.q) || move.to)
+        }
+      }
+    }
+  }
+  return move.from + move.to + (move.promotion || '')
+}
+
+// Knight placement lookup for Chess960 position generation.
+// Maps index 0-9 to positions of two knights among 5 remaining squares.
+// prettier-ignore
+const KNIGHT_PLACEMENTS: [number, number][] = [
+  [0, 1], [0, 2], [0, 3], [0, 4],
+  [1, 2], [1, 3], [1, 4],
+  [2, 3], [2, 4],
+  [3, 4],
+]
+
+/**
+ * Generate the FEN for a Chess960 starting position (SP 0–959).
+ * @param sp - Starting position index (0–959)
+ * @returns FEN string with X-FEN castling rights
+ * @public
+ */
+export function generateChess960Fen(sp: number): string {
+  if (sp < 0 || sp > 959 || !Number.isInteger(sp)) {
+    throw new Error('Chess960 SP index must be an integer 0–959')
+  }
+
+  const rank = new Array<string>(8).fill('')
+
+  // Step 1: Light-squared bishop (files b, d, f, h → indices 1, 3, 5, 7)
+  let n = sp
+  const b1 = (n % 4) * 2 + 1
+  n = Math.floor(n / 4)
+
+  // Step 2: Dark-squared bishop (files a, c, e, g → indices 0, 2, 4, 6)
+  const b2 = (n % 4) * 2
+  n = Math.floor(n / 4)
+
+  rank[b1] = 'B'
+  rank[b2] = 'B'
+
+  // Step 3: Queen placement among 6 remaining squares
+  const qIdx = n % 6
+  n = Math.floor(n / 6)
+
+  const empty1: number[] = []
+  for (let i = 0; i < 8; i++) {
+    if (!rank[i]) empty1.push(i)
+  }
+  rank[empty1[qIdx]] = 'Q'
+
+  // Step 4: Knight placements among 5 remaining squares
+  const empty2: number[] = []
+  for (let i = 0; i < 8; i++) {
+    if (!rank[i]) empty2.push(i)
+  }
+  const [n1, n2] = KNIGHT_PLACEMENTS[n]
+  rank[empty2[n1]] = 'N'
+  rank[empty2[n2]] = 'N'
+
+  // Step 5: Place R, K, R in the 3 remaining squares (in order)
+  const empty3: number[] = []
+  for (let i = 0; i < 8; i++) {
+    if (!rank[i]) empty3.push(i)
+  }
+  rank[empty3[0]] = 'R'
+  rank[empty3[1]] = 'K'
+  rank[empty3[2]] = 'R'
+
+  const backRank = rank.join('')
+  const qRookFile = String.fromCharCode(CC_A + empty3[0])
+  const kRookFile = String.fromCharCode(CC_A + empty3[2])
+
+  // Use standard KQkq if rooks are on a/h files, otherwise X-FEN
+  const wK = empty3[2] === 7 ? 'K' : kRookFile
+  const wQ = empty3[0] === 0 ? 'Q' : qRookFile
+  const bK = empty3[2] === 7 ? 'k' : kRookFile.toLowerCase()
+  const bQ = empty3[0] === 0 ? 'q' : qRookFile.toLowerCase()
+  const castling = wK + wQ + bK + bQ
+
+  return [
+    backRank.toLowerCase() + '/pppppppp/8/8/8/8/PPPPPPPP/' + backRank,
+    'w',
+    castling,
+    '-',
+    '0',
+    '1',
+  ].join(' ')
 }

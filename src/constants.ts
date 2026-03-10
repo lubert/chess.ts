@@ -31,6 +31,7 @@ export const DEFAULT_POSITION =
 export const POSSIBLE_RESULTS: string[] = ['1-0', '0-1', '1/2-1/2', '*']
 
 // CharCode constants for hand-rolled SAN/NAG parsing
+export const CC_A = 65
 export const CC_a = 97
 export const CC_h = 104
 export const CC_1 = 49
@@ -269,15 +270,4 @@ export const NUM_PIECE_TYPE: (PieceSymbol | undefined)[] = [
 export const COLOR_NUM: Record<Color, number> = {
   w: COLOR_W,
   b: COLOR_B,
-}
-
-export const ROOKS: Record<Color, { square: number; flag: number }[]> = {
-  w: [
-    { square: SQUARES.a1, flag: BITS.QSIDE_CASTLE },
-    { square: SQUARES.h1, flag: BITS.KSIDE_CASTLE },
-  ],
-  b: [
-    { square: SQUARES.a8, flag: BITS.QSIDE_CASTLE },
-    { square: SQUARES.h8, flag: BITS.KSIDE_CASTLE },
-  ],
 }

@@ -77,11 +77,18 @@ export type Square =
   | 'a1' | 'b1' | 'c1' | 'd1' | 'e1' | 'f1' | 'g1' | 'h1'
 
 /** @public */
+export type CastlingRooks = {
+  w: { k: number; q: number }
+  b: { k: number; q: number }
+}
+
+/** @public */
 export type BoardState = {
   board: Board
   kings: ColorState
   turn: Color
   castling: ColorState
+  castlingRooks: CastlingRooks
   ep_square: number
   half_moves: number
   move_number: number
@@ -176,6 +183,10 @@ export type UndoInfo = {
   move: Readonly<HexMove>
   castling_w: number
   castling_b: number
+  castlingRooks_wk: number
+  castlingRooks_wq: number
+  castlingRooks_bk: number
+  castlingRooks_bq: number
   ep_square: number
   half_moves: number
   move_number: number
