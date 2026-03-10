@@ -6,6 +6,8 @@ import {
   perft,
   getFen,
   validateMove,
+  moveToUci,
+  generateChess960Fen,
 } from '../src/move'
 import { algebraic } from '../src/utils'
 
@@ -268,6 +270,164 @@ describe('Chess960 / X-FEN', () => {
       // Just verify it doesn't crash and returns a reasonable number
       const nodes = perft(state, 2)
       expect(nodes).toBeGreaterThan(0)
+    })
+  })
+
+  describe('generateChess960Fen', () => {
+    it('SP 518 produces standard chess starting position', () => {
+      expect(generateChess960Fen(518)).toBe(
+        'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+      )
+    })
+
+    it('SP 0 produces BBQNNRKR', () => {
+      const fen = generateChess960Fen(0)
+      expect(fen).toMatch(/^bbqnnrkr\//)
+      expect(fen).toMatch(/\/BBQNNRKR /)
+    })
+
+    it('SP 959 produces RKRNNQBB', () => {
+      const fen = generateChess960Fen(959)
+      expect(fen).toMatch(/^rkrnnqbb\//)
+      expect(fen).toMatch(/\/RKRNNQBB /)
+    })
+
+    it('all 960 positions are unique and valid', () => {
+      const fens = new Set<string>()
+      for (let i = 0; i < 960; i++) {
+        const fen = generateChess960Fen(i)
+        fens.add(fen)
+        // Each should be loadable
+        const state = loadFen(fen)
+        expect(state).not.toBeNull()
+      }
+      expect(fens.size).toBe(960)
+    })
+
+    it('all 960 positions have bishops on opposite colors', () => {
+      for (let i = 0; i < 960; i++) {
+        const fen = generateChess960Fen(i)
+        const rank = fen.split('/')[7].split(' ')[0]
+        const bishops: number[] = []
+        let file = 0
+        for (const ch of rank) {
+          if (ch >= '1' && ch <= '8') {
+            file += parseInt(ch)
+          } else {
+            if (ch === 'B') bishops.push(file)
+            file++
+          }
+        }
+        expect(bishops.length).toBe(2)
+        // One on even, one on odd file
+        expect((bishops[0] + bishops[1]) % 2).toBe(1)
+      }
+    })
+
+    it('all 960 positions have king between rooks', () => {
+      for (let i = 0; i < 960; i++) {
+        const fen = generateChess960Fen(i)
+        const rank = fen.split('/')[7].split(' ')[0]
+        const positions: Record<string, number[]> = { R: [], K: [] }
+        let file = 0
+        for (const ch of rank) {
+          if (ch >= '1' && ch <= '8') {
+            file += parseInt(ch)
+          } else {
+            if (ch === 'R' || ch === 'K') positions[ch].push(file)
+            file++
+          }
+        }
+        expect(positions.R.length).toBe(2)
+        expect(positions.K.length).toBe(1)
+        expect(positions.K[0]).toBeGreaterThan(positions.R[0])
+        expect(positions.K[0]).toBeLessThan(positions.R[1])
+      }
+    })
+
+    it('throws for invalid SP index', () => {
+      expect(() => generateChess960Fen(-1)).toThrow()
+      expect(() => generateChess960Fen(960)).toThrow()
+      expect(() => generateChess960Fen(1.5)).toThrow()
+    })
+  })
+
+  describe('Chess960 mode on Chess class', () => {
+    it('constructor accepts chess960 option', () => {
+      const chess = new Chess({ chess960: true })
+      expect(chess.chess960).toBe(true)
+    })
+
+    it('constructor accepts fen + chess960 option', () => {
+      const fen = generateChess960Fen(0)
+      const chess = new Chess(fen, { chess960: true })
+      expect(chess.chess960).toBe(true)
+      expect(chess.fen()).toBe(fen)
+    })
+
+    it('defaults to chess960 = false', () => {
+      const chess = new Chess()
+      expect(chess.chess960).toBe(false)
+    })
+  })
+
+  describe('moveToUci with Chess960 castling', () => {
+    it('outputs king-captures-rook for kside castling', () => {
+      // Standard position with castling: king on e1, rook on h1
+      const fen =
+        'r1bqk2r/pppp1ppp/2n2n2/2b1p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 4 4'
+      const state = loadFen(fen)!
+      const moves = generateMoves(state, { piece: 'k' })
+      const castleMove = moves.find((m) => m.flags & BITS.KSIDE_CASTLE)
+      expect(castleMove).toBeDefined()
+      // With state: should output e1h1 (king captures rook)
+      const uci = moveToUci(
+        { from: algebraic(castleMove!.from)!, to: algebraic(castleMove!.to)! },
+        state,
+      )
+      expect(uci).toBe('e1h1')
+    })
+
+    it('outputs king-captures-rook for qside castling', () => {
+      const fen =
+        'r3kbnr/pppqpppp/2n5/3p1b2/3P1B2/2N5/PPPQPPPP/R3KBNR w KQkq - 6 5'
+      const state = loadFen(fen)!
+      const moves = generateMoves(state, { piece: 'k' })
+      const castleMove = moves.find((m) => m.flags & BITS.QSIDE_CASTLE)
+      expect(castleMove).toBeDefined()
+      const uci = moveToUci(
+        { from: algebraic(castleMove!.from)!, to: algebraic(castleMove!.to)! },
+        state,
+      )
+      expect(uci).toBe('e1a1')
+    })
+
+    it('outputs standard e1g1 when no state is provided', () => {
+      const uci = moveToUci({ from: 'e1', to: 'g1' })
+      expect(uci).toBe('e1g1')
+    })
+
+    it('outputs non-standard rook square for Chess960', () => {
+      // King on d1, rook on f1 (kside)
+      const fen = '8/8/8/8/8/8/8/3K1R2 w F - 0 1'
+      const state = loadFen(fen)!
+      const moves = generateMoves(state, { piece: 'k' })
+      const castleMove = moves.find((m) => m.flags & BITS.KSIDE_CASTLE)
+      expect(castleMove).toBeDefined()
+      const uci = moveToUci(
+        { from: algebraic(castleMove!.from)!, to: algebraic(castleMove!.to)! },
+        state,
+      )
+      // King on d1 castles kside: king goes to g1, but UCI output is d1f1 (king captures rook)
+      expect(uci).toBe('d1f1')
+    })
+
+    it('does not affect normal king moves', () => {
+      const fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+      const state = loadFen(fen)!
+      // Normal non-castling move
+      const uci = moveToUci({ from: 'e2', to: 'e4' }, state)
+      expect(uci).toBe('e2e4')
     })
   })
 })

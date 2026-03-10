@@ -55,6 +55,11 @@ import { FenErrorType, validateFen } from './fen'
 import { cloneBoardState, cloneHexState, defaultBoardState } from './state'
 
 /** @public */
+export type ChessOptions = {
+  chess960?: boolean
+}
+
+/** @public */
 export class Chess {
   /** @internal */
   protected _tree!: TreeNode<HexState>
@@ -62,12 +67,14 @@ export class Chess {
   /** @internal */
   protected _currentNode!: TreeNode<HexState>
 
+  /** @internal */
+  private _chess960: boolean = false
+
   /** @public */
   public header: HeaderMap = {}
 
   /**
-   * The Chess() constructor takes an optional parameter which specifies the board configuration
-   * in [Forsyth-Edwards Notation](http://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation).
+   * The Chess() constructor takes an optional FEN string and/or options object.
    *
    * @example
    * ```js
@@ -78,12 +85,28 @@ export class Chess {
    * const chess = new Chess(
    *     'r1k4r/p2nb1p1/2b4p/1p1n1p2/2PP4/3Q1NB1/1P3PPP/R5K1 b - c3 0 19'
    * )
+   *
+   * // enable Chess960 mode
+   * const chess = new Chess({ chess960: true })
+   *
+   * // Chess960 with a specific position
+   * const chess = new Chess('rkrnnqbb/pppppppp/8/8/8/8/PPPPPPPP/RKRNNQBB w CQcq - 0 1', { chess960: true })
    * ```
    */
-  constructor(fen: string = DEFAULT_POSITION) {
-    if (!this.load(fen)) {
+  constructor(fen?: string | ChessOptions, options?: ChessOptions) {
+    if (typeof fen === 'object') {
+      options = fen
+      fen = undefined
+    }
+    this._chess960 = options?.chess960 ?? false
+    if (!this.load(fen ?? DEFAULT_POSITION)) {
       throw new Error('Error loading fen')
     }
+  }
+
+  /** Whether this instance is in Chess960 mode. @public */
+  public get chess960(): boolean {
+    return this._chess960
   }
 
   /** @public */
@@ -754,11 +777,12 @@ export class Chess {
   ) {
     const node = this.getNode(key)
     if (node) {
+      const parentState = this._chess960 ? node.model.boardState : undefined
       return node.children.find((child) => {
         const childMove = nodeMove(child)!
         return typeof move === 'string'
-          ? childMove.san === move || moveToUci(childMove) === move
-          : moveToUci(childMove) === moveToUci(move)
+          ? childMove.san === move || moveToUci(childMove, parentState) === move
+          : moveToUci(childMove, parentState) === moveToUci(move, parentState)
       })
     }
   }

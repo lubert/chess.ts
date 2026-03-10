@@ -2195,6 +2195,114 @@ export function hexToGameState(
     move: move || undefined,
   }
 }
-export function moveToUci(move: PartialMove) {
-  return move.from + move.to + move.promotion
+export function moveToUci(
+  move: PartialMove,
+  state?: Readonly<BoardState>,
+): string {
+  // Chess960 UCI: castling is encoded as king-captures-rook
+  if (state && typeof move.from === 'string' && typeof move.to === 'string') {
+    const fromSq = SQUARES[move.from as Square]
+    const toSq = SQUARES[move.to as Square]
+    if (fromSq !== undefined && toSq !== undefined) {
+      const encoded = state.board[fromSq]
+      if (encoded && decodePieceType(encoded) === PT_KING) {
+        const color: Color = encoded & 8 ? BLACK : WHITE
+        const cr = state.castlingRooks[color]
+        // Kside: king destination is g-file, rook was on cr.k
+        const backRank = fromSq & 0x70
+        if (toSq === backRank + 6 && cr.k !== EMPTY) {
+          return move.from + (algebraic(cr.k) || move.to)
+        }
+        // Qside: king destination is c-file, rook was on cr.q
+        if (toSq === backRank + 2 && cr.q !== EMPTY) {
+          return move.from + (algebraic(cr.q) || move.to)
+        }
+      }
+    }
+  }
+  return move.from + move.to + (move.promotion || '')
+}
+
+// Knight placement lookup for Chess960 position generation.
+// Maps index 0-9 to positions of two knights among 5 remaining squares.
+// prettier-ignore
+const N5N: [number, number][] = [
+  [0, 1], [0, 2], [0, 3], [0, 4],
+  [1, 2], [1, 3], [1, 4],
+  [2, 3], [2, 4],
+  [3, 4],
+]
+
+/**
+ * Generate the FEN for a Chess960 starting position (SP 0–959).
+ * @param sp - Starting position index (0–959)
+ * @returns FEN string with X-FEN castling rights
+ * @public
+ */
+export function generateChess960Fen(sp: number): string {
+  if (sp < 0 || sp > 959 || !Number.isInteger(sp)) {
+    throw new Error('Chess960 SP index must be an integer 0–959')
+  }
+
+  const rank = new Array<string>(8).fill('')
+
+  // Step 1: Light-squared bishop (files b, d, f, h → indices 1, 3, 5, 7)
+  let n = sp
+  const b1 = (n % 4) * 2 + 1
+  n = Math.floor(n / 4)
+
+  // Step 2: Dark-squared bishop (files a, c, e, g → indices 0, 2, 4, 6)
+  const b2 = (n % 4) * 2
+  n = Math.floor(n / 4)
+
+  rank[b1] = 'B'
+  rank[b2] = 'B'
+
+  // Step 3: Queen placement among 6 remaining squares
+  const qIdx = n % 6
+  n = Math.floor(n / 6)
+
+  const empty1: number[] = []
+  for (let i = 0; i < 8; i++) {
+    if (!rank[i]) empty1.push(i)
+  }
+  rank[empty1[qIdx]] = 'Q'
+
+  // Step 4: Knight placements among 5 remaining squares
+  const empty2: number[] = []
+  for (let i = 0; i < 8; i++) {
+    if (!rank[i]) empty2.push(i)
+  }
+  const [n1, n2] = N5N[n]
+  rank[empty2[n1]] = 'N'
+  rank[empty2[n2]] = 'N'
+
+  // Step 5: Place R, K, R in the 3 remaining squares (in order)
+  const empty3: number[] = []
+  for (let i = 0; i < 8; i++) {
+    if (!rank[i]) empty3.push(i)
+  }
+  rank[empty3[0]] = 'R'
+  rank[empty3[1]] = 'K'
+  rank[empty3[2]] = 'R'
+
+  const backRank = rank.join('')
+  const qRookFile = String.fromCharCode(65 + empty3[0]) // uppercase
+  const kRookFile = String.fromCharCode(65 + empty3[2])
+
+  // Use standard KQkq if rooks are on a/h files, otherwise X-FEN
+  const wK = empty3[2] === 7 ? 'K' : kRookFile
+  const wQ = empty3[0] === 0 ? 'Q' : qRookFile
+  const bK = empty3[2] === 7 ? 'k' : kRookFile.toLowerCase()
+  const bQ = empty3[0] === 0 ? 'q' : qRookFile.toLowerCase()
+  const castling = wK + wQ + bK + bQ
+
+  return [
+    backRank.toLowerCase() + '/pppppppp/8/8/8/8/PPPPPPPP/' + backRank,
+    'w',
+    castling,
+    '-',
+    '0',
+    '1',
+  ].join(' ')
 }
