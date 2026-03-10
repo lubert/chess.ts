@@ -406,11 +406,27 @@ describe('Chess960 / X-FEN', () => {
       const chess = new Chess(generateChess960Fen(518), { chess960: true })
       chess.move('e4')
       chess.undo()
-      // Replay the same move using object notation — triggers the
-      // moveToUci(childMove, parentState) === moveToUci(move, parentState) branch
+      // Replay the same move using object notation
       const result = chess.move({ from: 'e2', to: 'e4' })
       expect(result).not.toBeNull()
       expect(result!.san).toBe('e4')
+    })
+
+    it('replays castling via king-captures-rook object notation', () => {
+      // SP 518 = standard position; play to a position where O-O is legal
+      const chess = new Chess(generateChess960Fen(518), { chess960: true })
+      chess.move('e4')
+      chess.move('e5')
+      chess.move('Nf3')
+      chess.move('Nc6')
+      chess.move('Bc4')
+      chess.move('Bc5')
+      chess.move('O-O') // castling creates a child node
+      chess.undo()
+      // Replay via king-captures-rook notation {from:'e1', to:'h1'}
+      const result = chess.move({ from: 'e1', to: 'h1' })
+      expect(result).not.toBeNull()
+      expect(result!.san).toBe('O-O')
     })
   })
 
@@ -463,6 +479,38 @@ describe('Chess960 / X-FEN', () => {
       )
       // King on d1 castles kside: king goes to g1, but UCI output is d1f1 (king captures rook)
       expect(uci).toBe('d1f1')
+    })
+
+    it('uses numeric flags for reliable castling detection', () => {
+      const fen = '8/8/8/8/8/8/8/5K1R w H - 0 1'
+      const state = loadFen(fen)!
+      const moves = generateMoves(state, { piece: 'k' })
+      const castleMove = moves.find((m) => m.flags & BITS.KSIDE_CASTLE)!
+      const regularMove = moves.find(
+        (m) => algebraic(m.to) === 'g1' && !(m.flags & BITS.KSIDE_CASTLE),
+      )!
+      // With numeric flags: castling encodes as king-captures-rook
+      expect(
+        moveToUci(
+          {
+            from: algebraic(castleMove.from)!,
+            to: algebraic(castleMove.to)!,
+            flags: castleMove.flags,
+          } as any,
+          state,
+        ),
+      ).toBe('f1h1')
+      // With numeric flags: regular move stays as-is
+      expect(
+        moveToUci(
+          {
+            from: algebraic(regularMove.from)!,
+            to: algebraic(regularMove.to)!,
+            flags: regularMove.flags,
+          } as any,
+          state,
+        ),
+      ).toBe('f1g1')
     })
 
     it('does not affect normal king moves', () => {
