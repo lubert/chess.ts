@@ -3,8 +3,8 @@ import {
   HexMove,
   HexState,
   HeaderMap,
-  UndoInfo,
   WalkPgnOptions,
+  WalkPgnContext,
 } from './interfaces/types'
 import { Nag, extractNags } from './interfaces/nag'
 import {
@@ -17,7 +17,6 @@ import {
 import { loadFen, sanToMove, makeMove, unmakeMove, moveToSan } from './move'
 import { cloneBoardState } from './state'
 import { REGEXP_HEADER, REGEXP_MOVE_NUMBER } from './regex'
-import { splitStr } from './utils'
 
 export function addNag(node: TreeNode<HexState>, nag: number): void {
   if (!node.model.nags) {
@@ -156,6 +155,23 @@ function extractFen(pgn: string, newline = '\r\n|\n|\r'): string | undefined {
   return undefined
 }
 
+/** @public */
+export function createWalkPgnContext(): WalkPgnContext {
+  return {
+    undoStack: [],
+    variationStack: [],
+  }
+}
+
+const REGEXP_WHITESPACE_RUN = /\s+/g
+
+type PendingMove = {
+  move: HexMove
+  comment?: string
+  startingComment?: string
+  nags?: number[]
+}
+
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /** @public */
 export function walkPgn(pgn: string, options: WalkPgnOptions): HeaderMap {
@@ -165,6 +181,7 @@ export function walkPgn(pgn: string, options: WalkPgnOptions): HeaderMap {
     onMove,
     onStartVariation,
     onEndVariation,
+    context,
   } = options
 
   // Split on newlines and read line by line
@@ -172,37 +189,24 @@ export function walkPgn(pgn: string, options: WalkPgnOptions): HeaderMap {
   const lines = pgn.split(newlineRe)
 
   const header: HeaderMap = {}
-  const moveTokens: string[] = []
 
-  const parseHeader = (line: string) => {
-    const match = line.match(REGEXP_HEADER)
-    if (match) {
-      header[match[1]] = match[2]
-    }
-  }
-
-  const NULL_CHAR = '\0'
-  const splitMove = (line: string) => {
-    moveTokens.push(...line.split(/\s+/), NULL_CHAR)
-  }
-
-  // Process lines into header + move tokens
-  let lineState: 'header' | 'moves' = 'header'
+  // Extract headers, then concatenate movetext lines into a single string
+  const movetextParts: string[] = []
+  let inHeaders = true
   for (let li = 0; li < lines.length; li++) {
     const line = lines[li]
-    if (lineState === 'header') {
+    if (inHeaders) {
       if (!line || line.startsWith('%')) continue
       if (line.startsWith('[')) {
-        parseHeader(line)
+        const match = line.match(REGEXP_HEADER)
+        if (match) header[match[1]] = match[2]
         continue
       }
-      lineState = 'moves'
-      splitMove(line)
-    } else if (lineState === 'moves') {
-      if (!line) break
-      splitMove(line)
-    }
+      inHeaders = false
+    } else if (!line) break
+    movetextParts.push(line)
   }
+  const movetext = movetextParts.join('\n')
 
   // Set up board state
   const fen = header.FEN || DEFAULT_POSITION
@@ -211,21 +215,14 @@ export function walkPgn(pgn: string, options: WalkPgnOptions): HeaderMap {
     throw new Error(`Invalid FEN: ${fen}`)
   }
 
-  // Undo stack for make/unmake
-  const undoStack: UndoInfo[] = []
-  // Variation stack: when entering a variation, we unmake the last mainline move
-  // and save the undo info so we can replay it when exiting the variation
-  const variationStack: Array<{ restoreDepth: number; replayUndo: UndoInfo }> =
-    []
+  // Reuse or create stacks
+  const undoStack = context ? context.undoStack : []
+  const variationStack = context ? context.variationStack : []
+  undoStack.length = 0
+  variationStack.length = 0
 
   // Deferred move callback — buffer the move until the next move/structure token
   // so that post-move comments and NAGs are included
-  type PendingMove = {
-    move: HexMove
-    comment?: string
-    startingComment?: string
-    nags?: number[]
-  }
   let pendingMoveInfo: PendingMove | undefined
   let pendingStartingComment: string | undefined
   let inVariationStart = false
@@ -250,81 +247,79 @@ export function walkPgn(pgn: string, options: WalkPgnOptions): HeaderMap {
     else if (!pendingMoveInfo.nags.includes(nag)) pendingMoveInfo.nags.push(nag)
   }
 
-  // Tokenizer state
-  let mi = 0
-  const pending: string[] = []
-
-  const nextToken = (): string | undefined => {
-    if (pending.length) return pending.pop()!
-    if (mi < moveTokens.length) return moveTokens[mi++]
-    return undefined
-  }
-  const pushBack = (t: string) => {
-    pending.push(t)
-  }
-  const pushBackMultiple = (ts: string[]) => {
-    for (let i = ts.length - 1; i >= 0; i--) pending.push(ts[i])
+  const setComment = (raw: string) => {
+    // Normalize: collapse whitespace runs (including newlines) to single space, trim
+    const commentText = raw.replace(REGEXP_WHITESPACE_RUN, ' ').trim()
+    if (!commentText) return
+    if (inVariationStart || atRootNoMoves) {
+      pendingStartingComment = commentText
+    } else if (pendingMoveInfo) {
+      pendingMoveInfo.comment = commentText
+    }
   }
 
-  for (let token = nextToken(); token !== undefined; token = nextToken()) {
-    if (!token) continue
+  // Phase 2: Position-based scanner over movetext string
+  const len = movetext.length
+  let pos = 0
+
+  // Character codes that delimit tokens: { ( ) ; and whitespace
+  // Note: } is not included — it only appears inside {…} comments which
+  // are handled by indexOf before the token scanner runs.
+  const isStructural = (code: number) =>
+    code === 123 || // {
+    code === 40 || // (
+    code === 41 || // )
+    code === 59 || // ;
+    code === 32 || // space
+    code === 9 || // tab
+    code === 10 || // \n
+    code === 13 // \r
+
+  const skipWhitespace = () => {
+    while (pos < len) {
+      const ch = movetext.charCodeAt(pos)
+      if (ch === 32 || ch === 9 || ch === 10 || ch === 13) pos++
+      else break
+    }
+  }
+
+  while (pos < len) {
     if (aborted) break
+    skipWhitespace()
+    if (pos >= len) break
 
-    if (token.startsWith(';')) {
-      // Line comment — collect until NULL_CHAR (end of line)
-      if (token.length > 1) pushBack(token.substring(1))
-      const commentTokens: string[] = []
-      for (token = nextToken(); token !== undefined; token = nextToken()) {
-        if (token === NULL_CHAR) break
-        commentTokens.push(token)
+    const ch = movetext.charCodeAt(pos)
+
+    if (ch === 123) {
+      // {
+      // Block comment — scan to closing }
+      const start = pos + 1
+      const end = movetext.indexOf('}', start)
+      if (end === -1) {
+        // Unterminated comment — take rest of string
+        setComment(movetext.substring(start))
+        pos = len
+      } else {
+        setComment(movetext.substring(start, end))
+        pos = end + 1
       }
-      if (commentTokens.length) {
-        const commentText = commentTokens.join(' ')
-        if (inVariationStart || atRootNoMoves) {
-          pendingStartingComment = commentText
-        } else if (pendingMoveInfo) {
-          pendingMoveInfo.comment = commentText
-        }
+    } else if (ch === 59) {
+      // ;
+      // Line comment — scan to end of line; setComment handles trim
+      const start = pos + 1
+      let end = movetext.indexOf('\n', start)
+      if (end === -1) end = len
+      if (start < end) {
+        setComment(movetext.substring(start, end))
       }
-    } else if (token.includes(';')) {
-      pushBackMultiple(splitStr(token, ';'))
-    } else if (token.startsWith('{')) {
-      // Block comment
-      if (token.length > 1) pushBack(token.substring(1))
-      const commentTokens: string[] = []
-      for (token = nextToken(); token !== undefined; token = nextToken()) {
-        if (token.endsWith('}')) {
-          if (token.length > 1) {
-            commentTokens.push(token.substring(0, token.length - 1))
-          }
-          break
-        } else if (token.includes('}')) {
-          const idx = token.indexOf('}')
-          if (idx > 0) {
-            commentTokens.push(token.substring(0, idx))
-          }
-          if (idx < token.length - 1) {
-            pushBack(token.substring(idx + 1))
-          }
-          break
-        } else if (token === NULL_CHAR) {
-          continue
-        }
-        commentTokens.push(token)
-      }
-      const commentText = commentTokens.join(' ')
-      if (inVariationStart || atRootNoMoves) {
-        pendingStartingComment = commentText
-      } else if (pendingMoveInfo) {
-        pendingMoveInfo.comment = commentText
-      }
-    } else if (token.startsWith('(')) {
+      pos = end
+    } else if (ch === 40) {
+      // (
       // Start variation
       if (!flushPending()) break
       if (!undoStack.length) throw new Error('Missing parent')
-      if (token.length > 1) pushBack(token.substring(1))
+      pos++
 
-      // Unmake the last move to get back to the parent position
       const lastUndo = undoStack.pop()!
       unmakeMove(boardState, lastUndo)
       variationStack.push({
@@ -333,83 +328,85 @@ export function walkPgn(pgn: string, options: WalkPgnOptions): HeaderMap {
       })
       if (onStartVariation) onStartVariation()
       inVariationStart = true
-    } else if (token.startsWith(')')) {
+    } else if (ch === 41) {
+      // )
       // End variation
       if (!flushPending()) break
       if (!variationStack.length) throw new Error('Mismatched parentheses')
-      if (token.length > 1) pushBack(token.substring(1))
+      pos++
 
       if (onEndVariation) onEndVariation()
       const { restoreDepth, replayUndo } = variationStack.pop()!
-      // Unmake all moves back to restoreDepth
       while (undoStack.length > restoreDepth) {
         unmakeMove(boardState, undoStack.pop()!)
       }
-      // Re-make the mainline move
       const redo = makeMove(boardState, replayUndo.move)
       undoStack.push(redo)
       inVariationStart = false
       pendingStartingComment = undefined
-    } else if (token.includes(')')) {
-      pushBackMultiple(splitStr(token, ')'))
-    } else if (token.startsWith('$')) {
-      addPendingNag(parseInt(token.substring(1), 10))
-    } else if (token === '!') {
-      addPendingNag(Nag.GOOD_MOVE)
-    } else if (token === '?') {
-      addPendingNag(Nag.MISTAKE)
-    } else if (token === '!!') {
-      addPendingNag(Nag.BRILLIANT_MOVE)
-    } else if (token === '??') {
-      addPendingNag(Nag.BLUNDER)
-    } else if (token === '!?') {
-      addPendingNag(Nag.SPECULATIVE_MOVE)
-    } else if (token === '?!') {
-      addPendingNag(Nag.DUBIOUS_MOVE)
-    } else if (POSSIBLE_RESULTS.includes(token)) {
-      if (!header.Result && variationStack.length === 0) {
-        header.Result = token
-      }
-    } else if (NULL_MOVES.includes(token)) {
-      if (!flushPending()) break
-      const move = sanToMove(boardState, '--', { skipSan })
-      if (!move) continue
-      const undo = makeMove(boardState, move)
-      undoStack.push(undo)
-      pendingMoveInfo = {
-        move,
-        startingComment: pendingStartingComment,
-      }
-      pendingStartingComment = undefined
-      inVariationStart = false
-      atRootNoMoves = false
-    } else if (REGEXP_MOVE_NUMBER.test(token)) {
-      continue
-    } else if (token === NULL_CHAR) {
-      continue
     } else {
-      // Regular move token
-      if (!flushPending()) break
-      if (CASTLING_MOVES.includes(token)) {
-        token = token.replace(/0/g, 'O')
+      // Scan a token: read until whitespace or structural char
+      const start = pos
+      while (pos < len && !isStructural(movetext.charCodeAt(pos))) pos++
+      let token = movetext.substring(start, pos)
+
+      if (token.startsWith('$')) {
+        addPendingNag(parseInt(token.substring(1), 10))
+      } else if (token === '!') {
+        addPendingNag(Nag.GOOD_MOVE)
+      } else if (token === '?') {
+        addPendingNag(Nag.MISTAKE)
+      } else if (token === '!!') {
+        addPendingNag(Nag.BRILLIANT_MOVE)
+      } else if (token === '??') {
+        addPendingNag(Nag.BLUNDER)
+      } else if (token === '!?') {
+        addPendingNag(Nag.SPECULATIVE_MOVE)
+      } else if (token === '?!') {
+        addPendingNag(Nag.DUBIOUS_MOVE)
+      } else if (POSSIBLE_RESULTS.includes(token)) {
+        if (!header.Result && variationStack.length === 0) {
+          header.Result = token
+        }
+      } else if (NULL_MOVES.includes(token)) {
+        if (!flushPending()) break
+        const move = sanToMove(boardState, '--', { skipSan })
+        if (!move) continue
+        const undo = makeMove(boardState, move)
+        undoStack.push(undo)
+        pendingMoveInfo = {
+          move,
+          startingComment: pendingStartingComment,
+        }
+        pendingStartingComment = undefined
+        inVariationStart = false
+        atRootNoMoves = false
+      } else if (REGEXP_MOVE_NUMBER.test(token)) {
+        continue
+      } else {
+        // Regular move token
+        if (!flushPending()) break
+        if (CASTLING_MOVES.includes(token)) {
+          token = token.replace(/0/g, 'O')
+        }
+        token = token.replace(/^\d+\.{1,3}|^\.+|,$/g, '')
+        if (!token) continue
+        const nags = extractNags(token)
+        const move = sanToMove(boardState, token, { skipSan })
+        if (!move) {
+          throw new Error(`Invalid move token: "${token}"`)
+        }
+        const undo = makeMove(boardState, move)
+        undoStack.push(undo)
+        pendingMoveInfo = {
+          move,
+          nags,
+          startingComment: pendingStartingComment,
+        }
+        pendingStartingComment = undefined
+        inVariationStart = false
+        atRootNoMoves = false
       }
-      token = token.replace(/^\d+\.{1,3}|^\.+|,$/g, '')
-      if (!token) continue
-      const nags = extractNags(token)
-      const move = sanToMove(boardState, token, { skipSan })
-      if (!move) {
-        throw new Error(`Invalid move token: "${token}"`)
-      }
-      const undo = makeMove(boardState, move)
-      undoStack.push(undo)
-      pendingMoveInfo = {
-        move,
-        nags,
-        startingComment: pendingStartingComment,
-      }
-      pendingStartingComment = undefined
-      inVariationStart = false
-      atRootNoMoves = false
     }
   }
 
