@@ -787,7 +787,7 @@ export class Chess {
         const childMove = nodeMove(child)!
         return typeof move === 'string'
           ? childMove.san === move || moveToUci(childMove, parentState) === move
-          : moveToUci(childMove, parentState) === moveToUci(move, parentState)
+          : moveToUci(childMove, parentState) === moveToUci(move)
       })
     }
   }

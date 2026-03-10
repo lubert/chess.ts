@@ -1991,14 +1991,10 @@ export function unmakeMove(state: BoardState, undo: UndoInfo): void {
     const backRank = move.from & 0x70
     const kingDest = isKside ? backRank + 6 : backRank + 2
     const rookDest = isKside ? backRank + 5 : backRank + 3
-    const rookFrom =
-      us === WHITE
-        ? isKside
-          ? undo.castlingRooks_wk
-          : undo.castlingRooks_wq
-        : isKside
-          ? undo.castlingRooks_bk
-          : undo.castlingRooks_bq
+    // castlingRooks already restored from undo above
+    const rookFrom = isKside
+      ? state.castlingRooks[us].k
+      : state.castlingRooks[us].q
 
     const kingEncoded = state.board[kingDest]
     const rookEncoded = state.board[rookDest]
@@ -2195,13 +2191,28 @@ export function moveToUci(
       if (encoded && decodePieceType(encoded) === PT_KING) {
         const color: Color = encoded & 8 ? BLACK : WHITE
         const cr = state.castlingRooks[color]
-        // Kside: king destination is g-file, rook was on cr.k
         const backRank = fromSq & 0x70
-        if (toSq === backRank + 6 && cr.k !== EMPTY) {
+
+        // Use move flags when available (HexMove/Move) for reliable detection;
+        // fall back to destination heuristic for bare PartialMove.
+        const f = (move as { flags?: string | number }).flags
+        let isKside: boolean
+        let isQside: boolean
+        if (typeof f === 'number') {
+          isKside = !!(f & BITS.KSIDE_CASTLE)
+          isQside = !!(f & BITS.QSIDE_CASTLE)
+        } else if (typeof f === 'string') {
+          isKside = f.includes('k')
+          isQside = f.includes('q')
+        } else {
+          isKside = toSq === backRank + 6
+          isQside = toSq === backRank + 2
+        }
+
+        if (isKside && cr.k !== EMPTY) {
           return move.from + (algebraic(cr.k) || move.to)
         }
-        // Qside: king destination is c-file, rook was on cr.q
-        if (toSq === backRank + 2 && cr.q !== EMPTY) {
+        if (isQside && cr.q !== EMPTY) {
           return move.from + (algebraic(cr.q) || move.to)
         }
       }
