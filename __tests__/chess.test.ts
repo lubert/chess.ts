@@ -2640,6 +2640,13 @@ describe('isAttacked', () => {
     chess.move('e4')
     expect(chess.isAttacked('d5', 'w')).toBe(true)
   })
+
+  it('infers attacking color on empty square when color is omitted', () => {
+    const chess = new Chess()
+    chess.move('e4') // now black to move
+    // e3 is empty; omitting color → swapColor('b') = 'w', checks if white attacks e3
+    expect(chess.isAttacked('e3')).toBe(true)
+  })
 })
 
 describe('isAttacking', () => {
