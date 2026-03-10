@@ -31,6 +31,7 @@ import {
   PT_ROOK,
   PT_QUEEN,
   PT_KING,
+  CC_A,
   CC_a,
   CC_h,
   CC_1,
@@ -209,22 +210,22 @@ export function getFen(state: BoardState, strict = false): string {
   if (state.castling[WHITE] & BITS.KSIDE_CASTLE) {
     const rookSq = state.castlingRooks.w.k
     cflags +=
-      rookSq === SQUARES.h1 ? 'K' : String.fromCharCode(65 + (rookSq & 7))
+      rookSq === SQUARES.h1 ? 'K' : String.fromCharCode(CC_A + (rookSq & 7))
   }
   if (state.castling[WHITE] & BITS.QSIDE_CASTLE) {
     const rookSq = state.castlingRooks.w.q
     cflags +=
-      rookSq === SQUARES.a1 ? 'Q' : String.fromCharCode(65 + (rookSq & 7))
+      rookSq === SQUARES.a1 ? 'Q' : String.fromCharCode(CC_A + (rookSq & 7))
   }
   if (state.castling[BLACK] & BITS.KSIDE_CASTLE) {
     const rookSq = state.castlingRooks.b.k
     cflags +=
-      rookSq === SQUARES.h8 ? 'k' : String.fromCharCode(97 + (rookSq & 7))
+      rookSq === SQUARES.h8 ? 'k' : String.fromCharCode(CC_a + (rookSq & 7))
   }
   if (state.castling[BLACK] & BITS.QSIDE_CASTLE) {
     const rookSq = state.castlingRooks.b.q
     cflags +=
-      rookSq === SQUARES.a8 ? 'q' : String.fromCharCode(97 + (rookSq & 7))
+      rookSq === SQUARES.a8 ? 'q' : String.fromCharCode(CC_a + (rookSq & 7))
   }
 
   /* do we have an empty castling flag? */
@@ -342,8 +343,8 @@ export function loadFen(
         state.castlingRooks.b.q = SQUARES.a8
       } else if (ch >= 'A' && ch <= 'H') {
         // X-FEN: uppercase file letter = white rook
-        const rookFile = ch.charCodeAt(0) - 65 // 0-7
-        const rookSq = SQUARES.a1 + rookFile // rank 1
+        const rookFile = ch.charCodeAt(0) - CC_A
+        const rookSq = SQUARES.a1 + rookFile
         const kingFile = state.kings.w & 7
         if (rookFile > kingFile) {
           state.castling.w |= BITS.KSIDE_CASTLE
@@ -354,8 +355,8 @@ export function loadFen(
         }
       } else if (ch >= 'a' && ch <= 'h') {
         // X-FEN: lowercase file letter = black rook
-        const rookFile = ch.charCodeAt(0) - 97 // 0-7
-        const rookSq = SQUARES.a8 + rookFile // rank 8
+        const rookFile = ch.charCodeAt(0) - CC_a
+        const rookSq = SQUARES.a8 + rookFile
         const kingFile = state.kings.b & 7
         if (rookFile > kingFile) {
           state.castling.b |= BITS.KSIDE_CASTLE
@@ -613,12 +614,12 @@ function computeCheckMask(
 }
 
 /**
- * Check if castling is possible in Chess960 fashion.
+ * Check if castling is legal from the given king/rook squares.
  * All squares between king and its destination, and between rook and its
  * destination, must be empty (excluding king and rook themselves).
  * All squares the king traverses (from exclusive, to inclusive) must not be attacked.
  */
-function canCastle960(
+function canCastle(
   state: Readonly<BoardState>,
   kingSq: number,
   rookSq: number,
@@ -938,7 +939,7 @@ export function generateMoves(
             const rookSq = state.castlingRooks[state.turn].k
             if (
               (toSquare === undefined || toSquare === kingDest) &&
-              canCastle960(state, kingSq, rookSq, kingDest, rookDest, them)
+              canCastle(state, kingSq, rookSq, kingDest, rookDest, them)
             ) {
               addMove(KING, kingSq, kingDest, BITS.KSIDE_CASTLE)
             }
@@ -951,7 +952,7 @@ export function generateMoves(
             const rookSq = state.castlingRooks[state.turn].q
             if (
               (toSquare === undefined || toSquare === kingDest) &&
-              canCastle960(state, kingSq, rookSq, kingDest, rookDest, them)
+              canCastle(state, kingSq, rookSq, kingDest, rookDest, them)
             ) {
               addMove(KING, kingSq, kingDest, BITS.QSIDE_CASTLE)
             }
@@ -2180,6 +2181,7 @@ export function hexToGameState(
     move: move || undefined,
   }
 }
+
 export function moveToUci(
   move: PartialMove,
   state?: Readonly<BoardState>,
@@ -2211,7 +2213,7 @@ export function moveToUci(
 // Knight placement lookup for Chess960 position generation.
 // Maps index 0-9 to positions of two knights among 5 remaining squares.
 // prettier-ignore
-const N5N: [number, number][] = [
+const KNIGHT_PLACEMENTS: [number, number][] = [
   [0, 1], [0, 2], [0, 3], [0, 4],
   [1, 2], [1, 3], [1, 4],
   [2, 3], [2, 4],
@@ -2258,7 +2260,7 @@ export function generateChess960Fen(sp: number): string {
   for (let i = 0; i < 8; i++) {
     if (!rank[i]) empty2.push(i)
   }
-  const [n1, n2] = N5N[n]
+  const [n1, n2] = KNIGHT_PLACEMENTS[n]
   rank[empty2[n1]] = 'N'
   rank[empty2[n2]] = 'N'
 
@@ -2272,8 +2274,8 @@ export function generateChess960Fen(sp: number): string {
   rank[empty3[2]] = 'R'
 
   const backRank = rank.join('')
-  const qRookFile = String.fromCharCode(65 + empty3[0]) // uppercase
-  const kRookFile = String.fromCharCode(65 + empty3[2])
+  const qRookFile = String.fromCharCode(CC_A + empty3[0])
+  const kRookFile = String.fromCharCode(CC_A + empty3[2])
 
   // Use standard KQkq if rooks are on a/h files, otherwise X-FEN
   const wK = empty3[2] === 7 ? 'K' : kRookFile

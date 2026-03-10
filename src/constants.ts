@@ -31,6 +31,7 @@ export const DEFAULT_POSITION =
 export const POSSIBLE_RESULTS: string[] = ['1-0', '0-1', '1/2-1/2', '*']
 
 // CharCode constants for hand-rolled SAN/NAG parsing
+export const CC_A = 65
 export const CC_a = 97
 export const CC_h = 104
 export const CC_1 = 49

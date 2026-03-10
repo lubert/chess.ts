@@ -67,6 +67,7 @@ export class Chess {
   /** @internal */
   protected _currentNode!: TreeNode<HexState>
 
+  // Sticky: set by constructor or loadPgn, not reset by load()
   /** @internal */
   private _chess960: boolean = false
 
@@ -726,7 +727,8 @@ export class Chess {
     this._tree = tree
     this._currentNode = currentNode
     this.header = header
-    if (header.Variant === 'Chess960' || header.Variant === 'Fischerandom') {
+    const variant = header.Variant?.toLowerCase()
+    if (variant === 'chess960' || variant === 'fischerandom') {
       this._chess960 = true
     }
   }

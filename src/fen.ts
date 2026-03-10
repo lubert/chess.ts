@@ -96,7 +96,8 @@ export function validateFen(
   }
 
   // 3rd field: Castling availability (standard KQkq or X-FEN A-Ha-h)
-  // Uppercase (white) must come before lowercase (black), no duplicates
+  // Uppercase (white) must come before lowercase (black), no duplicates.
+  // Ordering within each color is not enforced (e.g. QK and KQ both accepted).
   if (
     !/^([A-HKQ]{1,2}[a-hkq]{0,2}|[a-hkq]{1,2}|-)$/.test(castling) ||
     (castling !== '-' && new Set(castling).size !== castling.length)
