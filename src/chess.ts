@@ -1394,7 +1394,7 @@ export class Chess {
 
   /** @internal */
   protected getNode(key?: string | number[]): TreeNode<HexState> | null {
-    if (!key) return this._currentNode
+    if (key === undefined) return this._currentNode
     if (Array.isArray(key)) return this._tree.fetch(key)
     return this._tree.fetchByPathKey(key)
   }
