@@ -793,6 +793,16 @@ export class Chess {
   }
 
   /**
+   * Finds a child node of the current position matching the given move.
+   * Returns the child's path key if found, otherwise undefined.
+   *
+   * @param move - SAN string, UCI string, or PartialMove object
+   */
+  public findChild(move: string | PartialMove): string | undefined {
+    return this.findMoveChildNode(move)?.pathKey
+  }
+
+  /**
    * Attempts to make a move on the board, returning a move object if the move was
    * legal, otherwise null. The .move function can be called two ways, by passing
    * a string in Standard Algebraic Notation (SAN):
