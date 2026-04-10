@@ -2687,6 +2687,30 @@ describe('annotations', () => {
     expect(chess.getNags()).toEqual([1, 3])
   })
 
+  it('setNags replaces all nags', () => {
+    const chess = new Chess()
+    chess.move('e4')
+    chess.addNag(1)
+    chess.addNag(3)
+    expect(chess.getNags()).toEqual([1, 3])
+    // Replace with a new set
+    expect(chess.setNags([5, 6])).toBe(true)
+    expect(chess.getNags()).toEqual([5, 6])
+  })
+
+  it('setNags to empty array clears nags', () => {
+    const chess = new Chess()
+    chess.move('e4')
+    chess.addNag(1)
+    expect(chess.setNags([])).toBe(true)
+    expect(chess.getNags()).toEqual([])
+  })
+
+  it('setNags returns false for invalid key', () => {
+    const chess = new Chess()
+    expect(chess.setNags([1], [99, 99])).toBe(false)
+  })
+
   it('setComment with { triggers cleanComment', () => {
     const chess = new Chess()
     chess.move('e4')

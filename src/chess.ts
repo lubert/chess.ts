@@ -1317,6 +1317,14 @@ export class Chess {
     return true
   }
 
+  public setNags(nags: Nag[], key?: string | number[]): boolean {
+    const node = this.getNode(key)
+    if (!node) return false
+
+    node.model.nags = [...nags]
+    return true
+  }
+
   public getNags(key?: string | number[]): Nag[] | undefined {
     const node = this.getNode(key)
     if (!node) return
