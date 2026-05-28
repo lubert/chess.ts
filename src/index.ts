@@ -11,6 +11,7 @@ export {
   GameState,
   HeaderMap,
   HexState,
+  HexMove,
   Move,
   PartialMove,
   Piece,
