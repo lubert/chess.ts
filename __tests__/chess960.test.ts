@@ -683,4 +683,41 @@ describe('Chess960 / X-FEN', () => {
       expect(chess.move({ from: 'f8', to: 'g8' })!.san).toBe('Kg8')
     })
   })
+
+  describe('load() declares the variant', () => {
+    it('sets the Variant header when told the position is 960', () => {
+      const chess = new Chess()
+      chess.load(generateChess960Fen(0), { chess960: true })
+      expect(chess.chess960).toBe(true)
+      expect(chess.header['Variant']).toBe('Chess960')
+    })
+
+    it('reset() clears a previous 960 game', () => {
+      const chess = new Chess(generateChess960Fen(0), { chess960: true })
+      chess.reset()
+      expect(chess.chess960).toBe(false)
+      expect(chess.header['Variant']).toBeUndefined()
+    })
+
+    it('still honours the constructor option', () => {
+      const chess = new Chess(generateChess960Fen(0), { chess960: true })
+      expect(chess.chess960).toBe(true)
+    })
+
+    it('loadPgn clears the flag for a game with no Variant tag', () => {
+      const chess = new Chess(generateChess960Fen(0), { chess960: true })
+      chess.loadPgn('[Event "Standard"]\n\n1. e4 *')
+      expect(chess.chess960).toBe(false)
+    })
+
+    it('loadPgn still sets the flag from a Variant tag', () => {
+      const chess = new Chess()
+      chess.loadPgn(
+        '[Variant "Chess960"]\n[SetUp "1"]\n[FEN "' +
+          generateChess960Fen(0) +
+          '"]\n\n*',
+      )
+      expect(chess.chess960).toBe(true)
+    })
+  })
 })

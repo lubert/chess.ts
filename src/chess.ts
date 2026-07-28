@@ -67,7 +67,7 @@ export class Chess {
   /** @internal */
   protected _currentNode!: TreeNode<HexState>
 
-  // Sticky: set by constructor or loadPgn, not reset by load()
+  // Declared per load(): each position states its own variant.
   /** @internal */
   private _chess960: boolean = false
 
@@ -99,8 +99,7 @@ export class Chess {
       options = fen
       fen = undefined
     }
-    this._chess960 = options?.chess960 ?? false
-    if (!this.load(fen ?? DEFAULT_POSITION)) {
+    if (!this.load(fen ?? DEFAULT_POSITION, { chess960: options?.chess960 })) {
       throw new Error('Error loading fen')
     }
   }
@@ -171,13 +170,16 @@ export class Chess {
    */
   public load(
     fen: string,
-    options?: { positionOnly?: boolean; legal?: boolean },
+    options?: { positionOnly?: boolean; legal?: boolean; chess960?: boolean },
   ): boolean {
     const boardState = loadFen(fen, options)
     if (!boardState) {
       return false
     }
 
+    // Loading a position declares its variant. Defaulting to false stops
+    // reset() carrying a previous 960 game's Variant onto a standard one.
+    this._chess960 = options?.chess960 ?? false
     this._tree = new TreeNode<HexState>({ boardState })
     this._currentNode = this._tree
     this.updateSetup()
@@ -728,9 +730,9 @@ export class Chess {
     this._currentNode = currentNode
     this.header = header
     const variant = header.Variant?.toLowerCase()
-    if (variant === 'chess960' || variant === 'fischerandom') {
-      this._chess960 = true
-    }
+    // Assign, don't set: a standard game loaded after a 960 one must clear the
+    // flag, or its PGN gains a bogus Variant tag.
+    this._chess960 = variant === 'chess960' || variant === 'fischerandom'
   }
 
   /**
@@ -1444,6 +1446,8 @@ export class Chess {
 
     if (this._chess960) {
       this.header['Variant'] = 'Chess960'
+    } else {
+      delete this.header['Variant']
     }
   }
 
