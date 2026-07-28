@@ -288,6 +288,65 @@ export function getFen(state: BoardState, strict = false): string {
   ].join(' ')
 }
 
+/**
+ * The rook a `K`/`Q`/`k`/`q` castling flag refers to: the outermost rook of
+ * that colour on that side of its king. In standard chess that is h1/a1, but
+ * X-FEN reuses the same letters for Chess960, where it is whatever rook sits
+ * furthest out. Returns EMPTY when no such rook exists.
+ * @internal
+ */
+function outermostRook(
+  state: Readonly<BoardState>,
+  color: Color,
+  kingSide: boolean,
+): number {
+  const backRank = color === WHITE ? SQUARES.a1 : SQUARES.a8
+  const kingSq = state.kings[color]
+  // Off its back rank the king has no side to speak of, and scanning would run
+  // past the rank into the rest of the board.
+  if (kingSq === EMPTY || (kingSq & 0x70) !== backRank) return EMPTY
+  const colorBit = COLOR_NUM[color]
+  if (kingSide) {
+    for (let sq = backRank + 7; sq > kingSq; sq--) {
+      const p = state.board[sq]
+      if (p && (p & 7) === PT_ROOK && (p & 8) === colorBit) return sq
+    }
+  } else {
+    for (let sq = backRank; sq < kingSq; sq++) {
+      const p = state.board[sq]
+      if (p && (p & 7) === PT_ROOK && (p & 8) === colorBit) return sq
+    }
+  }
+  return EMPTY
+}
+
+/**
+ * Records a castling right, but only when a rook of that colour really sits on
+ * `rookSq` beside its king on the back rank. A flag with nothing behind it is
+ * invalid FEN, and engines handle it in incompatible ways -- Stockfish crashes
+ * or hangs, lc0 keeps analysing the previous position -- so it is dropped here
+ * rather than passed on. python-chess and cozy-chess likewise refuse it.
+ * @internal
+ */
+function grantCastle(state: BoardState, color: Color, rookSq: number): void {
+  if (rookSq === EMPTY) return
+  const backRank = color === WHITE ? SQUARES.a1 : SQUARES.a8
+  if ((rookSq & 0x70) !== backRank) return
+  const p = state.board[rookSq]
+  if (!p || (p & 7) !== PT_ROOK || (p & 8) !== COLOR_NUM[color]) return
+  const kingSq = state.kings[color]
+  if (kingSq === EMPTY || (kingSq & 0x70) !== backRank || kingSq === rookSq) {
+    return
+  }
+  if (rookSq > kingSq) {
+    state.castling[color] |= BITS.KSIDE_CASTLE
+    state.castlingRooks[color].k = rookSq
+  } else {
+    state.castling[color] |= BITS.QSIDE_CASTLE
+    state.castlingRooks[color].q = rookSq
+  }
+}
+
 export function loadFen(
   fen: string,
   options?: { positionOnly?: boolean; legal?: boolean },
@@ -330,41 +389,19 @@ export function loadFen(
     for (let ci = 0; ci < castlingField.length; ci++) {
       const ch = castlingField[ci]
       if (ch === 'K') {
-        state.castling.w |= BITS.KSIDE_CASTLE
-        state.castlingRooks.w.k = SQUARES.h1
+        grantCastle(state, WHITE, outermostRook(state, WHITE, true))
       } else if (ch === 'Q') {
-        state.castling.w |= BITS.QSIDE_CASTLE
-        state.castlingRooks.w.q = SQUARES.a1
+        grantCastle(state, WHITE, outermostRook(state, WHITE, false))
       } else if (ch === 'k') {
-        state.castling.b |= BITS.KSIDE_CASTLE
-        state.castlingRooks.b.k = SQUARES.h8
+        grantCastle(state, BLACK, outermostRook(state, BLACK, true))
       } else if (ch === 'q') {
-        state.castling.b |= BITS.QSIDE_CASTLE
-        state.castlingRooks.b.q = SQUARES.a8
+        grantCastle(state, BLACK, outermostRook(state, BLACK, false))
       } else if (ch >= 'A' && ch <= 'H') {
         // X-FEN: uppercase file letter = white rook
-        const rookFile = ch.charCodeAt(0) - CC_A
-        const rookSq = SQUARES.a1 + rookFile
-        const kingFile = state.kings.w & 7
-        if (rookFile > kingFile) {
-          state.castling.w |= BITS.KSIDE_CASTLE
-          state.castlingRooks.w.k = rookSq
-        } else {
-          state.castling.w |= BITS.QSIDE_CASTLE
-          state.castlingRooks.w.q = rookSq
-        }
+        grantCastle(state, WHITE, SQUARES.a1 + (ch.charCodeAt(0) - CC_A))
       } else if (ch >= 'a' && ch <= 'h') {
         // X-FEN: lowercase file letter = black rook
-        const rookFile = ch.charCodeAt(0) - CC_a
-        const rookSq = SQUARES.a8 + rookFile
-        const kingFile = state.kings.b & 7
-        if (rookFile > kingFile) {
-          state.castling.b |= BITS.KSIDE_CASTLE
-          state.castlingRooks.b.k = rookSq
-        } else {
-          state.castling.b |= BITS.QSIDE_CASTLE
-          state.castlingRooks.b.q = rookSq
-        }
+        grantCastle(state, BLACK, SQUARES.a8 + (ch.charCodeAt(0) - CC_a))
       }
     }
   }
@@ -2114,18 +2151,38 @@ export function validateMove(
   } else if (typeof move === 'object') {
     const square = isSquare(move.from) ? move.from : undefined
     const moves = generateMoves(state, { from: square, to: move.to })
-    // Find a matching move
+    const matches = (m: HexMove): boolean =>
+      move.from === algebraic(m.from) &&
+      move.to === algebraic(m.to) &&
+      (!matchPromotion || !('promotion' in m) || move.promotion === m.promotion)
+    const isCastle = (m: HexMove): boolean =>
+      !!(m.flags & (BITS.KSIDE_CASTLE | BITS.QSIDE_CASTLE))
+
+    // A Move handed back by generateMoves/moves() carries flags. Honour them,
+    // so enumerate-then-play round-trips: in Chess960 a castle and an ordinary
+    // king move can share from/to (king on f1 or b1), and without this the
+    // castle silently degrades into the king move.
+    const f = (move as { flags?: string | number }).flags
+    const wantsCastle =
+      typeof f === 'number'
+        ? !!(f & (BITS.KSIDE_CASTLE | BITS.QSIDE_CASTLE))
+        : typeof f === 'string'
+          ? /[kq]/.test(f)
+          : undefined
+
+    if (wantsCastle !== undefined) {
+      for (let i = 0; i < moves.length; i++) {
+        const m = moves[i]
+        if (isCastle(m) === wantsCastle && matches(m)) return m
+      }
+    }
+
+    // Otherwise prefer the ordinary move. From/to alone cannot distinguish the
+    // two in Chess960; castling is then addressed by king-captures-rook below.
+    // Standard chess is unaffected, since e1->g1 is only ever a castle.
     for (let i = 0; i < moves.length; i++) {
       const m = moves[i]
-      if (
-        move.from === algebraic(m.from) &&
-        move.to === algebraic(m.to) &&
-        (!matchPromotion ||
-          !('promotion' in m) ||
-          move.promotion === m.promotion)
-      ) {
-        return m
-      }
+      if (!isCastle(m) && matches(m)) return m
     }
 
     // Chess960: king-captures-rook notation for castling
@@ -2150,6 +2207,14 @@ export function validateMove(
           }
         }
       }
+    }
+
+    // Castling addressed by the king's destination (e1->g1). This is how
+    // standard chess names it, so it stays supported; it is only reached when
+    // no ordinary move claimed the pair.
+    for (let i = 0; i < moves.length; i++) {
+      const m = moves[i]
+      if (isCastle(m) && matches(m)) return m
     }
   }
 
@@ -2178,6 +2243,21 @@ export function hexToGameState(
   }
 }
 
+/**
+ * Renders a move in UCI long algebraic notation, e.g. `e2e4` or `e7e8q`.
+ *
+ * @remarks
+ * Pass `state` for Chess960: castling is then encoded the way UCI engines
+ * expect it, as king-captures-rook (`e1h1`) rather than by the king's
+ * destination (`e1g1`). Without `state` the move's own from/to is used, which
+ * is correct for standard chess. `state` must be the position the move is
+ * played from.
+ *
+ * @param move - The move to render
+ * @param state - Position the move is played from, required for Chess960
+ *
+ * @public
+ */
 export function moveToUci(
   move: PartialMove,
   state?: Readonly<BoardState>,

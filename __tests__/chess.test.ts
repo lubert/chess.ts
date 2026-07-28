@@ -2221,7 +2221,8 @@ describe('Regression Tests', () => {
       '1. Rh6#',
     ]
     chess.loadPgn(pgn.join('\n'))
-    expect(chess.fen()).toBe('7k/5K2/7R/8/8/8/8/8 b KQkq - 1 1')
+    // Neither back rank holds a rook, so every castling flag is dropped.
+    expect(chess.fen()).toBe('7k/5K2/7R/8/8/8/8/8 b - - 1 1')
   })
 
   it('Github Issue #85 (black) - SetUp and FEN should be accepted in loadPgn', () => {
@@ -2233,8 +2234,12 @@ describe('Regression Tests', () => {
       '1. ... Qc5+',
     ]
     chess.loadPgn(pgn.join('\n'))
+    // White's king is on g1 and its only back-rank rook on f1, so X-FEN's `Q`
+    // names f1 and re-emits as `F`; `K` and `k` have no rook behind them and
+    // are dropped. Stockfish normalises this same FEN to `Fa`, python-chess to
+    // `Fa` in Shredder form.
     expect(chess.fen()).toBe(
-      'r4r1k/1p4b1/3p3p/2q3p1/1RP5/6P1/3NP3/2Q2RKB w KQkq - 1 2',
+      'r4r1k/1p4b1/3p3p/2q3p1/1RP5/6P1/3NP3/2Q2RKB w Fq - 1 2',
     )
   })
 

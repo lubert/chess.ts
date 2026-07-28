@@ -23,8 +23,8 @@ describe('Chess960 / X-FEN', () => {
     })
 
     it('parses X-FEN with file letters for white', () => {
-      // King on d1, rooks on a1 (qside) and f1 (kside)
-      const fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/R2K1R2 w AFaf - 0 1'
+      // King on d1/d8, rooks on a1/a8 (qside) and f1/f8 (kside)
+      const fen = 'r2k1r2/pppppppp/8/8/8/8/PPPPPPPP/R2K1R2 w AFaf - 0 1'
       const state = loadFen(fen)!
       expect(state).not.toBeNull()
       expect(state.castlingRooks.w.q).toBe(SQUARES.a1)
@@ -70,7 +70,7 @@ describe('Chess960 / X-FEN', () => {
 
     it('mixed standard and X-FEN round-trips correctly', () => {
       // White: standard h1 rook (K), non-standard b1 rook (B)
-      const fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNB1KBNR w KBkq - 0 1'
+      const fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/1RB1KBNR w KBkq - 0 1'
       const state = loadFen(fen)!
       expect(getFen(state)).toBe(fen)
     })
@@ -519,6 +519,122 @@ describe('Chess960 / X-FEN', () => {
       // Normal non-castling move
       const uci = moveToUci({ from: 'e2', to: 'e4' }, state)
       expect(uci).toBe('e2e4')
+    })
+  })
+
+  describe('KQkq refers to the outermost rook, not h1/a1', () => {
+    // X-FEN reuses KQkq for Chess960, where the flag names whichever rook sits
+    // furthest out on that side. Reading it as literally h1/a1 loses castling
+    // whenever the rooks are elsewhere.
+    it('resolves K/Q to the outermost rooks when they are off h1/a1', () => {
+      const state = loadFen('4k3/8/8/8/8/8/8/1R1K2R1 w KQ - 0 1')!
+      expect(algebraic(state.castlingRooks.w.k)).toBe('g1')
+      expect(algebraic(state.castlingRooks.w.q)).toBe('b1')
+    })
+
+    it('still resolves to h1/a1 in standard chess', () => {
+      const state = loadFen('4k3/8/8/8/8/8/8/R3K2R w KQ - 0 1')!
+      expect(algebraic(state.castlingRooks.w.k)).toBe('h1')
+      expect(algebraic(state.castlingRooks.w.q)).toBe('a1')
+    })
+
+    it('generates both castles for a KQ position with rooks off h1/a1', () => {
+      const chess = new Chess('4k3/8/8/8/8/8/8/1R1K2R1 w KQ - 0 1', {
+        chess960: true,
+      })
+      const sans = chess
+        .moves()
+        .filter((m) => /[kq]/.test(m.flags))
+        .map((m) => m.san)
+        .sort()
+      expect(sans).toEqual(['O-O', 'O-O-O'])
+    })
+
+    it('drops a flag with no rook behind it', () => {
+      // Invalid FEN, and engines disagree on the consequence: Stockfish
+      // crashes or hangs, lc0 silently keeps analysing the previous position.
+      // python-chess and cozy-chess both refuse it too.
+      expect(
+        getFen(loadFen('4k3/8/8/8/8/8/8/4K3 w KQkq - 0 1')!).split(' ')[2],
+      ).toBe('-')
+      expect(
+        getFen(loadFen('4k3/8/8/8/8/8/8/4K2R w KQ - 0 1')!).split(' ')[2],
+      ).toBe('K')
+      // File letter naming a square that holds something other than a rook.
+      expect(
+        getFen(loadFen('4k3/8/8/8/8/8/8/1N2K2R w BK - 0 1')!).split(' ')[2],
+      ).toBe('K')
+    })
+
+    it('drops rights when the king is off its back rank', () => {
+      expect(
+        getFen(loadFen('4k3/8/8/8/8/8/4K3/R6R w KQ - 0 1')!).split(' ')[2],
+      ).toBe('-')
+    })
+
+    it('lowercase flags resolve against the black king', () => {
+      const state = loadFen('1r1k2r1/8/8/8/8/8/8/4K3 b kq - 0 1')!
+      expect(algebraic(state.castlingRooks.b.k)).toBe('g8')
+      expect(algebraic(state.castlingRooks.b.q)).toBe('b8')
+    })
+  })
+
+  describe('{from,to} is ambiguous when the king starts beside g1/c1', () => {
+    // Black king f8, rooks d8 and h8: Kg8 and O-O share (f8,g8) but reach
+    // different positions, since only the castle also moves the rook.
+    const FEN =
+      'bbqrnk1r/1ppp2pp/5n2/pP2pp2/P2PP3/8/2P2PPP/BBQRNKNR b KDkd e3 0 5'
+
+    it('generates both moves with the same from/to', () => {
+      const state = loadFen(FEN)!
+      const kingMoves = generateMoves(state).filter(
+        (m) => algebraic(m.from) === 'f8' && algebraic(m.to) === 'g8',
+      )
+      expect(kingMoves).toHaveLength(2)
+      expect(kingMoves.filter((m) => m.flags & BITS.KSIDE_CASTLE)).toHaveLength(
+        1,
+      )
+    })
+
+    it('reads a bare {from,to} as the ordinary king move', () => {
+      const chess = new Chess(FEN, { chess960: true })
+      expect(chess.move({ from: 'f8', to: 'g8' })!.san).toBe('Kg8')
+      // Rook stays on h8.
+      expect(chess.fen().split(' ')[0]).toBe(
+        'bbqrn1kr/1ppp2pp/5n2/pP2pp2/P2PP3/8/2P2PPP/BBQRNKNR',
+      )
+    })
+
+    it('castles via king-captures-rook', () => {
+      const chess = new Chess(FEN, { chess960: true })
+      expect(chess.move({ from: 'f8', to: 'h8' })!.san).toBe('O-O')
+      expect(chess.fen().split(' ')[0]).toBe(
+        'bbqrnrk1/1ppp2pp/5n2/pP2pp2/P2PP3/8/2P2PPP/BBQRNKNR',
+      )
+    })
+
+    it('still accepts e1->g1 as castling in standard chess', () => {
+      const chess = new Chess('4k3/8/8/8/8/8/8/R3K2R w KQ - 0 1')
+      expect(chess.move({ from: 'e1', to: 'g1' })!.san).toBe('O-O')
+    })
+
+    it('round-trips a move object straight from moves()', () => {
+      // Enumerate-then-play is the natural usage, and the castle and the king
+      // move are only told apart by flags.
+      const chess = new Chess(FEN, { chess960: true })
+      for (const m of chess.moves()) {
+        const probe = new Chess(FEN, { chess960: true })
+        expect(probe.move(m)!.san).toBe(m.san)
+      }
+    })
+
+    it('does not let a castle and an ordinary king move share a node', () => {
+      const chess = new Chess(FEN, { chess960: true })
+      chess.move({ from: 'f8', to: 'h8' }) // O-O
+      chess.undo()
+      // Same from/to as the castle's king travel, but a different move: it must
+      // create its own node rather than navigate into the castle.
+      expect(chess.move({ from: 'f8', to: 'g8' })!.san).toBe('Kg8')
     })
   })
 })

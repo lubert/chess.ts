@@ -783,12 +783,22 @@ export class Chess {
     const node = this.getNode(key)
     if (node) {
       const parentState = this._chess960 ? node.model.boardState : undefined
-      return node.children.find((child) => {
-        const childMove = nodeMove(child)!
-        return typeof move === 'string'
-          ? childMove.san === move || moveToUci(childMove, parentState) === move
-          : moveToUci(childMove, parentState) === moveToUci(move)
-      })
+      if (typeof move === 'string') {
+        return node.children.find((child) => {
+          const childMove = nodeMove(child)!
+          return (
+            childMove.san === move || moveToUci(childMove, parentState) === move
+          )
+        })
+      }
+      // Resolve the object form against this position before comparing. A bare
+      // {from,to} is ambiguous in Chess960, and validateMove owns that
+      // disambiguation; matching on it directly would let a castle and an
+      // ordinary king move claim each other's node. SAN is unique per position.
+      const resolved = validateMove(node.model.boardState, move)
+      if (!resolved) return undefined
+      const san = resolved.san ?? moveToSan(node.model.boardState, resolved)
+      return node.children.find((child) => nodeMove(child)!.san === san)
     }
   }
 
