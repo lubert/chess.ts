@@ -445,6 +445,47 @@ export function clonePiece(piece: Readonly<Piece>): Piece {
   }
 }
 
+/**
+ * Drops any castling right whose king or rook has been edited off its square.
+ * A right names one specific rook, so editing that rook away has to clear it,
+ * or the right survives as a "castle" that moves no rook and as an unbacked
+ * FEN flag -- see `grantCastle`. Only the editing entry points call this;
+ * makeMove maintains rights itself and relies on undo to restore them.
+ * @internal
+ */
+function revokeUnbackedCastling(state: BoardState): void {
+  for (const color of [WHITE, BLACK] as const) {
+    const colorBit = COLOR_NUM[color]
+    const rooks = state.castlingRooks[color]
+    const isPiece = (sq: number, type: number): boolean => {
+      if (sq === EMPTY) return false
+      const p = state.board[sq]
+      return !!p && (p & 7) === type && (p & 8) === colorBit
+    }
+
+    if (!isPiece(state.kings[color], PT_KING)) {
+      state.castling[color] = 0
+      rooks.k = EMPTY
+      rooks.q = EMPTY
+      continue
+    }
+    if (
+      state.castling[color] & BITS.KSIDE_CASTLE &&
+      !isPiece(rooks.k, PT_ROOK)
+    ) {
+      state.castling[color] &= ~BITS.KSIDE_CASTLE
+      rooks.k = EMPTY
+    }
+    if (
+      state.castling[color] & BITS.QSIDE_CASTLE &&
+      !isPiece(rooks.q, PT_ROOK)
+    ) {
+      state.castling[color] &= ~BITS.QSIDE_CASTLE
+      rooks.q = EMPTY
+    }
+  }
+}
+
 export function putPiece(
   prevState: Readonly<BoardState>,
   piece: Piece,
@@ -466,6 +507,7 @@ export function putPiece(
     state.kings[piece.color] = sq
   }
 
+  revokeUnbackedCastling(state)
   return state
 }
 
@@ -486,6 +528,7 @@ export function removePiece(
     state.kings[color] = EMPTY
   }
   state.board[square] = 0
+  revokeUnbackedCastling(state)
   return state
 }
 

@@ -579,6 +579,52 @@ describe('Chess960 / X-FEN', () => {
     })
   })
 
+  describe('editing the board revokes rights it leaves unbacked', () => {
+    // A right names one rook, so editing that rook away used to leave a castle
+    // that moved no rook and a FEN flag with nothing behind it.
+    it('drops the right when its rook is removed', () => {
+      const chess = new Chess('4k3/8/8/8/8/8/8/4K2R w K - 0 1')
+      expect(chess.moves().some((m) => m.san === 'O-O')).toBe(true)
+      chess.removePiece('h1')
+      expect(chess.fen().split(' ')[2]).toBe('-')
+      expect(chess.moves().some((m) => m.san === 'O-O')).toBe(false)
+    })
+
+    it('drops the right when its rook is overwritten', () => {
+      const chess = new Chess('4k3/8/8/8/8/8/8/4K2R w K - 0 1')
+      chess.putPiece({ type: 'b', color: 'w' }, 'h1')
+      expect(chess.fen().split(' ')[2]).toBe('-')
+    })
+
+    it('keeps the right when the same rook is re-placed', () => {
+      const chess = new Chess('4k3/8/8/8/8/8/8/4K2R w K - 0 1')
+      chess.putPiece({ type: 'r', color: 'w' }, 'h1')
+      expect(chess.fen().split(' ')[2]).toBe('K')
+    })
+
+    it('drops both rights when the king is removed', () => {
+      const chess = new Chess('4k3/8/8/8/8/8/8/R3K2R w KQ - 0 1')
+      chess.removePiece('e1')
+      expect(chess.fen().split(' ')[2]).toBe('-')
+    })
+
+    it('leaves the other colour alone', () => {
+      const chess = new Chess('r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1')
+      chess.removePiece('h1')
+      expect(chess.fen().split(' ')[2]).toBe('Qkq')
+    })
+
+    it('drops a Chess960 right when its rook is removed', () => {
+      // King f1, rooks d1 and h1: removing d1 costs only the queenside right.
+      const chess = new Chess('4k3/8/8/8/8/8/8/3R1K1R w KQ - 0 1', {
+        chess960: true,
+      })
+      expect(chess.fen().split(' ')[2]).toBe('KD')
+      chess.removePiece('d1')
+      expect(chess.fen().split(' ')[2]).toBe('K')
+    })
+  })
+
   describe('{from,to} is ambiguous when the king starts beside g1/c1', () => {
     // Black king f8, rooks d8 and h8: Kg8 and O-O share (f8,g8) but reach
     // different positions, since only the castle also moves the rook.
