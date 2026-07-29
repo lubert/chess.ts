@@ -71,5 +71,7 @@ export {
   isAttacking,
   isThreatening,
   generateChess960Fen,
+  isChess960State,
+  isChess960Fen,
 } from './move'
 export { walkPgn, createWalkPgnContext } from './pgn'

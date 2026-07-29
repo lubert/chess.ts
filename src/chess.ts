@@ -3,6 +3,7 @@ import {
   makeMove,
   putPiece,
   loadFen,
+  isChess960State,
   getPiece,
   removePiece,
   inCheck,
@@ -177,9 +178,9 @@ export class Chess {
       return false
     }
 
-    // Loading a position declares its variant. Defaulting to false stops
-    // reset() carrying a previous 960 game's Variant onto a standard one.
-    this._chess960 = options?.chess960 ?? false
+    // Loading a position declares its variant, derived from the position
+    // unless the caller insists — so no caller has to remember to pass it.
+    this._chess960 = options?.chess960 ?? isChess960State(boardState)
     this._tree = new TreeNode<HexState>({ boardState })
     this._currentNode = this._tree
     this.updateSetup()
@@ -731,8 +732,11 @@ export class Chess {
     this.header = header
     const variant = header.Variant?.toLowerCase()
     // Assign, don't set: a standard game loaded after a 960 one must clear the
-    // flag, or its PGN gains a bogus Variant tag.
-    this._chess960 = variant === 'chess960' || variant === 'fischerandom'
+    // flag. The position is the fallback for PGNs that omit the Variant tag.
+    this._chess960 =
+      variant === 'chess960' ||
+      variant === 'fischerandom' ||
+      isChess960State(tree.model.boardState)
   }
 
   /**

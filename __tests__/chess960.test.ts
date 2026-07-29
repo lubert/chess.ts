@@ -8,6 +8,7 @@ import {
   validateMove,
   moveToUci,
   generateChess960Fen,
+  isChess960Fen,
 } from '../src/move'
 import { algebraic } from '../src/utils'
 
@@ -717,6 +718,98 @@ describe('Chess960 / X-FEN', () => {
           generateChess960Fen(0) +
           '"]\n\n*',
       )
+      expect(chess.chess960).toBe(true)
+    })
+  })
+
+  describe('deriving the variant from the position', () => {
+    it('is false for the classic start', () => {
+      expect(isChess960Fen(new Chess().fen())).toBe(false)
+    })
+
+    it('is true when the king is off its classic square', () => {
+      expect(isChess960Fen('4k3/8/8/8/8/8/8/3R1KR1 w GD - 0 1')).toBe(true)
+    })
+
+    it('is true when a rook is off its classic square', () => {
+      expect(isChess960Fen('4k3/8/8/8/8/8/8/R3K1RR w G - 0 1')).toBe(true)
+    })
+
+    it('is false once the rights are spent', () => {
+      expect(isChess960Fen('4k3/8/8/8/8/8/8/3R1KR1 w - - 0 1')).toBe(false)
+    })
+
+    it('is false for an unparseable FEN', () => {
+      expect(isChess960Fen('not a fen')).toBe(false)
+    })
+
+    // The classic-geometry SPs are indistinguishable from classic chess, and
+    // the rules coincide there, so reading them as classic is correct.
+    it('reports classic-geometry positions as classic', () => {
+      expect(isChess960Fen(generateChess960Fen(518))).toBe(false)
+    })
+
+    it('covers exactly the 18 classic-geometry positions', () => {
+      const classic: number[] = []
+      for (let sp = 0; sp < 960; sp++) {
+        if (!isChess960Fen(generateChess960Fen(sp))) classic.push(sp)
+      }
+      expect(classic).toEqual([
+        414, 430, 446, 454, 460, 461, 502, 508, 509, 518, 524, 525, 532, 533,
+        548, 549, 692, 693,
+      ])
+    })
+
+    // SP 517 is RNBBQKNR: rooks on a1/h1 but the king on f1, so a plain KQkq
+    // token is still X-FEN. Real-world 960 databases arrive in this shape.
+    it('catches a position whose castling token is plain KQkq', () => {
+      expect(generateChess960Fen(517).split(' ')[2]).toBe('KQkq')
+      expect(isChess960Fen(generateChess960Fen(517))).toBe(true)
+    })
+
+    it('is false for a shuffled back rank with classic castling geometry', () => {
+      expect(
+        isChess960Fen(
+          'rqbnkbnr/pppppppp/8/8/8/8/PPPPPPPP/RQBNKBNR w KQkq - 0 1',
+        ),
+      ).toBe(false)
+    })
+
+    it('is false for rights with no backing rook', () => {
+      expect(isChess960Fen('4k3/8/8/8/8/8/8/4K3 w KQkq - 0 1')).toBe(false)
+    })
+
+    it('is false when the king is missing', () => {
+      expect(isChess960Fen('4k3/8/8/8/8/8/8/R6R w KQ - 0 1')).toBe(false)
+    })
+
+    it('a loaded position declares itself without the option', () => {
+      const chess = new Chess(generateChess960Fen(0))
+      expect(chess.chess960).toBe(true)
+      expect(chess.header.Variant).toBe('Chess960')
+    })
+
+    it('an explicit option still wins', () => {
+      const chess = new Chess(generateChess960Fen(0), { chess960: false })
+      expect(chess.chess960).toBe(false)
+    })
+
+    it('reset() clears the derived flag', () => {
+      const chess = new Chess(generateChess960Fen(0))
+      expect(chess.chess960).toBe(true)
+      chess.reset()
+      expect(chess.chess960).toBe(false)
+      expect(chess.header.Variant).toBeUndefined()
+    })
+
+    it('castles correctly without being told the variant', () => {
+      const chess = new Chess('4k3/8/8/8/8/8/8/R2K3R w KQ - 0 1')
+      expect(chess.move({ from: 'd1', to: 'h1' })?.san).toBe('O-O')
+    })
+
+    it('loadPgn derives from a FEN tag with no Variant tag', () => {
+      const chess = new Chess()
+      chess.loadPgn('[SetUp "1"]\n[FEN "' + generateChess960Fen(0) + '"]\n\n*')
       expect(chess.chess960).toBe(true)
     })
   })

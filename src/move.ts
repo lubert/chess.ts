@@ -2355,6 +2355,48 @@ const KNIGHT_PLACEMENTS: [number, number][] = [
 ]
 
 /**
+ * Whether a position needs Chess960 rules: it holds a castling right whose
+ * king or rook is off the square classic chess puts it on.
+ *
+ * Positions with classic geometry read as false even if they came from a
+ * Chess960 game — the rules coincide there, so nothing depends on the answer.
+ * @param state - Board state to inspect
+ * @returns True when castling cannot be described by classic rules
+ * @public
+ */
+export function isChess960State(state: BoardState): boolean {
+  for (const color of [WHITE, BLACK] as Color[]) {
+    const kingSq = state.kings[color]
+    if (kingSq === EMPTY) continue
+    const homeKing = color === WHITE ? SQUARES.e1 : SQUARES.e8
+    const { k, q } = state.castlingRooks[color]
+    if (state.castling[color] & BITS.KSIDE_CASTLE) {
+      const home = color === WHITE ? SQUARES.h1 : SQUARES.h8
+      if (kingSq !== homeKing || k !== home) return true
+    }
+    if (state.castling[color] & BITS.QSIDE_CASTLE) {
+      const home = color === WHITE ? SQUARES.a1 : SQUARES.a8
+      if (kingSq !== homeKing || q !== home) return true
+    }
+  }
+  return false
+}
+
+/**
+ * Whether a FEN describes a position needing Chess960 rules.
+ *
+ * An unparseable FEN reads as false: classic is the assumption, and a position
+ * that cannot be loaded has no castling geometry to judge.
+ * @param fen - FEN string to inspect
+ * @returns True when castling cannot be described by classic rules
+ * @public
+ */
+export function isChess960Fen(fen: string): boolean {
+  const state = loadFen(fen)
+  return state ? isChess960State(state) : false
+}
+
+/**
  * Generate the FEN for a Chess960 starting position (SP 0–959).
  * @param sp - Starting position index (0–959)
  * @returns FEN string with X-FEN castling rights
