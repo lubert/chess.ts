@@ -807,6 +807,27 @@ describe('Chess960 / X-FEN', () => {
       expect(chess.move({ from: 'd1', to: 'h1' })?.san).toBe('O-O')
     })
 
+    // Mid-game the norm is one side 960 and the other spent or classic, so a
+    // per-colour `return false` has to not short-circuit the other side.
+    it('is true when only black is 960-shaped', () => {
+      expect(isChess960Fen('r2k3r/8/8/8/8/8/8/R3K2R w KQkq - 0 1')).toBe(true)
+    })
+
+    it('clear() drops the derived flag and its tag', () => {
+      const chess = new Chess(generateChess960Fen(0))
+      chess.clear(true)
+      expect(chess.chess960).toBe(false)
+      expect(chess.header.Variant).toBeUndefined()
+    })
+
+    // Variant is a general PGN tag, so only a Chess960 one is ours to clear.
+    it('leaves another variant tag alone', () => {
+      const chess = new Chess()
+      chess.header.Variant = 'From Position'
+      chess.load('4k3/8/8/8/8/8/4P3/4K3 w - - 0 1')
+      expect(chess.header.Variant).toBe('From Position')
+    })
+
     it('loadPgn derives from a FEN tag with no Variant tag', () => {
       const chess = new Chess()
       chess.loadPgn('[SetUp "1"]\n[FEN "' + generateChess960Fen(0) + '"]\n\n*')

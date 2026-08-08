@@ -203,6 +203,8 @@ export class Chess {
     })
     if (!keepHeaders) this.header = {}
     this._currentNode = this._tree
+    // An empty board declares no variant, same as any other position.
+    this._chess960 = false
     this.updateSetup()
   }
 
@@ -1450,7 +1452,8 @@ export class Chess {
 
     if (this._chess960) {
       this.header['Variant'] = 'Chess960'
-    } else {
+    } else if (this.header['Variant'] === 'Chess960') {
+      // Only ours to clear: Variant is a general tag, so leave anyone else's.
       delete this.header['Variant']
     }
   }
