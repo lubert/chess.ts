@@ -1420,7 +1420,14 @@ export function extractMove(move: string): ParsedMove {
 }
 
 function strippedSan(move: string) {
-  return move.replace(/=/, '').replace(/[+#]?[?!]*$/, '')
+  return (
+    move
+      .replace(/=/, '')
+      .replace(/[+#]?[?!]*$/, '')
+      // moveToSan only ever emits letter-O castling, so a '0-0' input could
+      // never match the round-trip below without being normalised first.
+      .replace(/^0-0(-0)?$/, (m) => m.replace(/0/g, 'O'))
+  )
 }
 
 export function sanToMove(

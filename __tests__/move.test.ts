@@ -531,6 +531,18 @@ describe('sanToMove edge cases', () => {
     expect(move!.piece).toBe('k')
   })
 
+  it('parses zero-digit castling (0-0 and 0-0-0)', () => {
+    // Some PGN writers spell castling with zeros. isCastling already accepts
+    // them, but the SAN round-trip compares against the generated 'O-O'.
+    const state = loadFen('r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1')!
+    const short = sanToMove(state, '0-0')
+    expect(short).not.toBeNull()
+    expect(short!.to).toBe(SQUARES.g1)
+    const long = sanToMove(state, '0-0-0')
+    expect(long).not.toBeNull()
+    expect(long!.to).toBe(SQUARES.c1)
+  })
+
   it('parses rank disambiguator (e.g. R1e1)', () => {
     // Position with two rooks on same file
     const state = loadFen('4k3/8/8/8/4R3/8/8/4RK2 w - - 0 1')!
