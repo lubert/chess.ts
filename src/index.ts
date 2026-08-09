@@ -5,6 +5,7 @@ export {
   BitState,
   Board,
   BoardState,
+  BoardPiece,
   CastlingRooks,
   Color,
   CommentMap,

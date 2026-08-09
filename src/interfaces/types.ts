@@ -61,6 +61,16 @@ export type Piece = {
   type: PieceSymbol
 }
 
+/**
+ * A piece together with the square it stands on, as returned by `board()`.
+ * @public
+ */
+export type BoardPiece = {
+  square: Square
+  color: Color
+  type: PieceSymbol
+}
+
 /** @public */
 export type PieceSymbol = 'p' | 'n' | 'b' | 'r' | 'q' | 'k'
 

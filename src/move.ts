@@ -58,6 +58,7 @@ import {
   Color,
   HexMove,
   Piece,
+  BoardPiece,
   Move,
   Square,
   PartialMove,
@@ -2223,7 +2224,7 @@ export function buildMove(
   return move
 }
 
-export function getBoard(board: Readonly<Board>): (Piece | null)[][] {
+export function getBoard(board: Readonly<Board>): (BoardPiece | null)[][] {
   const output = []
   let row = []
 
@@ -2232,7 +2233,9 @@ export function getBoard(board: Readonly<Board>): (Piece | null)[][] {
     if (!encoded) {
       row.push(null)
     } else {
-      row.push(decodePiece(encoded))
+      const { type, color } = decodePiece(encoded)
+      /* square first, so the shape reads a1-style coordinate then piece */
+      row.push({ square: algebraic(i) as Square, type, color })
     }
     if ((i + 1) & 0x88) {
       output.push(row)

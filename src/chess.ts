@@ -32,6 +32,7 @@ import {
   HexMove,
   Move,
   Piece,
+  BoardPiece,
   PartialMove,
   HeaderMap,
   CommentMap,
@@ -615,7 +616,7 @@ export class Chess {
    *          {type: 'r', color: 'w'}]]
    * ```
    */
-  public board(): (Piece | null)[][] {
+  public board(): (BoardPiece | null)[][] {
     return getBoard(this.boardState.board)
   }
 

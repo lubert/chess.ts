@@ -2272,8 +2272,37 @@ describe('.board', () => {
   examples.forEach(({ name, fen, board }) => {
     it(name, () => {
       const chess = new Chess(fen)
-      expect(chess.board()).toEqual(board)
+      const pieces = chess
+        .board()
+        .map((row) =>
+          row.map((p) => (p ? { type: p.type, color: p.color } : null)),
+        )
+      expect(pieces).toEqual(board)
     })
+
+    it(`${name} - every entry knows its square`, () => {
+      const chess = new Chess(fen)
+      /* cross-checked against getPiece rather than recomputed coordinates, so
+       * the label has to actually point at the piece it is attached to
+       */
+      chess.board().forEach((row) =>
+        row.forEach((p) => {
+          if (!p) return
+          expect(chess.getPiece(p.square)).toEqual({
+            type: p.type,
+            color: p.color,
+          })
+        }),
+      )
+    })
+  })
+
+  it('labels squares from a8 down to h1', () => {
+    const board = new Chess().board()
+    expect(board[0][0]?.square).toBe('a8')
+    expect(board[0][7]?.square).toBe('h8')
+    expect(board[7][0]?.square).toBe('a1')
+    expect(board[7][7]?.square).toBe('h1')
   })
 })
 
