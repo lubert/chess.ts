@@ -196,9 +196,11 @@ export function walkPgn(pgn: string, options: WalkPgnOptions): HeaderMap {
   for (let li = 0; li < lines.length; li++) {
     const line = lines[li]
     if (inHeaders) {
-      if (!line || line.startsWith('%')) continue
-      if (line.startsWith('[')) {
-        const match = line.match(REGEXP_HEADER)
+      /* headers may be indented, so classify the line by its trimmed form */
+      const trimmed = line.trim()
+      if (!trimmed || trimmed.startsWith('%')) continue
+      if (trimmed.startsWith('[')) {
+        const match = trimmed.match(REGEXP_HEADER)
         if (match) header[match[1]] = match[2]
         continue
       }

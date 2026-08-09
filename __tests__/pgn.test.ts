@@ -7,6 +7,28 @@ import { Nag } from '../src/interfaces/nag'
 import { cloneBoardState } from '../src/state'
 
 describe('pgn', () => {
+  describe('header whitespace', () => {
+    it('parses headers padded inside the brackets', () => {
+      const chess = new Chess()
+      chess.loadPgn('[ Event "Title" ]\n\n1. e4 e5')
+      expect(chess.header.Event).toEqual('Title')
+      expect(chess.history()).toEqual(['e4', 'e5'])
+    })
+
+    it('parses indented headers', () => {
+      const chess = new Chess()
+      chess.loadPgn('  [Event "Title"]\n  [Site "Somewhere"]\n\n1. e4')
+      expect(chess.header.Event).toEqual('Title')
+      expect(chess.header.Site).toEqual('Somewhere')
+    })
+
+    it('keeps values that contain brackets and spaces intact', () => {
+      const chess = new Chess()
+      chess.loadPgn('[ Event  "A [odd]  name " ]\n\n1. e4')
+      expect(chess.header.Event).toEqual('A [odd]  name ')
+    })
+  })
+
   describe('loadPgn', () => {
     it('works', () => {
       const fen = '4q2k/2r1r3/4PR1p/p1p5/P1Bp1Q1P/1P6/6P1/6K1 b - - 4 41'

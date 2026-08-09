@@ -5,9 +5,10 @@ export const REGEXP_MOVE =
   /(?:(?:([pnbrqkPNBRQK])??([a-h]?[1-8]?)?x?-?([a-h][1-8])=?([qrbnQRBN])?)|O-O(?:-O)?)+([+#])?/
 
 /**
- * Extract key and value from header in one match
+ * Extract key and value from header in one match. Whitespace is tolerated
+ * around the brackets and the key, since exporters emit e.g. [ Event "x" ].
  */
-export const REGEXP_HEADER = /^\[([A-Z][A-Za-z]*)\s+"(.*)" *\]$/
+export const REGEXP_HEADER = /^\s*\[\s*([A-Z][A-Za-z]*)\s+"(.*)"\s*\]\s*$/
 
 /**
  * Extract nag
