@@ -2365,12 +2365,29 @@ export function hexToGameState(
  *
  * @public
  */
+/**
+ * Long algebraic (UCI) notation for a move.
+ *
+ * Castling has two encodings and the caller has to say which: plain UCI writes
+ * the king's destination (`e1g1`), while `UCI_Chess960` writes king-captures-
+ * rook (`e1h1`). Pass `chess960: true` — together with the state the move is
+ * played from — only when talking to an engine in Chess960 mode. Getting this
+ * wrong yields a move the receiver silently misreads rather than rejects.
+ *
+ * @public
+ */
 export function moveToUci(
   move: PartialMove,
   state?: Readonly<BoardState>,
+  options: { chess960?: boolean } = {},
 ): string {
   // Chess960 UCI: castling is encoded as king-captures-rook
-  if (state && typeof move.from === 'string' && typeof move.to === 'string') {
+  if (
+    options.chess960 &&
+    state &&
+    typeof move.from === 'string' &&
+    typeof move.to === 'string'
+  ) {
     const fromSq = SQUARES[move.from as Square]
     const toSq = SQUARES[move.to as Square]
     if (fromSq !== undefined && toSq !== undefined) {

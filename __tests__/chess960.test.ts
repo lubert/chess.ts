@@ -11,6 +11,7 @@ import {
   isChess960Fen,
 } from '../src/move'
 import { algebraic } from '../src/utils'
+import { Square } from '../src/interfaces/types'
 
 describe('Chess960 / X-FEN', () => {
   describe('X-FEN parsing', () => {
@@ -444,6 +445,7 @@ describe('Chess960 / X-FEN', () => {
       const uci = moveToUci(
         { from: algebraic(castleMove!.from)!, to: algebraic(castleMove!.to)! },
         state,
+        { chess960: true },
       )
       expect(uci).toBe('e1h1')
     })
@@ -458,6 +460,7 @@ describe('Chess960 / X-FEN', () => {
       const uci = moveToUci(
         { from: algebraic(castleMove!.from)!, to: algebraic(castleMove!.to)! },
         state,
+        { chess960: true },
       )
       expect(uci).toBe('e1a1')
     })
@@ -477,6 +480,7 @@ describe('Chess960 / X-FEN', () => {
       const uci = moveToUci(
         { from: algebraic(castleMove!.from)!, to: algebraic(castleMove!.to)! },
         state,
+        { chess960: true },
       )
       // King on d1 castles kside: king goes to g1, but UCI output is d1f1 (king captures rook)
       expect(uci).toBe('d1f1')
@@ -499,6 +503,7 @@ describe('Chess960 / X-FEN', () => {
             flags: castleMove.flags,
           } as any,
           state,
+          { chess960: true },
         ),
       ).toBe('f1h1')
       // With numeric flags: regular move stays as-is
@@ -510,8 +515,71 @@ describe('Chess960 / X-FEN', () => {
             flags: regularMove.flags,
           } as any,
           state,
+          { chess960: true },
         ),
       ).toBe('f1g1')
+    })
+
+    it('keeps plain UCI for a standard game even when given state', () => {
+      /* the two encodings are not interchangeable: e1g1 is what a non-960
+       * engine expects, and e1h1 is what it would misread
+       */
+      const state = loadFen('4k3/8/8/8/8/8/8/4K2R w K - 0 1')!
+      const castle = generateMoves(state, { piece: 'k' }).find(
+        (m) => m.flags & BITS.KSIDE_CASTLE,
+      )!
+      const move = {
+        from: algebraic(castle.from)!,
+        to: algebraic(castle.to)!,
+        flags: castle.flags,
+      } as any
+      expect(moveToUci(move, state)).toBe('e1g1')
+      expect(moveToUci(move, state, { chess960: false })).toBe('e1g1')
+      expect(moveToUci(move, state, { chess960: true })).toBe('e1h1')
+    })
+
+    it('Chess.moveToUci picks the encoding from the instance variant', () => {
+      const standard = new Chess('4k3/8/8/8/8/8/8/4K2R w K - 0 1')
+      expect(standard.moveToUci({ from: 'e1', to: 'g1' })).toBe('e1g1')
+
+      const c960 = new Chess(
+        'rk2r3/pppppppp/8/8/8/8/PPPPPPPP/RK2R3 w KQkq - 0 1',
+        { chess960: true },
+      )
+      expect(c960.moveToUci({ from: 'b1', to: 'g1' })).toBe('b1e1')
+    })
+
+    it('takes plain UCI castling as input in a standard game', () => {
+      for (const input of ['e1g1', 'O-O']) {
+        const chess = new Chess('4k3/8/8/8/8/8/8/4K2R w K - 0 1')
+        expect(chess.move(input)?.san).toBe('O-O')
+      }
+    })
+
+    it('takes king-captures-rook as input in a Chess960 game', () => {
+      const fen = 'rk2r3/pppppppp/8/8/8/8/PPPPPPPP/RK2R3 w KQkq - 0 1'
+      /* the {from,to} form resolves king-captures-rook; the equivalent string
+       * 'b1e1' does not, so callers feeding engine output straight through
+       * have to split it themselves
+       */
+      const viaObject = new Chess(fen, { chess960: true })
+      expect(viaObject.move({ from: 'b1', to: 'e1' })?.san).toBe('O-O')
+
+      const viaSan = new Chess(fen, { chess960: true })
+      expect(viaSan.move('O-O')?.san).toBe('O-O')
+    })
+
+    it('round-trips its own Chess960 uci output', () => {
+      const fen = 'rk2r3/pppppppp/8/8/8/8/PPPPPPPP/RK2R3 w KQkq - 0 1'
+      const source = new Chess(fen, { chess960: true })
+      const uci = source.moveToUci({ from: 'b1', to: 'g1' })
+      const target = new Chess(fen, { chess960: true })
+      expect(
+        target.move({
+          from: uci.slice(0, 2) as Square,
+          to: uci.slice(2, 4) as Square,
+        })?.san,
+      ).toBe('O-O')
     })
 
     it('does not affect normal king moves', () => {
