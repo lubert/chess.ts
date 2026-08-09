@@ -534,6 +534,14 @@ export function putPiece(
     return null
   }
 
+  /* if this overwrites a king, drop the stale tracker before it points at a
+   * square holding some other piece
+   */
+  const prevEncoded = state.board[sq]
+  if (prevEncoded && decodePieceType(prevEncoded) === PT_KING) {
+    state.kings[decodePieceColor(prevEncoded) ? BLACK : WHITE] = EMPTY
+  }
+
   state.board[sq] = encodePiece(piece.type, piece.color)
   if (piece.type === KING) {
     state.kings[piece.color] = sq

@@ -883,6 +883,16 @@ describe('.getPiece, .putPiece, .removePiece', () => {
       expect(chess.removePiece('h2')).toEqual(pieces.h2)
       expect(chess.getPieces()).toEqual({})
     })
+
+    it('overwriting a king stops tracking it', () => {
+      const chess = new Chess()
+      expect(chess.putPiece({ type: QUEEN, color: WHITE }, 'e1')).toBe(true)
+      expect(chess.getPiece('e1')).toEqual({ type: QUEEN, color: WHITE })
+
+      /* the white king is gone, so a second one may now be placed */
+      expect(chess.putPiece({ type: KING, color: WHITE }, 'h4')).toBe(true)
+      expect(chess.getPiece('h4')).toEqual({ type: KING, color: WHITE })
+    })
   })
 
   describe('invalid', () => {
