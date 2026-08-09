@@ -142,6 +142,45 @@ describe('.move', () => {
 })
 
 describe('.moves', () => {
+  describe('unbacked en passant square', () => {
+    /* an ep square with no pawn behind it must not produce a capture — making
+     * one lets unmakeMove restore a pawn that was never on the board
+     */
+    it('generates no ep capture after the pushed pawn is removed', () => {
+      const chess = new Chess(
+        'rnbqkbnr/pppp1ppp/8/3Pp3/8/8/PPP1PPPP/RNBQKBNR w KQkq e6 0 3',
+      )
+      expect(chess.sanMoves()).toContain('dxe6')
+      chess.removePiece('e5')
+      expect(chess.sanMoves()).not.toContain('dxe6')
+    })
+
+    it('generates no ep capture from a hand-written fen', () => {
+      const chess = new Chess(
+        'rnbqkbnr/pppp1ppp/8/3P4/8/8/PPP1PPPP/RNBQKBNR w KQkq e6 0 3',
+      )
+      expect(chess.sanMoves()).not.toContain('dxe6')
+    })
+
+    it('generates no ep capture onto an occupied square', () => {
+      const chess = new Chess(
+        'rnbqkbnr/pppp1ppp/8/3Pp3/8/8/PPP1PPPP/RNBQKBNR w KQkq e6 0 3',
+      )
+      chess.putPiece({ type: KNIGHT, color: WHITE }, 'e6')
+      expect(chess.sanMoves()).not.toContain('dxe6')
+    })
+
+    it('leaves the board untouched when generating moves', () => {
+      const chess = new Chess(
+        'rnbqkbnr/pppp1ppp/8/3Pp3/8/8/PPP1PPPP/RNBQKBNR w KQkq e6 0 3',
+      )
+      chess.removePiece('e5')
+      const before = chess.fen()
+      chess.sanMoves()
+      expect(chess.fen()).toEqual(before)
+    })
+  })
+
   describe('san', () => {
     const examples = [
       {

@@ -2,6 +2,34 @@ import { FenErrorType, validateFen } from '../src/fen'
 import { Chess } from '../src/chess'
 
 describe('getFen', () => {
+  describe('en passant square', () => {
+    it('omits the ep square once the pushed pawn is removed', () => {
+      const chess = new Chess(
+        'rnbqkbnr/pppp1ppp/8/3Pp3/8/8/PPP1PPPP/RNBQKBNR w KQkq e6 0 3',
+      )
+      expect(chess.fen()).toContain(' e6 ')
+      chess.removePiece('e5')
+      expect(chess.fen()).toContain(' - ')
+    })
+
+    it('omits an ep square that no pawn ever backed', () => {
+      const chess = new Chess(
+        'rnbqkbnr/pppp1ppp/8/3P4/8/8/PPP1PPPP/RNBQKBNR w KQkq e6 0 3',
+      )
+      expect(chess.fen()).toContain(' - ')
+    })
+
+    it('does not mutate the board when emitting the ep square', () => {
+      const chess = new Chess(
+        'rnbqkbnr/pppp1ppp/8/3Pp3/8/8/PPP1PPPP/RNBQKBNR w KQkq e6 0 3',
+      )
+      chess.removePiece('e5')
+      const before = chess.fen()
+      chess.fen()
+      expect(chess.fen()).toEqual(before)
+    })
+  })
+
   describe('strict', () => {
     it('ep square present only if en passant is legal (legal)', () => {
       const chess = new Chess('4k3/8/8/8/5p2/8/4P3/4K3 w - - 0 1')

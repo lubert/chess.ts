@@ -174,6 +174,29 @@ export function getDisambiguator(
   return ''
 }
 
+/* the square holding the pawn that an ep capture would remove */
+export function epCapturedPawnSquare(state: BoardState): number {
+  return state.ep_square + (state.turn === WHITE ? 16 : -16)
+}
+
+/*
+ * Is the ep square backed by a pawn that can actually be captured? A stale ep
+ * square can arrive from putPiece/removePiece clearing the double-pushed pawn,
+ * or straight from a hand-written FEN. Generating the capture anyway lets
+ * unmakeMove restore a pawn that was never there, so every ep path gates here.
+ */
+export function isEpCaptureAvailable(state: BoardState): boolean {
+  if (state.ep_square === EMPTY) return false
+  /* the landing square must be empty, else we'd capture onto our own piece */
+  if (state.board[state.ep_square]) return false
+  const encoded = state.board[epCapturedPawnSquare(state)]
+  return (
+    !!encoded &&
+    decodePieceType(encoded) === PT_PAWN &&
+    decodePieceColor(encoded) !== COLOR_NUM[state.turn]
+  )
+}
+
 /** @public */
 export function getFen(state: BoardState, strict = false): string {
   let empty = 0
@@ -233,13 +256,13 @@ export function getFen(state: BoardState, strict = false): string {
 
   let epflags = '-'
 
-  if (state.ep_square !== EMPTY) {
+  if (isEpCaptureAvailable(state)) {
     if (strict) {
       /*
        * Set the ep square only if en passant is a valid move (pawn is present
        * and ep capture is not pinned)
        */
-      const bigPawnSquare = state.ep_square + (state.turn === WHITE ? 16 : -16)
+      const bigPawnSquare = epCapturedPawnSquare(state)
       const squares = [bigPawnSquare + 1, bigPawnSquare - 1]
       const color = state.turn
       const colorBit = COLOR_NUM[color]
@@ -486,6 +509,15 @@ function revokeUnbackedCastling(state: BoardState): void {
   }
 }
 
+/* drop an ep square the board no longer backs, so it can't leak out through
+ * getFen or a serialized BoardState
+ */
+function revokeUnbackedEnPassant(state: BoardState): void {
+  if (state.ep_square !== EMPTY && !isEpCaptureAvailable(state)) {
+    state.ep_square = EMPTY
+  }
+}
+
 export function putPiece(
   prevState: Readonly<BoardState>,
   piece: Piece,
@@ -508,6 +540,7 @@ export function putPiece(
   }
 
   revokeUnbackedCastling(state)
+  revokeUnbackedEnPassant(state)
   return state
 }
 
@@ -529,6 +562,7 @@ export function removePiece(
   }
   state.board[square] = 0
   revokeUnbackedCastling(state)
+  revokeUnbackedEnPassant(state)
   return state
 }
 
@@ -903,7 +937,7 @@ export function generateMoves(
             if (isLegalDest(toSq, pinDir, fromSq)) {
               addMove(PAWN, fromSq, toSq, BITS.CAPTURE, NUM_PIECE_TYPE[p & 7]!)
             }
-          } else if (toSq === state.ep_square) {
+          } else if (toSq === state.ep_square && isEpCaptureAvailable(state)) {
             // En passant — special case: pin detection alone can miss
             // horizontal discovered checks when both pawns leave the same rank.
             // Fall back to isLegal for en passant moves.
@@ -914,8 +948,7 @@ export function generateMoves(
               //   1. Landing on an interposition square (toSq in checkMask), or
               //   2. Capturing the checking pawn (capturedPawnSq in checkMask).
               // Skip only if neither square resolves the check.
-              const capturedPawnSq =
-                state.ep_square + (state.turn === WHITE ? 16 : -16)
+              const capturedPawnSq = epCapturedPawnSquare(state)
               if (checkMask && !checkMask[toSq] && !checkMask[capturedPawnSq]) {
                 continue
               }
@@ -1115,9 +1148,8 @@ function hasLegalMove(state: Readonly<BoardState>): boolean {
           if (!checkMask || checkMask[toSq]) {
             if (!pinDir || canMoveAlongPin(pinDir, fromSq, toSq)) return true
           }
-        } else if (toSq === state.ep_square) {
-          const capturedPawnSq =
-            state.ep_square + (state.turn === WHITE ? 16 : -16)
+        } else if (toSq === state.ep_square && isEpCaptureAvailable(state)) {
+          const capturedPawnSq = epCapturedPawnSquare(state)
           if (checkMask && !checkMask[toSq] && !checkMask[capturedPawnSq])
             continue
           if (pinDir && !canMoveAlongPin(pinDir, fromSq, toSq)) continue
