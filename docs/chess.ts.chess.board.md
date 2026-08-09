@@ -9,11 +9,11 @@ Returns an 2D array representation of the current position. Empty squares are re
 **Signature:**
 
 ```typescript
-board(): (Piece | null)[][];
+board(): (BoardPiece | null)[][];
 ```
 **Returns:**
 
-([Piece](./chess.ts.piece.md) \| null)\[\]\[\]
+([BoardPiece](./chess.ts.boardpiece.md) \| null)\[\]\[\]
 
 ## Example
 

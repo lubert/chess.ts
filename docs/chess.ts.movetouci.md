@@ -4,26 +4,27 @@
 
 ## moveToUci() function
 
-Renders a move in UCI long algebraic notation, e.g. `e2e4` or `e7e8q`<!-- -->.
+Long algebraic (UCI) notation for a move.
+
+Castling has two encodings and the caller has to say which: plain UCI writes the king's destination (`e1g1`<!-- -->), while `UCI_Chess960` writes king-captures- rook (`e1h1`<!-- -->). Pass `chess960: true` — together with the state the move is played from — only when talking to an engine in Chess960 mode. Getting this wrong yields a move the receiver silently misreads rather than rejects.
 
 **Signature:**
 
 ```typescript
-declare function moveToUci(move: PartialMove, state?: Readonly<BoardState>): string;
+declare function moveToUci(move: PartialMove, state?: Readonly<BoardState>, options?: {
+    chess960?: boolean;
+}): string;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  move | [PartialMove](./chess.ts.partialmove.md) | The move to render |
-|  state | Readonly&lt;[BoardState](./chess.ts.boardstate.md)<!-- -->&gt; | _(Optional)_ Position the move is played from, required for Chess960 |
+|  move | [PartialMove](./chess.ts.partialmove.md) |  |
+|  state | Readonly&lt;[BoardState](./chess.ts.boardstate.md)<!-- -->&gt; | _(Optional)_ |
+|  options | { chess960?: boolean; } | _(Optional)_ |
 
 **Returns:**
 
 string
-
-## Remarks
-
-Pass `state` for Chess960: castling is then encoded the way UCI engines expect it, as king-captures-rook (`e1h1`<!-- -->) rather than by the king's destination (`e1g1`<!-- -->). Without `state` the move's own from/to is used, which is correct for standard chess. `state` must be the position the move is played from.
 
