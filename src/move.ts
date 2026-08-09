@@ -820,7 +820,10 @@ export function generateMoves(
   let checkMask: Uint8Array | null = null
   let doubleCheck = false
 
-  if (legal) {
+  /* with no king there is nothing to expose, so every pseudo-legal move is
+   * legal. Rays traced from EMPTY would wrap onto the board and invent checks.
+   */
+  if (legal && kingSq !== EMPTY) {
     posInfo = computePositionInfo(state)
 
     // Double check: only king moves are legal
@@ -1091,6 +1094,9 @@ function hasLegalMove(state: Readonly<BoardState>): boolean {
   const themBit = usBit ^ 8
   const them = swapColor(state.turn)
   const kingSq = state.kings[state.turn]
+
+  /* a kingless side is never in check, so any pseudo-legal move will do */
+  if (kingSq === EMPTY) return generateMoves(state, { legal: false }).length > 0
 
   const posInfo = computePositionInfo(state)
 

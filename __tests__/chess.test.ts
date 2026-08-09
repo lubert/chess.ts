@@ -142,6 +142,41 @@ describe('.move', () => {
 })
 
 describe('.moves', () => {
+  describe('kingless side', () => {
+    /* rays traced from an EMPTY king square wrap onto the board and invent a
+     * check, which silently zeroed the move list
+     */
+    it('generates pseudo-legal moves when our king is missing', () => {
+      const chess = new Chess(
+        'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQQBNR w kq - 0 1',
+      )
+      expect(chess.sanMoves()).toHaveLength(20)
+    })
+
+    it('is unaffected by where the enemy pieces sit', () => {
+      const near = new Chess('r7/8/8/8/8/8/3P4/8 w - - 0 1')
+      const far = new Chess('8/8/8/8/8/8/3P4/r7 w - - 0 1')
+      expect(near.sanMoves()).toEqual(far.sanMoves())
+    })
+
+    it('reports neither check, checkmate nor stalemate', () => {
+      const chess = new Chess(
+        'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQQBNR w kq - 0 1',
+      )
+      expect(chess.inCheck()).toBe(false)
+      expect(chess.inCheckmate()).toBe(false)
+      expect(chess.inStalemate()).toBe(false)
+    })
+
+    it('agrees whether the king was removed via FEN or putPiece', () => {
+      const viaPut = new Chess()
+      viaPut.putPiece({ type: QUEEN, color: WHITE }, 'e1')
+      const viaFen = new Chess(viaPut.fen())
+      expect(viaPut.sanMoves()).toEqual(viaFen.sanMoves())
+      expect(viaPut.sanMoves().length).toBeGreaterThan(0)
+    })
+  })
+
   describe('unbacked en passant square', () => {
     /* an ep square with no pawn behind it must not produce a capture — making
      * one lets unmakeMove restore a pawn that was never on the board
