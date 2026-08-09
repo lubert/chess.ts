@@ -51,6 +51,7 @@ import {
   canPromote,
 } from './utils'
 import { boardToMap, mapToAscii } from './board'
+import { hashBoardState } from './hash'
 import { DEFAULT_POSITION, SQUARES, BITS } from './constants'
 import { FenErrorType, validateFen } from './fen'
 import { cloneBoardState, cloneHexState, defaultBoardState } from './state'
@@ -518,24 +519,22 @@ export class Chess {
    * ```
    */
   public inThreefoldRepetition(): boolean {
-    const positions: Record<string, number> = {}
-
-    const checkState = (state: Readonly<BoardState>): boolean => {
-      const key = getFen(state).split(' ').slice(0, 4).join(' ')
-
-      // Has the position occurred three or move times?
-      positions[key] = key in positions ? positions[key] + 1 : 1
-      if (positions[key] >= 3) {
-        return true
-      }
-      return false
-    }
+    /* counts keyed by the two lanes of the Zobrist key, nested so that neither
+     * lane alone decides a match and no key string has to be allocated
+     */
+    const counts = new Map<number, Map<number, number>>()
 
     const { boardStates } = this
     for (let i = 0; i < boardStates.length; i++) {
-      if (checkState(boardStates[i])) {
-        return true
+      const [lo, hi] = hashBoardState(boardStates[i])
+      let byHi = counts.get(lo)
+      if (!byHi) {
+        byHi = new Map()
+        counts.set(lo, byHi)
       }
+      const seen = (byHi.get(hi) ?? 0) + 1
+      byHi.set(hi, seen)
+      if (seen >= 3) return true
     }
     return false
   }
@@ -550,10 +549,13 @@ export class Chess {
    * ```
    */
   public inDraw(): boolean {
+    /* ordered cheapest first: threefold walks the whole game history, so it
+     * only runs when nothing else has already settled the question
+     */
     return (
       this.boardState.half_moves >= 100 ||
-      this.inStalemate() ||
       this.insufficientMaterial() ||
+      this.inStalemate() ||
       this.inThreefoldRepetition()
     )
   }

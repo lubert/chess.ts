@@ -197,6 +197,49 @@ export function isEpCaptureAvailable(state: BoardState): boolean {
   )
 }
 
+/*
+ * The ep square as it should appear in a position's identity: set only when en
+ * passant is genuinely playable (a pawn of ours can capture and doing so does
+ * not expose our king), otherwise EMPTY. This is the canonical FEN/EPD rule.
+ *
+ * getFen and hashBoardState must agree on this or two positions that serialise
+ * identically would hash differently, silently breaking repetition detection.
+ */
+export function legalEpSquare(state: BoardState): number {
+  if (!isEpCaptureAvailable(state)) return EMPTY
+
+  const bigPawnSquare = epCapturedPawnSquare(state)
+  const squares = [bigPawnSquare + 1, bigPawnSquare - 1]
+  const color = state.turn
+  const colorBit = COLOR_NUM[color]
+
+  for (const square of squares) {
+    if (square & 0x88) continue
+    const sq_encoded = state.board[square]
+    // is there a pawn that can capture the epSquare?
+    if (
+      sq_encoded &&
+      decodePieceColor(sq_encoded) === colorBit &&
+      decodePieceType(sq_encoded) === PT_PAWN
+    ) {
+      // if the pawn makes an ep capture, does it leave it's king in check?
+      const epUndo = makeMove(state, {
+        color,
+        from: square,
+        to: state.ep_square,
+        piece: PAWN,
+        captured: PAWN,
+        flags: BITS.EP_CAPTURE,
+      })
+
+      const epLegal = !isKingAttacked(state, color)
+      unmakeMove(state, epUndo)
+      if (epLegal) return state.ep_square
+    }
+  }
+  return EMPTY
+}
+
 /** @public */
 export function getFen(state: BoardState): string {
   let empty = 0
@@ -261,40 +304,9 @@ export function getFen(state: BoardState): string {
    * and ep capture is not pinned). This is the canonical FEN/EPD rule, so a
    * position is only ever written one way.
    */
-  if (isEpCaptureAvailable(state)) {
-    const bigPawnSquare = epCapturedPawnSquare(state)
-    const squares = [bigPawnSquare + 1, bigPawnSquare - 1]
-    const color = state.turn
-    const colorBit = COLOR_NUM[color]
-
-    for (const square of squares) {
-      if (square & 0x88) continue
-      const sq_encoded = state.board[square]
-      // is there a pawn that can capture the epSquare?
-      if (
-        sq_encoded &&
-        decodePieceColor(sq_encoded) === colorBit &&
-        decodePieceType(sq_encoded) === PT_PAWN
-      ) {
-        // if the pawn makes an ep capture, does it leave it's king in check?
-        const epUndo = makeMove(state, {
-          color,
-          from: square,
-          to: state.ep_square,
-          piece: PAWN,
-          captured: PAWN,
-          flags: BITS.EP_CAPTURE,
-        })
-
-        // if ep is legal, break and set the ep square in the FEN output
-        const epLegal = !isKingAttacked(state, color)
-        unmakeMove(state, epUndo)
-        if (epLegal) {
-          epflags = algebraic(state.ep_square) || '-'
-          break
-        }
-      }
-    }
+  const epSq = legalEpSquare(state)
+  if (epSq !== EMPTY) {
+    epflags = algebraic(epSq) || '-'
   }
 
   return [
