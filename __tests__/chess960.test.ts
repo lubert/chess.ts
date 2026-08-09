@@ -404,7 +404,7 @@ describe('Chess960 / X-FEN', () => {
       expect(pgn).toContain('[Variant "Chess960"]')
     })
 
-    it('replays an existing move via object notation using UCI comparison', () => {
+    it('replays an existing move via object notation', () => {
       const chess = new Chess(generateChess960Fen(518), { chess960: true })
       chess.move('e4')
       chess.undo()
@@ -482,7 +482,7 @@ describe('Chess960 / X-FEN', () => {
         state,
         { chess960: true },
       )
-      // King on d1 castles kside: king goes to g1, but UCI output is d1f1 (king captures rook)
+      // king goes to g1, but the output is d1f1 (king captures rook)
       expect(uci).toBe('d1f1')
     })
 
@@ -520,10 +520,8 @@ describe('Chess960 / X-FEN', () => {
       ).toBe('f1g1')
     })
 
-    it('keeps plain UCI for a standard game even when given state', () => {
-      /* the two encodings are not interchangeable: e1g1 is what a non-960
-       * engine expects, and e1h1 is what it would misread
-       */
+    it('keeps the standard encoding for a standard game given state', () => {
+      /* the two encodings are not interchangeable */
       const state = loadFen('4k3/8/8/8/8/8/8/4K2R w K - 0 1')!
       const castle = generateMoves(state, { piece: 'k' }).find(
         (m) => m.flags & BITS.KSIDE_CASTLE,
@@ -549,7 +547,7 @@ describe('Chess960 / X-FEN', () => {
       expect(c960.moveToUci({ from: 'b1', to: 'g1' })).toBe('b1e1')
     })
 
-    it('takes plain UCI castling as input in a standard game', () => {
+    it('takes the standard castling encoding as input', () => {
       for (const input of ['e1g1', 'O-O']) {
         const chess = new Chess('4k3/8/8/8/8/8/8/4K2R w K - 0 1')
         expect(chess.move(input)?.san).toBe('O-O')
@@ -558,9 +556,8 @@ describe('Chess960 / X-FEN', () => {
 
     it('takes king-captures-rook as input in a Chess960 game', () => {
       const fen = 'rk2r3/pppppppp/8/8/8/8/PPPPPPPP/RK2R3 w KQkq - 0 1'
-      /* the {from,to} form resolves king-captures-rook; the equivalent string
-       * 'b1e1' does not, so callers feeding engine output straight through
-       * have to split it themselves
+      /* the {from,to} form resolves king-captures-rook, the string 'b1e1'
+       * does not
        */
       const viaObject = new Chess(fen, { chess960: true })
       expect(viaObject.move({ from: 'b1', to: 'e1' })?.san).toBe('O-O')
@@ -569,7 +566,7 @@ describe('Chess960 / X-FEN', () => {
       expect(viaSan.move('O-O')?.san).toBe('O-O')
     })
 
-    it('round-trips its own Chess960 uci output', () => {
+    it('round-trips its own Chess960 output', () => {
       const fen = 'rk2r3/pppppppp/8/8/8/8/PPPPPPPP/RK2R3 w KQkq - 0 1'
       const source = new Chess(fen, { chess960: true })
       const uci = source.moveToUci({ from: 'b1', to: 'g1' })

@@ -436,22 +436,21 @@ export class Chess {
   }
 
   /**
-   * Long algebraic (UCI) notation for a move played from the current position,
+   * Long algebraic notation for a move played from the current position,
    * using the castling encoding this instance's variant calls for.
    *
-   * Call this before playing the move — it reads the current position to
-   * resolve castling. Prefer it over building `from + to + promotion` by hand,
-   * which silently produces the wrong castling move in Chess960.
+   * Call it before playing the move, since it reads the current position to
+   * resolve castling.
    *
    * @example
    * ```js
    * const chess = new Chess('4k3/8/8/8/8/8/8/4K2R w K - 0 1')
    * chess.moveToUci({ from: 'e1', to: 'g1' })
-   * // -> 'e1g1'   (plain UCI: the king's destination)
+   * // -> 'e1g1'   king's destination
    *
    * const c960 = new Chess('rk2r3/pppppppp/8/8/8/8/PPPPPPPP/RK2R3 w KQkq - 0 1', { chess960: true })
    * c960.moveToUci({ from: 'b1', to: 'g1' })
-   * // -> 'b1e1'   (UCI_Chess960: king captures rook)
+   * // -> 'b1e1'   king captures rook
    * ```
    */
   public moveToUci(move: PartialMove): string {
@@ -823,9 +822,7 @@ export class Chess {
       if (typeof move === 'string') {
         return node.children.find((child) => {
           const childMove = nodeMove(child)!
-          /* accept either castling encoding on input: a GUI may send the
-           * king's destination or king-captures-rook
-           */
+          /* accept either castling encoding on input */
           return (
             childMove.san === move ||
             moveToUci(childMove) === move ||

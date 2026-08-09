@@ -2351,28 +2351,16 @@ export function hexToGameState(
 }
 
 /**
- * Renders a move in UCI long algebraic notation, e.g. `e2e4` or `e7e8q`.
+ * Renders a move in long algebraic notation, e.g. `e2e4` or `e7e8q`.
  *
  * @remarks
- * Pass `state` for Chess960: castling is then encoded the way UCI engines
- * expect it, as king-captures-rook (`e1h1`) rather than by the king's
- * destination (`e1g1`). Without `state` the move's own from/to is used, which
- * is correct for standard chess. `state` must be the position the move is
- * played from.
+ * Castling has two encodings. By default it is written as the king's
+ * destination (`e1g1`); with `chess960` it is written as king-captures-rook
+ * (`e1h1`), which also needs `state` to locate the rook.
  *
  * @param move - The move to render
- * @param state - Position the move is played from, required for Chess960
- *
- * @public
- */
-/**
- * Long algebraic (UCI) notation for a move.
- *
- * Castling has two encodings and the caller has to say which: plain UCI writes
- * the king's destination (`e1g1`), while `UCI_Chess960` writes king-captures-
- * rook (`e1h1`). Pass `chess960: true` — together with the state the move is
- * played from — only when talking to an engine in Chess960 mode. Getting this
- * wrong yields a move the receiver silently misreads rather than rejects.
+ * @param state - Position the move is played from, required for `chess960`
+ * @param options - Set `chess960` to encode castling as king-captures-rook
  *
  * @public
  */
@@ -2381,7 +2369,6 @@ export function moveToUci(
   state?: Readonly<BoardState>,
   options: { chess960?: boolean } = {},
 ): string {
-  // Chess960 UCI: castling is encoded as king-captures-rook
   if (
     options.chess960 &&
     state &&

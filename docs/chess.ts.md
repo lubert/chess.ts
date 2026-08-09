@@ -45,7 +45,7 @@
 |  [isThreatening(board, square, targetSquare)](./chess.ts.isthreatening.md) | Checks if a square is threatening a target square. |
 |  [mapToAscii(charMap, eol)](./chess.ts.maptoascii.md) | Renders a map of squares to characters on an ASCII board. |
 |  [moveToSan(state, move, moves, options)](./chess.ts.movetosan.md) | Convert a move from 0x88 coordinates to Standard Algebraic Notation (SAN) |
-|  [moveToUci(move, state, options)](./chess.ts.movetouci.md) | <p>Long algebraic (UCI) notation for a move.</p><p>Castling has two encodings and the caller has to say which: plain UCI writes the king's destination (<code>e1g1</code>), while <code>UCI_Chess960</code> writes king-captures- rook (<code>e1h1</code>). Pass <code>chess960: true</code> — together with the state the move is played from — only when talking to an engine in Chess960 mode. Getting this wrong yields a move the receiver silently misreads rather than rejects.</p> |
+|  [moveToUci(move, state, options)](./chess.ts.movetouci.md) | Renders a move in long algebraic notation, e.g. <code>e2e4</code> or <code>e7e8q</code>. |
 |  [rank(i)](./chess.ts.rank.md) | Extracts the zero-based rank of an 0x88 square. |
 |  [sameDiagonal(sq1, sq2)](./chess.ts.samediagonal.md) | Tests if two squares are on the same diagonal. |
 |  [sameFile(sq1, sq2)](./chess.ts.samefile.md) | Tests if two squares are on the same file. |
