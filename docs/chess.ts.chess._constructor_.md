@@ -4,19 +4,20 @@
 
 ## Chess.(constructor)
 
-The Chess() constructor takes an optional parameter which specifies the board configuration in \[Forsyth-Edwards Notation\](http://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards\_Notation).
+The Chess() constructor takes an optional FEN string and/or options object.
 
 **Signature:**
 
 ```typescript
-constructor(fen?: string);
+constructor(fen?: string | ChessOptions, options?: ChessOptions);
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  fen | string | _(Optional)_ |
+|  fen | string \| [ChessOptions](./chess.ts.chessoptions.md) | _(Optional)_ |
+|  options | [ChessOptions](./chess.ts.chessoptions.md) | _(Optional)_ |
 
 ## Example
 
@@ -29,5 +30,11 @@ const chess = new Chess()
 const chess = new Chess(
     'r1k4r/p2nb1p1/2b4p/1p1n1p2/2PP4/3Q1NB1/1P3PPP/R5K1 b - c3 0 19'
 )
+
+// enable Chess960 mode
+const chess = new Chess({ chess960: true })
+
+// Chess960 with a specific position
+const chess = new Chess('rkrnnqbb/pppppppp/8/8/8/8/PPPPPPPP/RKRNNQBB w CQcq - 0 1', { chess960: true })
 ```
 

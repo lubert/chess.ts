@@ -26,5 +26,5 @@ declare function generateMoves(state: BoardState, options?: {
 
 **Returns:**
 
-HexMove\[\]
+[HexMove](./chess.ts.hexmove.md)<!-- -->\[\]
 

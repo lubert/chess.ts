@@ -13,10 +13,11 @@ type BoardState = {
     kings: ColorState;
     turn: Color;
     castling: ColorState;
+    castlingRooks: CastlingRooks;
     ep_square: number;
     half_moves: number;
     move_number: number;
 };
 ```
-**References:** [Board](./chess.ts.board.md)<!-- -->, [Color](./chess.ts.color.md)
+**References:** [Board](./chess.ts.board.md)<!-- -->, [Color](./chess.ts.color.md)<!-- -->, [CastlingRooks](./chess.ts.castlingrooks.md)
 

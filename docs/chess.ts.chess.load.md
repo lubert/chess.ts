@@ -12,6 +12,7 @@ Clears the board and loads the Forsyth–Edwards Notation (FEN) string.
 load(fen: string, options?: {
         positionOnly?: boolean;
         legal?: boolean;
+        chess960?: boolean;
     }): boolean;
 ```
 
@@ -20,7 +21,7 @@ load(fen: string, options?: {
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  fen | string | FEN string |
-|  options | { positionOnly?: boolean; legal?: boolean; } | _(Optional)_ Load options |
+|  options | { positionOnly?: boolean; legal?: boolean; chess960?: boolean; } | _(Optional)_ Load options |
 
 **Returns:**
 

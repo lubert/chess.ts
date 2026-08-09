@@ -17,7 +17,7 @@ declare function hexToMove(state: Readonly<BoardState>, move: HexMove): Move;
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  state | Readonly&lt;[BoardState](./chess.ts.boardstate.md)<!-- -->&gt; |  |
-|  move | HexMove |  |
+|  move | [HexMove](./chess.ts.hexmove.md) |  |
 
 **Returns:**
 

@@ -11,10 +11,11 @@
 type WalkPgnOptions = {
     newline?: string;
     skipSan?: boolean;
+    context?: WalkPgnContext;
     onMove: (move: HexMove, boardState: Readonly<BoardState>, comment?: string, startingComment?: string, nags?: number[]) => boolean | void;
     onStartVariation?: () => void;
     onEndVariation?: () => void;
 };
 ```
-**References:** [BoardState](./chess.ts.boardstate.md)
+**References:** [WalkPgnContext](./chess.ts.walkpgncontext.md)<!-- -->, [HexMove](./chess.ts.hexmove.md)<!-- -->, [BoardState](./chess.ts.boardstate.md)
 

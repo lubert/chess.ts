@@ -16,5 +16,5 @@ type HexState = {
     startingComment?: string;
 };
 ```
-**References:** [BoardState](./chess.ts.boardstate.md)
+**References:** [BoardState](./chess.ts.boardstate.md)<!-- -->, [HexMove](./chess.ts.hexmove.md)
 

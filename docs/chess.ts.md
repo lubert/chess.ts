@@ -24,23 +24,28 @@
 |  [bitToAlgebraic(bit)](./chess.ts.bittoalgebraic.md) | Converts a bit index (0-63) to algebraic notation. |
 |  [bitToSquare(sq)](./chess.ts.bittosquare.md) | Converts a bit index (0-63) to a 0x88 square index. |
 |  [boardToMap(board)](./chess.ts.boardtomap.md) | Converts a board state to a map of squares to piece symbols. |
+|  [createWalkPgnContext()](./chess.ts.createwalkpgncontext.md) |  |
 |  [decodePiece(encoded)](./chess.ts.decodepiece.md) | Decode an encoded byte to a Piece object |
 |  [encodePiece(type, color)](./chess.ts.encodepiece.md) | Encode a piece symbol + color into a single byte for Uint8Array board |
 |  [file(i)](./chess.ts.file.md) | Extracts the zero-based file of an 0x88 square. |
 |  [fromBitState(state)](./chess.ts.frombitstate.md) |  |
+|  [generateChess960Fen(sp)](./chess.ts.generatechess960fen.md) | Generate the FEN for a Chess960 starting position (SP 0–959). |
 |  [generateMoves(state, options)](./chess.ts.generatemoves.md) | Return all moves for a given board state. |
 |  [getBitIndices(n, first)](./chess.ts.getbitindices.md) | Returns the indices of all set bits in a bigint. |
-|  [getFen(state, strict)](./chess.ts.getfen.md) |  |
+|  [getFen(state)](./chess.ts.getfen.md) |  |
 |  [hexToGameState(node)](./chess.ts.hextogamestate.md) |  |
 |  [hexToMove(state, move)](./chess.ts.hextomove.md) | Converts a HexMove to a Move. |
 |  [isAttacked(state, square, color, skipSq)](./chess.ts.isattacked.md) | Checks if a square is attacked. If an attacking color is not provided, the opposite color of the piece on the square or the current turn is used. This function does not check if the attacking piece is pinned. |
 |  [isAttacking(state, square, targetSquare)](./chess.ts.isattacking.md) | Checks if a square is attacking a target square. |
+|  [isChess960Fen(fen)](./chess.ts.ischess960fen.md) | <p>Whether a FEN describes a position needing Chess960 rules.</p><p>An unparseable FEN reads as false: classic is the assumption, and a position that cannot be loaded has no castling geometry to judge.</p> |
+|  [isChess960State(state)](./chess.ts.ischess960state.md) | <p>Whether a position needs Chess960 rules: it holds a castling right whose king or rook is off the square classic chess puts it on.</p><p>Positions with classic geometry read as false even if they came from a Chess960 game — the rules coincide there, so nothing depends on the answer.</p> |
 |  [isColor(color)](./chess.ts.iscolor.md) |  |
 |  [isPieceSymbol(symbol)](./chess.ts.ispiecesymbol.md) |  |
 |  [isSquare(sq)](./chess.ts.issquare.md) |  |
 |  [isThreatening(board, square, targetSquare)](./chess.ts.isthreatening.md) | Checks if a square is threatening a target square. |
 |  [mapToAscii(charMap, eol)](./chess.ts.maptoascii.md) | Renders a map of squares to characters on an ASCII board. |
 |  [moveToSan(state, move, moves, options)](./chess.ts.movetosan.md) | Convert a move from 0x88 coordinates to Standard Algebraic Notation (SAN) |
+|  [moveToUci(move, state)](./chess.ts.movetouci.md) | Renders a move in UCI long algebraic notation, e.g. <code>e2e4</code> or <code>e7e8q</code>. |
 |  [rank(i)](./chess.ts.rank.md) | Extracts the zero-based rank of an 0x88 square. |
 |  [sameDiagonal(sq1, sq2)](./chess.ts.samediagonal.md) | Tests if two squares are on the same diagonal. |
 |  [sameFile(sq1, sq2)](./chess.ts.samefile.md) | Tests if two squares are on the same file. |
@@ -84,15 +89,19 @@
 |  [BitState](./chess.ts.bitstate.md) |  |
 |  [Board](./chess.ts.board.md) |  |
 |  [BoardState](./chess.ts.boardstate.md) |  |
+|  [CastlingRooks](./chess.ts.castlingrooks.md) |  |
+|  [ChessOptions](./chess.ts.chessoptions.md) |  |
 |  [Color](./chess.ts.color.md) |  |
 |  [CommentMap](./chess.ts.commentmap.md) |  |
 |  [GameState](./chess.ts.gamestate.md) |  |
 |  [HeaderMap](./chess.ts.headermap.md) |  |
+|  [HexMove](./chess.ts.hexmove.md) |  |
 |  [HexState](./chess.ts.hexstate.md) |  |
 |  [Move](./chess.ts.move.md) | Represents a chess move |
 |  [PartialMove](./chess.ts.partialmove.md) |  |
 |  [Piece](./chess.ts.piece.md) |  |
 |  [PieceSymbol](./chess.ts.piecesymbol.md) |  |
 |  [Square](./chess.ts.square.md) |  |
+|  [WalkPgnContext](./chess.ts.walkpgncontext.md) |  |
 |  [WalkPgnOptions](./chess.ts.walkpgnoptions.md) |  |
 

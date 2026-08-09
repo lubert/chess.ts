@@ -19,8 +19,8 @@ declare function moveToSan(state: BoardState, move: HexMove, moves?: HexMove[], 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  state | [BoardState](./chess.ts.boardstate.md) |  |
-|  move | HexMove |  |
-|  moves | HexMove\[\] | _(Optional)_ |
+|  move | [HexMove](./chess.ts.hexmove.md) |  |
+|  moves | [HexMove](./chess.ts.hexmove.md)<!-- -->\[\] | _(Optional)_ |
 |  options | { addPromotion?: boolean; } | _(Optional)_ |
 
 **Returns:**

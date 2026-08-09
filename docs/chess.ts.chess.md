@@ -15,12 +15,13 @@ declare class Chess
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(fen)](./chess.ts.chess._constructor_.md) |  | The Chess() constructor takes an optional parameter which specifies the board configuration in \[Forsyth-Edwards Notation\](http://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards\_Notation). |
+|  [(constructor)(fen, options)](./chess.ts.chess._constructor_.md) |  | The Chess() constructor takes an optional FEN string and/or options object. |
 
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
+|  [chess960](./chess.ts.chess.chess960.md) | <code>readonly</code> | boolean | Whether this instance is in Chess960 mode. |
 |  [currentHexNode](./chess.ts.chess.currenthexnode.md) | <code>readonly</code> | Readonly&lt;TreeNode&lt;[HexState](./chess.ts.hexstate.md)<!-- -->&gt;&gt; |  |
 |  [currentNode](./chess.ts.chess.currentnode.md) | <code>readonly</code> | Readonly&lt;TreeNode&lt;[GameState](./chess.ts.gamestate.md)<!-- -->&gt;&gt; |  |
 |  [header](./chess.ts.chess.header.md) |  | [HeaderMap](./chess.ts.headermap.md) |  |
@@ -43,7 +44,8 @@ declare class Chess
 |  [deleteStartingComment(key)](./chess.ts.chess.deletestartingcomment.md) |  | Delete and return the starting comment for a position, if it exists. |
 |  [deleteVariation(key)](./chess.ts.chess.deletevariation.md) |  | Deletes a variation from the tree. If the node has no siblings, it will traverse up the tree to find the first ancestor with more than one child and delete the path leading to it. |
 |  [demoteVariation(key)](./chess.ts.chess.demotevariation.md) |  | Demotes a variation by moving it down in the list of sibling nodes. |
-|  [fen(strict)](./chess.ts.chess.fen.md) |  | Returns the FEN string for the current position. |
+|  [fen()](./chess.ts.chess.fen.md) |  | Returns the FEN string for the current position. |
+|  [findChild(move)](./chess.ts.chess.findchild.md) |  | Finds a child node of the current position matching the given move. Returns the child's path key if found, otherwise undefined. |
 |  [gameOver()](./chess.ts.chess.gameover.md) |  | Returns true if the game has ended via checkmate, stalemate, draw, threefold repetition, or insufficient material. Otherwise, returns false. |
 |  [getComment(key)](./chess.ts.chess.getcomment.md) |  | Retrieve the comment if it exists. |
 |  [getComments(key)](./chess.ts.chess.getcomments.md) |  | Retrieve comments for all positions, keyed by FEN string. |
@@ -78,6 +80,7 @@ declare class Chess
 |  [sanMoves(options)](./chess.ts.chess.sanmoves.md) |  | Returns a list of legal moves from the current position. The function takes an optional parameter for filtering move generation. |
 |  [setComment(comment, key)](./chess.ts.chess.setcomment.md) |  | Comment on a position, if it exists. |
 |  [setCurrentNode(key)](./chess.ts.chess.setcurrentnode.md) |  |  |
+|  [setNags(nags, key)](./chess.ts.chess.setnags.md) |  |  |
 |  [setStartingComment(comment, key)](./chess.ts.chess.setstartingcomment.md) |  | Set a starting comment (comment before the move) on a position. |
 |  [squareColor(square)](./chess.ts.chess.squarecolor.md) |  | Returns the color of the square ('light' or 'dark'). |
 |  [turn()](./chess.ts.chess.turn.md) |  | Returns the current side to move. |
