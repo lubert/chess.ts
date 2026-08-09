@@ -425,9 +425,12 @@ export class Chess {
    * chess.fen()
    * // -> 'rnbqkbnr/pppp1ppp/8/4p3/4PP2/8/PPPP2PP/RNBQKBNR b KQkq f3 0 2'
    * ```
+   *
+   * The ep square is emitted only if en passant is a legal move, so after
+   * 1. e4 from the starting position the field is '-' rather than 'e3'.
    */
-  public fen(strict = false): string {
-    return getFen(this.boardState, strict)
+  public fen(): string {
+    return getFen(this.boardState)
   }
 
   /**
