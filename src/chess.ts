@@ -941,7 +941,10 @@ export class Chess {
 
     if (!asVariation) {
       const child = this.findMoveChildNode(move)
-      if (child) {
+      // Walking into the child is how an already-known move gets made, so a
+      // dry run falls through to processMove, which reports it without
+      // making it.
+      if (child && !options.dry_run) {
         this._currentNode = child
         return this.currentNode.model.move as Move
       }

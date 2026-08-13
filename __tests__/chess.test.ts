@@ -138,6 +138,22 @@ describe('.move', () => {
       chess.move('e4', { dry_run: true })
       expect(chess.fen()).toEqual(fen)
     })
+
+    it('does not navigate into a move already in the tree', () => {
+      const chess = new Chess()
+      chess.move('e4')
+      chess.undo()
+      const fen = chess.fen()
+
+      const move = chess.move('e4', { dry_run: true })
+
+      // A move that exists as a child is made by walking into it rather than
+      // by building it, so that branch has to honour dry_run too. The test
+      // above cannot see this: on a fresh board there is no child to walk to.
+      expect(move?.san).toEqual('e4')
+      expect(chess.fen()).toEqual(fen)
+      expect(chess.history()).toEqual([])
+    })
   })
 })
 
