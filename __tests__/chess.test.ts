@@ -2953,3 +2953,17 @@ describe('move with object (no san)', () => {
     expect((hexMove as HexMove).san).toBe('e4')
   })
 })
+
+describe('.deleteRemainingMoves', () => {
+  it('drops every child, not every second one', () => {
+    const chess = new Chess()
+    chess.loadPgn('1. e4 e5 (1... c5) (1... e6) 2. Nf3 *')
+    chess.setCurrentNode(chess.hexTree.children[0].pathKey)
+
+    chess.deleteRemainingMoves()
+
+    // drop() splices the array, so iterating it directly skipped alternate
+    // children and left the game holding variations it was told to delete.
+    expect(chess.currentHexNode.children).toHaveLength(0)
+  })
+})

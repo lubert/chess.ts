@@ -1565,6 +1565,8 @@ export class Chess {
    */
   public deleteRemainingMoves(key?: number[] | string): void {
     const node = this.getNode(key)
-    if (node) node.children.forEach((child) => child.drop())
+    // Iterated over a copy: drop() splices the array being walked, so forEach
+    // would skip every second child and leave stray variations behind.
+    if (node) [...node.children].forEach((child) => child.drop())
   }
 }
