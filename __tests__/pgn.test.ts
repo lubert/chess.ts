@@ -1,10 +1,10 @@
 import { loadPgn, walkPgn, addNag, isMainline } from '../src/pgn'
 import { Chess } from '../src/chess'
 import { moveToSan, getFen, loadFen } from '../src/move'
-import { HexMove, BoardState, HexState } from '../src/interfaces/types'
+import { HexMove, BoardState, NodeModel } from '../src/interfaces/types'
 import { TreeNode } from 'treenode.ts'
 import { Nag } from '../src/interfaces/nag'
-import { cloneBoardState } from '../src/state'
+import { cloneBoardState, NodeState } from '../src/state'
 
 describe('pgn', () => {
   describe('header whitespace', () => {
@@ -939,7 +939,7 @@ describe('addNag', () => {
     const boardState = loadFen(
       'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
     )!
-    const node = new TreeNode<HexState>({ boardState })
+    const node = new TreeNode<NodeModel>(new NodeState({ boardState }))
     addNag(node, Nag.GOOD_MOVE)
     expect(node.model.nags).toEqual([Nag.GOOD_MOVE])
   })
@@ -948,7 +948,7 @@ describe('addNag', () => {
     const boardState = loadFen(
       'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
     )!
-    const node = new TreeNode<HexState>({ boardState })
+    const node = new TreeNode<NodeModel>(new NodeState({ boardState }))
     addNag(node, Nag.GOOD_MOVE)
     addNag(node, Nag.GOOD_MOVE)
     expect(node.model.nags).toEqual([Nag.GOOD_MOVE])
@@ -960,7 +960,7 @@ describe('isMainline', () => {
     const boardState = loadFen(
       'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
     )!
-    const root = new TreeNode<HexState>({ boardState })
+    const root = new TreeNode<NodeModel>(new NodeState({ boardState }))
     expect(isMainline(root)).toBe(true)
   })
 
@@ -968,8 +968,10 @@ describe('isMainline', () => {
     const boardState = loadFen(
       'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
     )!
-    const root = new TreeNode<HexState>({ boardState })
-    const child = root.addModel({ boardState: cloneBoardState(boardState) })
+    const root = new TreeNode<NodeModel>(new NodeState({ boardState }))
+    const child = root.addModel(
+      new NodeState({ boardState: cloneBoardState(boardState) }),
+    )
     expect(isMainline(child)).toBe(true)
   })
 
@@ -977,11 +979,11 @@ describe('isMainline', () => {
     const boardState = loadFen(
       'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
     )!
-    const root = new TreeNode<HexState>({ boardState })
-    root.addModel({ boardState: cloneBoardState(boardState) }) // child 0 (mainline)
-    const variation = root.addModel({
-      boardState: cloneBoardState(boardState),
-    }) // child 1
+    const root = new TreeNode<NodeModel>(new NodeState({ boardState }))
+    root.addModel(new NodeState({ boardState: cloneBoardState(boardState) })) // child 0 (mainline)
+    const variation = root.addModel(
+      new NodeState({ boardState: cloneBoardState(boardState) }),
+    ) // child 1
     expect(isMainline(variation)).toBe(false)
   })
 })

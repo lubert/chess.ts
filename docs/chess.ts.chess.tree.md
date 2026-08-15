@@ -8,5 +8,5 @@
 **Signature:**
 
 ```typescript
-get tree(): Readonly<TreeNode<GameState>>;
+get tree(): Readonly<TreeNode<NodeModel>>;
 ```

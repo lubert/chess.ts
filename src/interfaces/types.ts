@@ -4,15 +4,6 @@ export type Color = 'w' | 'b'
 /** @public */
 export type CommentMap = Partial<Record<string, string>>
 
-/** @public */
-export type GameState = {
-  fen: string
-  move?: Move
-  nags?: number[]
-  comment?: string
-  startingComment?: string
-}
-
 /**
  * Represents a chess move
  *
@@ -167,12 +158,15 @@ export type FlagKey =
   | 'CHECKMATE'
 
 /** @public */
-export type HexState = {
+export type NodeModel = {
   boardState: BoardState
   nags?: number[] // Array instead of set for easier serialization
-  move?: HexMove
+  /** The move as played, using 0x88 numeric squares rather than algebraic Move. */
+  move?: StoredMove
   comment?: string
   startingComment?: string
+  /** Cached string; recomputed when boardState is replaced. */
+  readonly fen: string
 }
 
 /** @public */
@@ -188,6 +182,14 @@ export type HexMove = {
   captured?: PieceSymbol
   promotion?: PieceSymbol
 }
+
+/**
+ * A move played into the tree, as opposed to a candidate out of generateMoves.
+ * san can't be required on HexMove itself: moveToSan derives it from the
+ * candidate list, so requiring it on candidates would be circular.
+ * @public
+ */
+export type StoredMove = HexMove & { san: string }
 
 export type UndoInfo = {
   move: Readonly<HexMove>

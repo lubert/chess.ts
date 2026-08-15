@@ -3,8 +3,7 @@ import { BITS, BLACK, WHITE } from './constants'
 import {
   Color,
   FlagKey,
-  GameState,
-  HexState,
+  NodeModel,
   Piece,
   PieceSymbol,
   Square,
@@ -314,7 +313,7 @@ export function splitStr(str: string, char: string): string[] {
  * Checks if a node can be promoted.
  * @public
  */
-export const canPromote = (node: TreeNode<HexState | GameState>): boolean => {
+export const canPromote = (node: TreeNode<NodeModel>): boolean => {
   return (
     node.parent !== null &&
     node.parent.hasChildren &&
@@ -327,7 +326,7 @@ export const canPromote = (node: TreeNode<HexState | GameState>): boolean => {
  * Checks if a node can be demoted.
  * @public
  */
-export const canDemote = (node: TreeNode<HexState | GameState>): boolean => {
+export const canDemote = (node: TreeNode<NodeModel>): boolean => {
   return (
     node.parent !== null &&
     node.parent.hasChildren &&

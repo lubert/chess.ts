@@ -20,9 +20,9 @@ import {
   canDemote,
 } from '../src/utils'
 import { BIT_SQUARES, SQUARES } from '../src/constants'
-import { Square, HexState } from '../src/interfaces/types'
+import { Square, NodeModel } from '../src/interfaces/types'
 import { TreeNode } from 'treenode.ts'
-import { defaultBoardState } from '../src/state'
+import { defaultBoardState, NodeState } from '../src/state'
 
 describe('bitToSquare', () => {
   it('should convert a bit to a square', () => {
@@ -249,10 +249,12 @@ describe('getBitIndices', () => {
 })
 
 describe('canPromote / canDemote', () => {
-  function makeTree(): TreeNode<HexState> {
-    const root = new TreeNode<HexState>({ boardState: defaultBoardState() })
-    root.addModel({ boardState: defaultBoardState() }) // child 0
-    root.addModel({ boardState: defaultBoardState() }) // child 1
+  function makeTree(): TreeNode<NodeModel> {
+    const root = new TreeNode<NodeModel>(
+      new NodeState({ boardState: defaultBoardState() }),
+    )
+    root.addModel(new NodeState({ boardState: defaultBoardState() })) // child 0
+    root.addModel(new NodeState({ boardState: defaultBoardState() })) // child 1
     return root
   }
 

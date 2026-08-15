@@ -22,6 +22,7 @@ import {
   Square,
   HexMove,
 } from '../src/interfaces/types'
+import { hexMoveToMove } from '../src'
 
 const SQUARES_LIST: string[] = []
 for (let i = SQUARES.a8; i <= SQUARES.h1; i++) {
@@ -83,7 +84,14 @@ describe('gameTree', () => {
         },
       ],
     }
-    expect(chess.tree.toObject()).toEqual(expected)
+    const serialized = chess.tree
+      .map((node) => ({
+        fen: node.model.fen,
+        move: node.model.move ? hexMoveToMove(node.model.move) : undefined,
+        comment: node.model.comment,
+      }))
+      .toObject()
+    expect(serialized).toEqual(expected)
   })
 
   it('follows existing child when replaying the same move', () => {
@@ -1382,7 +1390,14 @@ describe('.loadPgn', () => {
           },
         ],
       }
-      expect(chess.tree.toObject()).toEqual(expected)
+      const serialized = chess.tree
+        .map((node) => ({
+          fen: node.model.fen,
+          move: node.model.move ? hexMoveToMove(node.model.move) : undefined,
+          comment: node.model.comment,
+        }))
+        .toObject()
+      expect(serialized).toEqual(expected)
     })
   })
 
@@ -1802,7 +1817,7 @@ describe('.getComment, .deleteComment', () => {
     const chess = new Chess()
     chess.loadPgn('1. e4 e5 (1...c5 2. Nf3 -- 3. d4) 2. Nf3')
     // The variation should be fully parsed including moves after the null move
-    const history = chess.hexTree.flatten('pre')
+    const history = chess.tree.flatten('pre')
     // Should have: root, e4, e5, Nf3 (mainline) + c5, Nf3, --, d4 (variation)
     // At minimum 8 nodes: root + 7 moves (e4, e5, Nf3 mainline + c5, Nf3, --, d4 variation)
     expect(history.length).toBeGreaterThanOrEqual(8)
@@ -2610,13 +2625,33 @@ describe('.clone', () => {
   })
 })
 
-describe('currentHexNode', () => {
-  it('returns the current hex node', () => {
+describe('currentNode', () => {
+  it('returns the current node', () => {
     const chess = new Chess()
     chess.move('e4')
-    const node = chess.currentHexNode
+    const node = chess.currentNode
     expect(node.model.boardState).toBeDefined()
     expect(node.model.move).toBeDefined()
+  })
+
+  it('is referentially stable across repeated access, like tree', () => {
+    const chess = new Chess()
+    expect(chess.tree).toBe(chess.tree)
+    expect(chess.currentNode).toBe(chess.currentNode)
+  })
+
+  it('tree keeps the same root object across a move; load/clear replace it', () => {
+    const chess = new Chess()
+    const root = chess.tree
+    chess.move('e4')
+    expect(chess.tree).toBe(root)
+
+    chess.load('4k3/8/8/8/8/8/8/4K3 w - - 0 1')
+    expect(chess.tree).not.toBe(root)
+
+    const loadedRoot = chess.tree
+    chess.clear()
+    expect(chess.tree).not.toBe(loadedRoot)
   })
 })
 
@@ -2637,7 +2672,7 @@ describe('setCurrentNode', () => {
     chess.move('e4')
     chess.move('e5')
     // pathKey for [0,0] is "2" (two consecutive first-children)
-    const pathKey = chess.currentHexNode.pathKey
+    const pathKey = chess.currentNode.pathKey
     chess.undoAll()
     expect(chess.setCurrentNode(pathKey)).toBe(true)
   })
@@ -2861,7 +2896,7 @@ describe('deleteNode', () => {
     // Delete the e5 node
     expect(chess.deleteNode([0, 0])).toBe(true)
     // The tree should only have e4 now
-    expect(chess.hexTree.children[0].children.length).toBe(0)
+    expect(chess.tree.children[0].children.length).toBe(0)
   })
 
   it('returns false when trying to delete root', () => {
@@ -2879,7 +2914,7 @@ describe('promoteVariation / demoteVariation', () => {
     // Tree: root -> [e4 (mainline), d4 (variation)]
     // After promoting d4, it becomes index 0
     chess.promoteVariation([1])
-    expect(chess.hexTree.children[0].model.move!.san).toBe('d4')
+    expect(chess.tree.children[0].model.move!.san).toBe('d4')
   })
 
   it('demotes a variation', () => {
@@ -2890,7 +2925,7 @@ describe('promoteVariation / demoteVariation', () => {
     // Tree: root -> [e4 (mainline), d4 (variation)]
     // After demoting e4 (index 0), d4 goes to index 0
     chess.demoteVariation([0])
-    expect(chess.hexTree.children[0].model.move!.san).toBe('d4')
+    expect(chess.tree.children[0].model.move!.san).toBe('d4')
   })
 })
 
@@ -2901,7 +2936,7 @@ describe('deleteVariation', () => {
     chess.undo()
     chess.move('d4', { asVariation: true })
     chess.deleteVariation([1])
-    expect(chess.hexTree.children.length).toBe(1)
+    expect(chess.tree.children.length).toBe(1)
   })
 
   it('traverses up to find deletable ancestor', () => {
@@ -2912,7 +2947,7 @@ describe('deleteVariation', () => {
     chess.move('d5') // deep in variation
     // Delete the d5 node — should walk up to d4 and delete it
     chess.deleteVariation([1, 0])
-    expect(chess.hexTree.children.length).toBe(1)
+    expect(chess.tree.children.length).toBe(1)
   })
 })
 
@@ -2924,7 +2959,7 @@ describe('deleteRemainingMoves', () => {
     chess.move('Nf3')
     // Delete remaining from e4 node (index [0])
     chess.deleteRemainingMoves([0])
-    const e4Node = chess.hexTree.children[0]
+    const e4Node = chess.tree.children[0]
     expect(e4Node.children.length).toBe(0)
   })
 })
@@ -2958,12 +2993,12 @@ describe('.deleteRemainingMoves', () => {
   it('drops every child, not every second one', () => {
     const chess = new Chess()
     chess.loadPgn('1. e4 e5 (1... c5) (1... e6) 2. Nf3 *')
-    chess.setCurrentNode(chess.hexTree.children[0].pathKey)
+    chess.setCurrentNode(chess.tree.children[0].pathKey)
 
     chess.deleteRemainingMoves()
 
     // drop() splices the array, so iterating it directly skipped alternate
     // children and left the game holding variations it was told to delete.
-    expect(chess.currentHexNode.children).toHaveLength(0)
+    expect(chess.currentNode.children).toHaveLength(0)
   })
 })

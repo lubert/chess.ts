@@ -22,12 +22,10 @@ declare class Chess
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
 |  [chess960](./chess.ts.chess.chess960.md) | <code>readonly</code> | boolean | Whether this instance is in Chess960 mode. |
-|  [currentHexNode](./chess.ts.chess.currenthexnode.md) | <code>readonly</code> | Readonly&lt;TreeNode&lt;[HexState](./chess.ts.hexstate.md)<!-- -->&gt;&gt; |  |
-|  [currentNode](./chess.ts.chess.currentnode.md) | <code>readonly</code> | Readonly&lt;TreeNode&lt;[GameState](./chess.ts.gamestate.md)<!-- -->&gt;&gt; |  |
+|  [currentNode](./chess.ts.chess.currentnode.md) | <code>readonly</code> | Readonly&lt;TreeNode&lt;[NodeModel](./chess.ts.nodemodel.md)<!-- -->&gt;&gt; |  |
 |  [header](./chess.ts.chess.header.md) |  | [HeaderMap](./chess.ts.headermap.md) |  |
-|  [hexTree](./chess.ts.chess.hextree.md) | <code>readonly</code> | Readonly&lt;TreeNode&lt;[HexState](./chess.ts.hexstate.md)<!-- -->&gt;&gt; |  |
 |  [state](./chess.ts.chess.state.md) | <code>readonly</code> | Readonly&lt;[BoardState](./chess.ts.boardstate.md)<!-- -->&gt; |  |
-|  [tree](./chess.ts.chess.tree.md) | <code>readonly</code> | Readonly&lt;TreeNode&lt;[GameState](./chess.ts.gamestate.md)<!-- -->&gt;&gt; |  |
+|  [tree](./chess.ts.chess.tree.md) | <code>readonly</code> | Readonly&lt;TreeNode&lt;[NodeModel](./chess.ts.nodemodel.md)<!-- -->&gt;&gt; |  |
 
 ## Methods
 

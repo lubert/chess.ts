@@ -4,9 +4,8 @@
 
 ## Chess.currentNode property
 
-
 **Signature:**
 
 ```typescript
-get currentNode(): Readonly<TreeNode<GameState>>;
+get currentNode(): Readonly<TreeNode<NodeModel>>;
 ```

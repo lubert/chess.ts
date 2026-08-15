@@ -13,11 +13,11 @@ import {
   getBoard,
   validateMove,
   nodeMove,
-  hexToGameState,
+  ensureSan,
+  hexMoveToMove,
   generateMoves,
   hexToMove,
   moveToSan,
-  getFen,
   isAttacked,
   isAttacking,
   isThreatening,
@@ -28,7 +28,7 @@ import { Nag } from './interfaces/nag'
 import { loadPgn, getPgn } from './pgn'
 import {
   Color,
-  HexState,
+  NodeModel,
   HexMove,
   Move,
   Piece,
@@ -37,7 +37,6 @@ import {
   HeaderMap,
   CommentMap,
   Square,
-  GameState,
   BoardState,
   PieceSymbol,
 } from './interfaces/types'
@@ -55,7 +54,12 @@ import { boardToMap, mapToAscii } from './board'
 import { hashBoardState } from './hash'
 import { DEFAULT_POSITION, SQUARES, BITS } from './constants'
 import { FenErrorType, validateFen } from './fen'
-import { cloneBoardState, cloneHexState, defaultBoardState } from './state'
+import {
+  cloneBoardState,
+  cloneNodeState,
+  defaultBoardState,
+  NodeState,
+} from './state'
 
 /** @public */
 export type ChessOptions = {
@@ -65,10 +69,10 @@ export type ChessOptions = {
 /** @public */
 export class Chess {
   /** @internal */
-  protected _tree!: TreeNode<HexState>
+  protected _tree!: TreeNode<NodeModel>
 
   /** @internal */
-  protected _currentNode!: TreeNode<HexState>
+  protected _currentNode!: TreeNode<NodeModel>
 
   // Declared per load(): each position states its own variant.
   /** @internal */
@@ -117,23 +121,21 @@ export class Chess {
     return this.boardState
   }
 
-  /** @public */
-  public get hexTree(): Readonly<TreeNode<HexState>> {
+  /**
+   * The live internal root node; stable object identity until load()/clear()
+   * replaces the tree. Mutating through .model mutates the game.
+   * @public
+   */
+  public get tree(): Readonly<TreeNode<NodeModel>> {
     return this._tree
   }
 
-  public get currentHexNode(): Readonly<TreeNode<HexState>> {
+  /**
+   * The live internal current node; stable object identity until load()/clear()
+   * replaces the tree. Mutating through .model mutates the game.
+   */
+  public get currentNode(): Readonly<TreeNode<NodeModel>> {
     return this._currentNode
-  }
-
-  /** @public */
-  public get tree(): Readonly<TreeNode<GameState>> {
-    return this._tree.map((node) => hexToGameState(node))
-  }
-
-  /** @public */
-  public get currentNode(): Readonly<TreeNode<GameState>> {
-    return this.tree.fetch(this._currentNode.indices) as TreeNode<GameState>
   }
 
   /** @public */
@@ -160,7 +162,7 @@ export class Chess {
   }
 
   /** @internal **/
-  protected get path(): Readonly<TreeNode<HexState>>[] {
+  protected get path(): Readonly<TreeNode<NodeModel>>[] {
     return this._currentNode.path()
   }
 
@@ -183,7 +185,7 @@ export class Chess {
     // Loading a position declares its variant, derived from the position
     // unless the caller insists — so no caller has to remember to pass it.
     this._chess960 = options?.chess960 ?? isChess960State(boardState)
-    this._tree = new TreeNode<HexState>({ boardState })
+    this._tree = new TreeNode<NodeModel>(new NodeState({ boardState }))
     this._currentNode = this._tree
     this.updateSetup()
     return true
@@ -200,9 +202,9 @@ export class Chess {
    * ```
    */
   public clear(keepHeaders = false): void {
-    this._tree = new TreeNode<HexState>({
-      boardState: defaultBoardState(),
-    })
+    this._tree = new TreeNode<NodeModel>(
+      new NodeState({ boardState: defaultBoardState() }),
+    )
     if (!keepHeaders) this.header = {}
     this._currentNode = this._tree
     // An empty board declares no variant, same as any other position.
@@ -432,7 +434,7 @@ export class Chess {
    * 1. e4 from the starting position the field is '-' rather than 'e3'.
    */
   public fen(): string {
-    return getFen(this.boardState)
+    return this._currentNode.model.fen
   }
 
   /**
@@ -821,10 +823,13 @@ export class Chess {
       const parentState = this._chess960 ? node.model.boardState : undefined
       if (typeof move === 'string') {
         return node.children.find((child) => {
-          const childMove = nodeMove(child)!
+          const stored = child.model.move
+          if (!stored) return false
+          // The common case; only a miss pays to build the algebraic form for UCI.
+          if (stored.san === move) return true
+          const childMove = hexMoveToMove(stored)
           /* accept either castling encoding on input */
           return (
-            childMove.san === move ||
             moveToUci(childMove) === move ||
             (parentState !== undefined &&
               moveToUci(childMove, parentState, { chess960: true }) === move)
@@ -838,7 +843,7 @@ export class Chess {
       const resolved = validateMove(node.model.boardState, move)
       if (!resolved) return undefined
       const san = resolved.san ?? moveToSan(node.model.boardState, resolved)
-      return node.children.find((child) => nodeMove(child)!.san === san)
+      return node.children.find((child) => child.model.move?.san === san)
     }
   }
 
@@ -946,7 +951,7 @@ export class Chess {
       // making it.
       if (child && !options.dry_run) {
         this._currentNode = child
-        return this.currentNode.model.move as Move
+        return hexMoveToMove(child.model.move!)
       }
     }
 
@@ -1132,20 +1137,12 @@ export class Chess {
   public history(options: { verbose?: boolean } = {}): string[] | Move[] {
     const { verbose = false } = options
 
-    const nodes = this.path
-      .map((node) => {
-        if (!node.parent || !node.model.move) return
-        return {
-          prevState: node.parent.model.boardState,
-          move: node.model.move,
-        }
-      })
-      .filter(isDefined)
+    const moves = this.path.map((node) => node.model.move).filter(isDefined)
 
     if (verbose) {
-      return nodes.map(({ prevState, move }) => hexToMove(prevState, move))
+      return moves.map(hexMoveToMove)
     }
-    return nodes.map(({ prevState, move }) => moveToSan(prevState, move))
+    return moves.map((move) => move.san)
   }
 
   /**
@@ -1198,8 +1195,7 @@ export class Chess {
     this._tree.breadth((node) => {
       const { comment } = node.model
       if (comment) {
-        const k =
-          key === 'fen' ? getFen(node.model.boardState) : node.indices.join(',')
+        const k = key === 'fen' ? node.model.fen : node.indices.join(',')
         comments[k] = comment
       }
     })
@@ -1254,8 +1250,7 @@ export class Chess {
     this._tree.breadth((node) => {
       const { startingComment } = node.model
       if (startingComment) {
-        const k =
-          key === 'fen' ? getFen(node.model.boardState) : node.indices.join(',')
+        const k = key === 'fen' ? node.model.fen : node.indices.join(',')
         comments[k] = startingComment
       }
     })
@@ -1440,7 +1435,7 @@ export class Chess {
   /** @internal */
   public clone(): Chess {
     const clone = new Chess()
-    clone._tree = this._tree.clone().map((node) => cloneHexState(node.model))
+    clone._tree = this._tree.clone().map((node) => cloneNodeState(node.model))
     clone._currentNode =
       clone._tree.fetch(this._currentNode.indices) || clone._tree
     clone.header = { ...this.header }
@@ -1454,7 +1449,7 @@ export class Chess {
   }
 
   /** @internal */
-  protected getNode(key?: string | number[]): TreeNode<HexState> | null {
+  protected getNode(key?: string | number[]): TreeNode<NodeModel> | null {
     if (key === undefined) return this._currentNode
     if (Array.isArray(key)) return this._tree.fetch(key)
     return this._tree.fetchByPathKey(key)
@@ -1474,7 +1469,7 @@ export class Chess {
    * @internal
    */
   protected updateSetup(): void {
-    const fen = getFen(this.boardState)
+    const fen = this._currentNode.model.fen
     if (!this._currentNode.isRoot) return
 
     if (fen !== DEFAULT_POSITION) {
@@ -1495,16 +1490,13 @@ export class Chess {
 
   /** @internal */
   protected makeMove(move: HexMove, asVariation = false): void {
-    if (!move.san) {
-      move.san = moveToSan(this.boardState, move)
-    }
+    // Before the board advances: san names the move from the position it is
+    // made in.
+    const stored = ensureSan(this.boardState, move)
     const boardState = cloneBoardState(this.boardState)
-    makeMove(boardState, move)
+    makeMove(boardState, stored)
     const parent = this._currentNode
-    const model = {
-      boardState,
-      move,
-    }
+    const model = new NodeState({ boardState, move: stored })
     // If not a variation, insert at index 0 to make it the mainline
     // Otherwise append at end as a variation
     const insertIndex = asVariation ? undefined : 0

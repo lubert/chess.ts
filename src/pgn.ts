@@ -1,7 +1,7 @@
 import { TreeNode } from 'treenode.ts'
 import {
   HexMove,
-  HexState,
+  NodeModel,
   HeaderMap,
   WalkPgnOptions,
   WalkPgnContext,
@@ -14,11 +14,11 @@ import {
   NULL_MOVES,
   CASTLING_MOVES,
 } from './constants'
-import { loadFen, sanToMove, makeMove, unmakeMove, moveToSan } from './move'
-import { cloneBoardState } from './state'
+import { loadFen, sanToMove, makeMove, unmakeMove, asStoredMove } from './move'
+import { cloneBoardState, NodeState } from './state'
 import { REGEXP_HEADER, REGEXP_MOVE_NUMBER } from './regex'
 
-export function addNag(node: TreeNode<HexState>, nag: number): void {
+export function addNag(node: TreeNode<NodeModel>, nag: number): void {
   if (!node.model.nags) {
     node.model.nags = [nag]
     return
@@ -26,7 +26,7 @@ export function addNag(node: TreeNode<HexState>, nag: number): void {
   node.model.nags = Array.from(new Set<number>([...node.model.nags, nag]))
 }
 
-export function isMainline(node: TreeNode<HexState>): boolean {
+export function isMainline(node: TreeNode<NodeModel>): boolean {
   while (node.parent) {
     const parent = node.parent
     if (parent.children[0] !== node) {
@@ -44,7 +44,7 @@ export function pgnHeader(header: HeaderMap): string[] {
 }
 
 export function pgnMoves(
-  node: TreeNode<HexState>,
+  node: TreeNode<NodeModel>,
   afterAnnotation = false,
 ): string[] {
   const tokens: string[] = []
@@ -56,7 +56,7 @@ export function pgnMoves(
   }
 
   const formatMove = (
-    state: HexState,
+    state: NodeModel,
     isVariation = false,
     hasInterveningAnnotation = false,
   ) => {
@@ -69,7 +69,7 @@ export function pgnMoves(
 
     if (move) {
       const isFirstMove = !node.model.move
-      const san = move.san ?? moveToSan(boardState, move)
+      const { san } = move
       const nagStr =
         nags && nags.length ? ' ' + nags.map((nag) => `$${nag}`).join(' ') : ''
       // Move
@@ -124,7 +124,7 @@ function joinPgnTokens(tokens: string[]): string {
 }
 
 export function getPgn(
-  tree: TreeNode<HexState>,
+  tree: TreeNode<NodeModel>,
   header: HeaderMap,
   options: { newline?: string } = {},
 ): string {
@@ -422,8 +422,8 @@ export function loadPgn(
   pgn: string,
   options: { newline?: string; width?: number } = {},
 ): {
-  tree: TreeNode<HexState>
-  currentNode: TreeNode<HexState>
+  tree: TreeNode<NodeModel>
+  currentNode: TreeNode<NodeModel>
   header: HeaderMap
 } {
   const fen = extractFen(pgn, options.newline) || DEFAULT_POSITION
@@ -432,20 +432,25 @@ export function loadPgn(
     throw new Error(`Invalid FEN: ${fen}`)
   }
 
-  const tree = new TreeNode<HexState>({ boardState: rootState })
+  const tree = new TreeNode<NodeModel>(new NodeState({ boardState: rootState }))
   let currentNode = tree
-  const parentNodes: TreeNode<HexState>[] = []
+  const parentNodes: TreeNode<NodeModel>[] = []
 
   const header = walkPgn(pgn, {
     newline: options.newline,
+    // Pinned false: asStoredMove requires san, and onMove's state is
+    // post-move, too late to derive it.
+    skipSan: false,
     onMove: (move, boardState, comment, startingComment, nags) => {
-      currentNode = currentNode.addModel({
-        boardState: cloneBoardState(boardState),
-        move,
-        comment,
-        startingComment,
-        nags,
-      })
+      currentNode = currentNode.addModel(
+        new NodeState({
+          boardState: cloneBoardState(boardState),
+          move: asStoredMove(move),
+          comment,
+          startingComment,
+          nags,
+        }),
+      )
     },
     onStartVariation: () => {
       parentNodes.push(currentNode)

@@ -1,4 +1,10 @@
-import { BitState, BoardState, HexState, PieceSymbol } from './interfaces/types'
+import {
+  BitState,
+  BoardState,
+  NodeModel,
+  PieceSymbol,
+  StoredMove,
+} from './interfaces/types'
 import { fromCastlingBits, toBitBoard, toCastlingBits } from './board'
 import { bitToSquare, squareToBit } from './utils'
 import {
@@ -11,7 +17,7 @@ import {
   COLOR_B,
   BITS,
 } from './constants'
-import { cloneMove } from './move'
+import { cloneMove, getFen } from './move'
 
 export function defaultBoardState(): BoardState {
   return {
@@ -29,14 +35,62 @@ export function defaultBoardState(): BoardState {
   }
 }
 
-export function cloneHexState(state: HexState): HexState {
-  return {
+/**
+ * A node's state. `fen` is derived once and held, so walking a tree costs no
+ * conversion. Callers must replace `boardState` rather than mutate it in
+ * place, or the memoized `fen` goes stale.
+ */
+export class NodeState implements NodeModel {
+  public nags?: number[]
+
+  public move?: StoredMove
+
+  public comment?: string
+
+  public startingComment?: string
+
+  private _boardState: BoardState
+
+  private _fen?: string
+
+  constructor(init: {
+    boardState: BoardState
+    move?: StoredMove
+    nags?: number[]
+    comment?: string
+    startingComment?: string
+  }) {
+    this._boardState = init.boardState
+    this.move = init.move
+    this.nags = init.nags
+    this.comment = init.comment
+    this.startingComment = init.startingComment
+  }
+
+  public get boardState(): BoardState {
+    return this._boardState
+  }
+
+  // Editing the board replaces the position, so the derived fen is dropped.
+  public set boardState(state: BoardState) {
+    this._boardState = state
+    this._fen = undefined
+  }
+
+  public get fen(): string {
+    if (this._fen === undefined) this._fen = getFen(this._boardState)
+    return this._fen
+  }
+}
+
+export function cloneNodeState(state: NodeModel): NodeState {
+  return new NodeState({
     boardState: cloneBoardState(state.boardState),
     nags: state.nags?.slice(),
     move: state.move ? cloneMove(state.move) : undefined,
     comment: state.comment,
     startingComment: state.startingComment,
-  }
+  })
 }
 
 export function cloneBoardState(state: BoardState): BoardState {

@@ -62,10 +62,10 @@ import {
   Move,
   Square,
   PartialMove,
-  HexState,
-  GameState,
+  NodeModel,
   PieceSymbol,
   BoardState,
+  StoredMove,
   UndoInfo,
 } from './interfaces/types'
 import {
@@ -457,7 +457,9 @@ export function getPiece(
   return null
 }
 
-export function cloneMove(move: Readonly<HexMove>): HexMove {
+// Generic so cloning a StoredMove yields one; the cast is safe because every
+// field is copied, san included.
+export function cloneMove<T extends Readonly<HexMove>>(move: T): T {
   return {
     to: move.to,
     from: move.from,
@@ -467,7 +469,7 @@ export function cloneMove(move: Readonly<HexMove>): HexMove {
     san: move.san,
     captured: move.captured,
     promotion: move.promotion,
-  }
+  } as T
 }
 
 export function clonePiece(piece: Readonly<Piece>): Piece {
@@ -1722,14 +1724,38 @@ export function sanToMove(
 }
 
 /**
- * Converts a HexMove to a Move.
+ * Fills in `san` if missing, narrowing to StoredMove. The only place a move
+ * earns that guarantee.
  * @public
  */
-export function hexToMove(state: Readonly<BoardState>, move: HexMove): Move {
+export function ensureSan(
+  state: Readonly<BoardState>,
+  move: HexMove,
+): StoredMove {
   if (!move.san) {
     move.san = moveToSan(state, move)
   }
+  return move as StoredMove
+}
 
+/**
+ * Narrows a move already known to carry `san`. Throws rather than recomputing:
+ * san needs the position the move was made from, which the caller has left.
+ * @public
+ */
+export function asStoredMove(move: HexMove): StoredMove {
+  if (!move.san) {
+    throw new Error('asStoredMove: move has no san')
+  }
+  return move as StoredMove
+}
+
+/**
+ * Converts a stored move to a Move. Needs no board state: san is already there
+ * and the rest is a field copy.
+ * @public
+ */
+export function hexMoveToMove(move: StoredMove): Move {
   let flags = ''
   for (const flag in BITS) {
     if (isFlagKey(flag) && BITS[flag] & move.flags) {
@@ -1747,6 +1773,14 @@ export function hexToMove(state: Readonly<BoardState>, move: HexMove): Move {
     captured: move.captured,
     promotion: move.promotion,
   }
+}
+
+/**
+ * Converts a HexMove to a Move.
+ * @public
+ */
+export function hexToMove(state: Readonly<BoardState>, move: HexMove): Move {
+  return hexMoveToMove(ensureSan(state, move))
 }
 
 /**
@@ -2328,26 +2362,9 @@ export function validateMove(
   return null
 }
 
-export function nodeMove(node: Readonly<TreeNode<HexState>>): Move | null {
-  // Need a parent board state to return a valid move
-  if (node.model.move && node.parent?.model) {
-    return hexToMove(node.parent.model.boardState, node.model.move)
-  }
-  return null
-}
-
-/** @public */
-export function hexToGameState(
-  node: Readonly<TreeNode<HexState>>,
-): Omit<GameState, 'isCurrent'> {
-  const move = nodeMove(node)
-  return {
-    fen: getFen(node.model.boardState),
-    nags: node.model.nags,
-    comment: node.model.comment,
-    startingComment: node.model.startingComment,
-    move: move || undefined,
-  }
+export function nodeMove(node: Readonly<TreeNode<NodeModel>>): Move | null {
+  const move = node.model.move
+  return move ? hexMoveToMove(move) : null
 }
 
 /**
