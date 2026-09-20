@@ -2886,6 +2886,29 @@ describe('annotations', () => {
     chess.setComment('test {brace} end')
     expect(chess.getComment()).toBe('test [brace] end')
   })
+
+  it('setComment replaces every brace, not just the first', () => {
+    const chess = new Chess()
+    chess.move('e4')
+    chess.setComment('a {one} and {two} end')
+    expect(chess.getComment()).toBe('a [one] and [two] end')
+  })
+
+  it('setStartingComment replaces every brace, not just the first', () => {
+    const chess = new Chess()
+    chess.move('e4')
+    chess.setStartingComment('a {one} and {two} end')
+    expect(chess.getStartingComment()).toBe('a [one] and [two] end')
+  })
+
+  it('a multi-brace comment round-trips through pgn', () => {
+    const chess = new Chess()
+    chess.move('e4')
+    chess.setComment('a {one} and {two} end')
+    const reloaded = new Chess()
+    reloaded.loadPgn(chess.pgn())
+    expect(reloaded.getComment()).toBe('a [one] and [two] end')
+  })
 })
 
 describe('deleteNode', () => {

@@ -1457,7 +1457,7 @@ export class Chess {
 
   /** @internal */
   protected cleanComment(comment: string): string {
-    return comment.replace('{', '[').replace('}', ']')
+    return comment.replace(/\{/g, '[').replace(/\}/g, ']')
   }
 
   /**
