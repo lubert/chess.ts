@@ -1048,3 +1048,58 @@ describe('invalid FEN error paths', () => {
     expect(() => loadPgn(pgn)).toThrow('Invalid FEN')
   })
 })
+
+describe('tag value escaping', () => {
+  it('escapes a quote so a real time-control event name stays one tag', () => {
+    // 12,341 real games carry a `"` in a header, mostly `g/8'+2"` seconds.
+    const chess = new Chess()
+    chess.header.Event = `Internet Section 06A g/8'+2"`
+    expect(chess.pgn()).toContain(`[Event "Internet Section 06A g/8'+2\\""]`)
+  })
+
+  it('escapes a backslash before a quote', () => {
+    const chess = new Chess()
+    chess.header.White = 'a"b\\c'
+    expect(chess.pgn()).toContain('[White "a\\"b\\\\c"]')
+  })
+
+  it('maps a control character to a space, matching the Rust writer', () => {
+    const chess = new Chess()
+    chess.header.Event = 'TUR Cup\t\t\t'
+    expect(chess.pgn()).toContain('[Event "TUR Cup   "]')
+  })
+
+  it('leaves legal spaces alone, matching the Rust writer', () => {
+    const chess = new Chess()
+    chess.header.Event = 'm 07th  12-18  '
+    expect(chess.pgn()).toContain('[Event "m 07th  12-18  "]')
+  })
+
+  it('reads back exactly what it writes', () => {
+    for (const v of [
+      `Internet Section 06A g/8'+2"`,
+      'a"b\\c',
+      'ends with backslash\\',
+      'ends with quote"',
+      '\\"',
+      '\\\\"',
+    ]) {
+      const out = new Chess()
+      out.header.Event = v
+      const back = new Chess()
+      back.loadPgn(out.pgn())
+      expect(back.header.Event).toEqual(v)
+    }
+  })
+
+  it('still reads lax files the way it did before', () => {
+    // An unescaped trailing quote, which is what Copy PGN wrote until now.
+    const a = new Chess()
+    a.loadPgn(`[Event "Internet Section 06A g/8'+2""]\n\n1. e4`)
+    expect(a.header.Event).toEqual(`Internet Section 06A g/8'+2"`)
+    // A bare backslash that is not an escape sequence.
+    const b = new Chess()
+    b.loadPgn('[Site "C:\\games"]\n\n1. e4')
+    expect(b.header.Site).toEqual('C:\\games')
+  })
+})

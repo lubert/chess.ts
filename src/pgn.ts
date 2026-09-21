@@ -37,10 +37,32 @@ export function isMainline(node: TreeNode<NodeModel>): boolean {
   return true
 }
 
+/** A PGN string token may hold no non-printing character. Char codes, not a
+ * regex, because a control range in a regex trips no-control-regex. */
+function printable(v: string): string {
+  let out = ''
+  for (const ch of v) {
+    const c = ch.charCodeAt(0)
+    out += c < 0x20 || c === 0x7f ? ' ' : ch
+  }
+  return out
+}
+
+/** Backslash first, so the backslash an escaped quote adds is not doubled. */
+function escapeTag(v: string): string {
+  return printable(String(v)).replace(/\\/g, '\\\\').replace(/"/g, '\\"')
+}
+
+/** One pass over exactly `\\` and `\"`, so `\\"` cannot be misread and a
+ * lax file's bare `\g` passes through unchanged. */
+function unescapeTag(v: string): string {
+  return v.replace(/\\(["\\])/g, '$1')
+}
+
 export function pgnHeader(header: HeaderMap): string[] {
   return Object.entries(header)
     .filter(([, val]) => val !== undefined && val !== null)
-    .map(([key, val]) => `[${key} "${val}"]`)
+    .map(([key, val]) => `[${key} "${escapeTag(String(val))}"]`)
 }
 
 export function pgnMoves(
@@ -149,7 +171,7 @@ function extractFen(pgn: string, newline = '\r\n|\n|\r'): string | undefined {
     if (!line.startsWith('[')) break
     const match = line.match(REGEXP_HEADER)
     if (match && match[1] === 'FEN') {
-      return match[2]
+      return unescapeTag(match[2])
     }
   }
   return undefined
@@ -201,7 +223,7 @@ export function walkPgn(pgn: string, options: WalkPgnOptions): HeaderMap {
       if (!trimmed || trimmed.startsWith('%')) continue
       if (trimmed.startsWith('[')) {
         const match = trimmed.match(REGEXP_HEADER)
-        if (match) header[match[1]] = match[2]
+        if (match) header[match[1]] = unescapeTag(match[2])
         continue
       }
       inHeaders = false
