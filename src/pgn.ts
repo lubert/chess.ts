@@ -13,7 +13,6 @@ import {
   POSSIBLE_RESULTS,
   NULL_MOVES,
   CASTLING_MOVES,
-  BITS,
 } from './constants'
 import { loadFen, sanToMove, makeMove, unmakeMove, asStoredMove } from './move'
 import { cloneBoardState, NodeState } from './state'
@@ -185,21 +184,12 @@ export function pgnMoves(
     variations.forEach((variation) => {
       tokens.push('(')
       formatMove(variation.model, true)
-      // A null move breaks the flow, so the move after it needs a number too
-      const afterNullMove = Boolean(
-        variation.model.move && variation.model.move.flags & BITS.NULL_MOVE,
-      )
-      tokens.push(...pgnMoves(variation, afterNullMove))
+      tokens.push(...pgnMoves(variation, variation.model.comment !== undefined))
       tokens.push(')')
     })
-    // After variations, comments, or a null move, the next move needs a number
-    const afterNullMove = Boolean(
-      mainline.model.move && mainline.model.move.flags & BITS.NULL_MOVE,
-    )
+    // After variations or comments, the next black move needs number indication
     const hasInterveningAnnotation =
-      variations.length > 0 ||
-      mainline.model.comment !== undefined ||
-      afterNullMove
+      variations.length > 0 || mainline.model.comment !== undefined
     tokens.push(...pgnMoves(mainline, hasInterveningAnnotation))
   }
   return tokens

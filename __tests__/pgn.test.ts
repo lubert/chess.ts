@@ -1305,4 +1305,14 @@ describe('annotations around a null move', () => {
     expect(chess.getNags([0, 0, 0])).toEqual([2])
     expect(chess.history()).toEqual(['e4', 'f5', 'Qh5+', 'g6'])
   })
+
+  it('numbers the move after a commented variation head', () => {
+    expect(pgnOf('1. e4 e5 2. Nf3 (2. Nc3 {x} Nc6) 2... Nc6')).toBe(
+      '1. e4 e5 2. Nf3 (2. Nc3 {x} 2...Nc6) 2...Nc6',
+    )
+  })
+
+  it('leaves an unannotated null move unnumbered on the move after it', () => {
+    expect(pgnOf('1. e4 e5 2. -- Nc6')).toBe('1. e4 e5 2. -- Nc6')
+  })
 })
