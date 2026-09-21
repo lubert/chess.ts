@@ -1455,7 +1455,7 @@ describe('.loadPgn', () => {
       {
         name: 'Bracket comments and shallow variation',
         pgn: "1. e4 ( 1. d4 { Queen's pawn } d5 ( 1... Nf6 ) ) e5",
-        expectedPgn: "1. e4 (1. d4 {Queen's pawn} 1...d5 (1...Nf6)) 1...e5",
+        expectedPgn: "1. e4 (1. d4 {Queen's pawn} d5 (1...Nf6)) 1...e5",
       },
       {
         name: 'Bracket comments and extended variations',

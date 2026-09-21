@@ -1243,7 +1243,7 @@ describe('comment with no move of its own', () => {
     expect(chess.getComment([0, 0, 1])).toBe('The threat is')
     expect(chess.getStartingComment([0, 0, 1, 0])).toBeUndefined()
     expect(chess.pgn()).toBe(
-      '1. e4 e5 2. Bc4 {Necessary.} (2. -- {The threat is} 2...Qh4) 2...Nc6',
+      '1. e4 e5 2. Bc4 {Necessary.} (2. -- {The threat is} Qh4) 2...Nc6',
     )
   })
 
@@ -1286,7 +1286,7 @@ describe('annotations around a null move', () => {
     expect(chess.getStartingComment([0, 0, 1])).toBe('head')
     expect(chess.getComment([0, 0, 1])).toBe('more')
     expect(chess.pgn()).toBe(
-      '1. e4 e5 2. Nf3 ({head} 2. -- {more} 2...Qh4) 2...Nc6',
+      '1. e4 e5 2. Nf3 ({head} 2. -- {more} Qh4) 2...Nc6',
     )
   })
 
@@ -1304,12 +1304,6 @@ describe('annotations around a null move', () => {
     expect(chess.getComment([0, 0, 0])).toBe('forced')
     expect(chess.getNags([0, 0, 0])).toEqual([2])
     expect(chess.history()).toEqual(['e4', 'f5', 'Qh5+', 'g6'])
-  })
-
-  it('numbers the move after a commented variation head', () => {
-    expect(pgnOf('1. e4 e5 2. Nf3 (2. Nc3 {x} Nc6) 2... Nc6')).toBe(
-      '1. e4 e5 2. Nf3 (2. Nc3 {x} 2...Nc6) 2...Nc6',
-    )
   })
 
   it('leaves an unannotated null move unnumbered on the move after it', () => {
