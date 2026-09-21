@@ -184,7 +184,7 @@ export function pgnMoves(
     variations.forEach((variation) => {
       tokens.push('(')
       formatMove(variation.model, true)
-      tokens.push(...pgnMoves(variation))
+      tokens.push(...pgnMoves(variation, variation.model.comment !== undefined))
       tokens.push(')')
     })
     // After variations or comments, the next black move needs number indication

@@ -1243,7 +1243,7 @@ describe('comment with no move of its own', () => {
     expect(chess.getComment([0, 0, 1])).toBe('The threat is')
     expect(chess.getStartingComment([0, 0, 1, 0])).toBeUndefined()
     expect(chess.pgn()).toBe(
-      '1. e4 e5 2. Bc4 {Necessary.} (2. -- {The threat is} Qh4) 2...Nc6',
+      '1. e4 e5 2. Bc4 {Necessary.} (2. -- {The threat is} 2...Qh4) 2...Nc6',
     )
   })
 
@@ -1286,7 +1286,7 @@ describe('annotations around a null move', () => {
     expect(chess.getStartingComment([0, 0, 1])).toBe('head')
     expect(chess.getComment([0, 0, 1])).toBe('more')
     expect(chess.pgn()).toBe(
-      '1. e4 e5 2. Nf3 ({head} 2. -- {more} Qh4) 2...Nc6',
+      '1. e4 e5 2. Nf3 ({head} 2. -- {more} 2...Qh4) 2...Nc6',
     )
   })
 
@@ -1308,5 +1308,35 @@ describe('annotations around a null move', () => {
 
   it('leaves an unannotated null move unnumbered on the move after it', () => {
     expect(pgnOf('1. e4 e5 2. -- Nc6')).toBe('1. e4 e5 2. -- Nc6')
+  })
+})
+
+describe('black move numbers follow the PGN export rule', () => {
+  const pgnOf = (text: string) => {
+    const chess = new Chess()
+    chess.loadPgn(text)
+    return chess.pgn()
+  }
+
+  it('numbers a black move only where a comment or variation breaks the flow', () => {
+    expect(
+      pgnOf('1. e4 {c} e5 2. Nf3 (2. Nc3 {x} Nc6) Nc6 (2... d6) 3. Bb5 *'),
+    ).toBe(
+      '1. e4 {c} 1...e5 2. Nf3 (2. Nc3 {x} 2...Nc6) 2...Nc6 (2...d6) 3. Bb5 *',
+    )
+  })
+
+  it('leaves an unannotated black move unnumbered', () => {
+    expect(pgnOf('1. e4 e5 2. Nf3 Nc6')).toBe('1. e4 e5 2. Nf3 Nc6')
+  })
+
+  it('leaves a black move after an unannotated null move unnumbered', () => {
+    expect(pgnOf('1. e4 e5 2. -- Nc6')).toBe('1. e4 e5 2. -- Nc6')
+  })
+
+  it('numbers a black move that follows a commented null move inside a variation', () => {
+    expect(pgnOf('1. e4 e5 2. Nf3 ({head} 2. -- {more} Qh4) Nc6')).toBe(
+      '1. e4 e5 2. Nf3 ({head} 2. -- {more} 2...Qh4) 2...Nc6',
+    )
   })
 })
