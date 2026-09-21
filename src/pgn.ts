@@ -13,6 +13,7 @@ import {
   POSSIBLE_RESULTS,
   NULL_MOVES,
   CASTLING_MOVES,
+  BITS,
 } from './constants'
 import { loadFen, sanToMove, makeMove, unmakeMove, asStoredMove } from './move'
 import { cloneBoardState, NodeState } from './state'
@@ -184,12 +185,21 @@ export function pgnMoves(
     variations.forEach((variation) => {
       tokens.push('(')
       formatMove(variation.model, true)
-      tokens.push(...pgnMoves(variation))
+      // A null move breaks the flow, so the move after it needs a number too
+      const afterNullMove = Boolean(
+        variation.model.move && variation.model.move.flags & BITS.NULL_MOVE,
+      )
+      tokens.push(...pgnMoves(variation, afterNullMove))
       tokens.push(')')
     })
-    // After variations or comments, the next black move needs number indication
+    // After variations, comments, or a null move, the next move needs a number
+    const afterNullMove = Boolean(
+      mainline.model.move && mainline.model.move.flags & BITS.NULL_MOVE,
+    )
     const hasInterveningAnnotation =
-      variations.length > 0 || mainline.model.comment !== undefined
+      variations.length > 0 ||
+      mainline.model.comment !== undefined ||
+      afterNullMove
     tokens.push(...pgnMoves(mainline, hasInterveningAnnotation))
   }
   return tokens
@@ -527,14 +537,15 @@ export function walkPgn(pgn: string, options: WalkPgnOptions): HeaderMap {
           header.Result = token
         }
       } else if (NULL_MOVES.includes(token)) {
-        if (!flushPending()) break
-        // A null move holds no annotations, so a comment around it leads the next move
-        commentStartsNext = true
+        // Unplayable in check: skipped, so what follows stays with the move before
         const move = sanToMove(boardState, '--', { skipSan })
         if (!move) continue
+        if (!flushPending()) break
         const undo = makeMove(boardState, move)
         undoStack.push(undo)
-        pendingMoveInfo = { move }
+        pendingMoveInfo = { move, startingComment: pendingStartingComment }
+        pendingStartingComment = undefined
+        commentStartsNext = false
         atRootNoMoves = false
       } else if (REGEXP_MOVE_NUMBER.test(token)) {
         continue

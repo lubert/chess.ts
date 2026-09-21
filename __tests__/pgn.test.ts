@@ -1235,11 +1235,13 @@ describe('comment after a variation', () => {
 })
 
 describe('comment with no move of its own', () => {
-  it("reads a comment after a null move as the next move's starting comment", () => {
+  it('reads a comment after a null move as its own', () => {
     const chess = new Chess()
     chess.loadPgn(
       '1. e4 e5 2. Bc4 {Necessary.} (2. -- {The threat is} 2... Qh4) 2... Nc6',
     )
+    expect(chess.getComment([0, 0, 1])).toBe('The threat is')
+    expect(chess.getStartingComment([0, 0, 1, 0])).toBeUndefined()
     expect(chess.pgn()).toBe(
       '1. e4 e5 2. Bc4 {Necessary.} (2. -- {The threat is} 2...Qh4) 2...Nc6',
     )
@@ -1258,32 +1260,49 @@ describe('comment with no move of its own', () => {
   })
 })
 
-describe('a starting comment waits for the next real move on its line', () => {
+describe('annotations around a null move', () => {
   const pgnOf = (text: string) => {
     const chess = new Chess()
     chess.loadPgn(text)
     return chess.pgn()
   }
 
-  it('across a variation that opens before that move', () => {
+  it('keeps a starting comment waiting across a variation', () => {
     expect(pgnOf('1. e4 e5 2. Nf3 (2. Nc3) {between} (2. d4) 2... Nc6')).toBe(
       '1. e4 e5 2. Nf3 (2. Nc3) (2. d4) {between} 2...Nc6',
     )
-    expect(pgnOf('1. e4 e5 2. -- {threat} (2. d4) 2... Nc6')).toBe(
-      '1. e4 e5 2. -- (2. d4) {threat} 2...Nc6',
+  })
+
+  it('gives a comment before a variation to the null move it follows', () => {
+    const chess = new Chess()
+    chess.loadPgn('1. e4 e5 2. -- {threat} (2. d4) 2... Nc6')
+    expect(chess.getComment([0, 0, 0])).toBe('threat')
+    expect(chess.pgn()).toBe('1. e4 e5 2. -- {threat} (2. d4) 2...Nc6')
+  })
+
+  it('gives the null move the starting comment before it', () => {
+    const chess = new Chess()
+    chess.loadPgn('1. e4 e5 2. Nf3 ({head} 2. -- {more} 2... Qh4) 2... Nc6')
+    expect(chess.getStartingComment([0, 0, 1])).toBe('head')
+    expect(chess.getComment([0, 0, 1])).toBe('more')
+    expect(chess.pgn()).toBe(
+      '1. e4 e5 2. Nf3 ({head} 2. -- {more} 2...Qh4) 2...Nc6',
     )
   })
 
-  it('across a null move, which holds no annotations', () => {
-    expect(
-      pgnOf('1. e4 e5 2. Nf3 ({head} 2. -- {more} 2... Qh4) 2... Nc6'),
-    ).toBe('1. e4 e5 2. Nf3 (2. -- {head more} 2...Qh4) 2...Nc6')
+  it('gives the null move the NAG after it', () => {
+    const chess = new Chess()
+    chess.loadPgn('1. e4 e5 2. -- $1 2... Nc6')
+    expect(chess.getNags([0, 0, 0])).toEqual([1])
+    expect(chess.getNags([0, 0])).toEqual([])
   })
 
-  it('after a null move that could not be played', () => {
+  it('gives the move before a null move that could not be played its text', () => {
     // Black is in check, so the null move is skipped.
-    expect(pgnOf('1. e4 f5 2. Qh5+ -- {forced} g6')).toBe(
-      '1. e4 f5 2. Qh5+ {forced} 2...g6',
-    )
+    const chess = new Chess()
+    chess.loadPgn('1. e4 f5 2. Qh5+ -- $2 {forced} g6')
+    expect(chess.getComment([0, 0, 0])).toBe('forced')
+    expect(chess.getNags([0, 0, 0])).toEqual([2])
+    expect(chess.history()).toEqual(['e4', 'f5', 'Qh5+', 'g6'])
   })
 })
