@@ -208,7 +208,12 @@ export type UndoInfo = {
 /** @public */
 export type WalkPgnContext = {
   undoStack: UndoInfo[]
-  variationStack: Array<{ restoreDepth: number; replayUndo: UndoInfo }>
+  variationStack: Array<{
+    restoreDepth: number
+    replayUndo: UndoInfo
+    /** Set aside while the variation runs, for the next move on its parent line */
+    startingComment?: string
+  }>
 }
 
 /** @public */
@@ -225,4 +230,6 @@ export type WalkPgnOptions = {
   ) => boolean | void
   onStartVariation?: () => void
   onEndVariation?: () => void
+  /** A comment with no move left to follow: it belongs to the current position. */
+  onComment?: (comment: string) => void
 }

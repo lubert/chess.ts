@@ -65,6 +65,67 @@ export function pgnHeader(header: HeaderMap): string[] {
     .map(([key, val]) => `[${key} "${escapeTag(String(val))}"]`)
 }
 
+/**
+ * A `}` ends the comment for every reader and no escape helps, so a brace has
+ * to become the bracket the annotator meant.
+ */
+function repairBraces(text: string): string {
+  if (!/[{}]/.test(text)) return text
+  const out = text.split('')
+  const opens: number[] = []
+  for (let i = 0; i < text.length; i++) {
+    if (text[i] === '{') {
+      opens.push(i)
+    } else if (text[i] === '}') {
+      const open = opens.pop()
+      if (open === undefined) {
+        out[i] = nearestBracket(text, i, -1)
+      } else {
+        out[open] = '('
+        out[i] = ')'
+      }
+    }
+  }
+  for (const open of opens) out[open] = nearestBracket(text, open, 1)
+  return out.join('')
+}
+
+/**
+ * The bracket an unmatched brace stands for: the nearest one left unclosed
+ * before it (dir -1), or closed but never opened after it (dir 1).
+ */
+function nearestBracket(text: string, i: number, dir: 1 | -1): string {
+  const [paren, square] = dir < 0 ? ['(', '['] : [')', ']']
+  const [nestParen, nestSquare] = dir < 0 ? [')', ']'] : ['(', '[']
+  let par = 0
+  let sq = 0
+  for (let j = i + dir; j >= 0 && j < text.length; j += dir) {
+    const ch = text[j]
+    if (ch === nestParen) par++
+    else if (ch === paren) {
+      if (par === 0) return dir < 0 ? ')' : '('
+      par--
+    } else if (ch === nestSquare) sq++
+    else if (ch === square) {
+      if (sq === 0) return dir < 0 ? ']' : '['
+      sq--
+    }
+  }
+  return dir < 0 ? ')' : '('
+}
+
+/**
+ * A comment as it is safe to write. A blank line ends a game for a
+ * line-oriented reader, and a `[` in column one reads as the next game's tags.
+ */
+function commentBody(text: string): string {
+  return repairBraces(text.replace(/^[ \t\n\f\r]+|[ \t\n\f\r]+$/g, ''))
+    .split(/\r?\n/)
+    .filter((line) => line.trim())
+    .map((line, i) => (i > 0 && line.startsWith('[') ? ` ${line}` : line))
+    .join('\n')
+}
+
 export function pgnMoves(
   node: TreeNode<NodeModel>,
   afterAnnotation = false,
@@ -72,10 +133,13 @@ export function pgnMoves(
   const tokens: string[] = []
   const { boardState } = node.model
 
-  // Special case for initial commented position
-  if (node.isRoot && node.model.comment) {
-    tokens.push(`{${node.model.comment}}`)
+  const pushComment = (text: string | undefined) => {
+    const body = text && commentBody(text)
+    if (body) tokens.push(`{${body}}`)
   }
+
+  // Special case for initial commented position
+  if (node.isRoot) pushComment(node.model.comment)
 
   const formatMove = (
     state: NodeModel,
@@ -85,9 +149,7 @@ export function pgnMoves(
     const { move, comment, nags, startingComment } = state
 
     // Output starting comment BEFORE the move
-    if (startingComment) {
-      tokens.push(`{${startingComment}}`)
-    }
+    pushComment(startingComment)
 
     if (move) {
       const isFirstMove = !node.model.move
@@ -97,18 +159,21 @@ export function pgnMoves(
       // Move
       if (move.color === WHITE) {
         tokens.push(`${boardState.move_number}. ${san}${nagStr}`)
-      } else if (isFirstMove || isVariation || hasInterveningAnnotation) {
-        // Black move needs number indication when:
-        // - It's the first move of the game
-        // - It's the start of a variation
-        // - There's intervening annotation (variation or comment) before it
+      } else if (
+        isFirstMove ||
+        isVariation ||
+        hasInterveningAnnotation ||
+        startingComment
+      ) {
+        // Numbered at a game or variation start, or after anything that breaks
+        // the flow, its own starting comment included
         tokens.push(`${boardState.move_number}...${san}${nagStr}`)
       } else {
         tokens.push(`${san}${nagStr}`)
       }
     }
     // Comment after the move
-    if (comment) tokens.push(`{${comment}}`)
+    pushComment(comment)
   }
 
   const [mainline, ...variations] = node.children
@@ -185,7 +250,53 @@ export function createWalkPgnContext(): WalkPgnContext {
   }
 }
 
-const REGEXP_WHITESPACE_RUN = /\s+/g
+const RESULT_TOKENS = new Set(['1-0', '0-1', '1/2-1/2', '*'])
+
+/**
+ * Where a game's movetext ends: at a blank line after
+ * the result, or at a tag line, but never inside a comment.
+ */
+class MovetextBoundary {
+  private inComment = false
+  private awaitingResult = true
+
+  endsBefore(line: string): boolean {
+    if (this.inComment) return false
+    const trimmed = line.trim()
+    return trimmed ? trimmed.startsWith('[') : !this.awaitingResult
+  }
+
+  track(line: string): void {
+    let last = ''
+    let start = -1
+    let i = 0
+    for (; i < line.length; i++) {
+      const code = line.charCodeAt(i)
+      if (this.inComment) {
+        if (code === 125) this.inComment = false // }
+        continue
+      }
+      // { ; space tab \n \v \f \r end a token
+      if (
+        code === 123 ||
+        code === 59 ||
+        code === 32 ||
+        (code >= 9 && code <= 13)
+      ) {
+        if (start >= 0) last = line.slice(start, i)
+        start = -1
+        if (code === 123) this.inComment = true
+        else if (code === 59) break
+      } else if (start < 0) {
+        start = i
+      }
+    }
+    if (start >= 0) last = line.slice(start, i)
+    if (line.trim()) {
+      this.awaitingResult = this.inComment || !RESULT_TOKENS.has(last)
+    }
+  }
+}
 
 type PendingMove = {
   move: HexMove
@@ -203,6 +314,7 @@ export function walkPgn(pgn: string, options: WalkPgnOptions): HeaderMap {
     onMove,
     onStartVariation,
     onEndVariation,
+    onComment,
     context,
   } = options
 
@@ -214,6 +326,7 @@ export function walkPgn(pgn: string, options: WalkPgnOptions): HeaderMap {
 
   // Extract headers, then concatenate movetext lines into a single string
   const movetextParts: string[] = []
+  const boundary = new MovetextBoundary()
   let inHeaders = true
   for (let li = 0; li < lines.length; li++) {
     const line = lines[li]
@@ -227,7 +340,8 @@ export function walkPgn(pgn: string, options: WalkPgnOptions): HeaderMap {
         continue
       }
       inHeaders = false
-    } else if (!line) break
+    } else if (boundary.endsBefore(line)) break
+    boundary.track(line)
     movetextParts.push(line)
   }
   const movetext = movetextParts.join('\n')
@@ -249,7 +363,7 @@ export function walkPgn(pgn: string, options: WalkPgnOptions): HeaderMap {
   // so that post-move comments and NAGs are included
   let pendingMoveInfo: PendingMove | undefined
   let pendingStartingComment: string | undefined
-  let inVariationStart = false
+  let commentStartsNext = false
   let atRootNoMoves = true
   let aborted = false
 
@@ -271,14 +385,29 @@ export function walkPgn(pgn: string, options: WalkPgnOptions): HeaderMap {
     else if (!pendingMoveInfo.nags.includes(nag)) pendingMoveInfo.nags.push(nag)
   }
 
+  const join = (prev: string | undefined, next: string) =>
+    prev ? `${prev} ${next}` : next
+
   const setComment = (raw: string) => {
-    // Normalize: collapse whitespace runs (including newlines) to single space, trim
-    const commentText = raw.replace(REGEXP_WHITESPACE_RUN, ' ').trim()
+    // Line breaks are the annotator's, so keep them and trim only the ends
+    const commentText = raw.replace(/\r\n/g, '\n').trim()
     if (!commentText) return
-    if (inVariationStart || atRootNoMoves) {
-      pendingStartingComment = commentText
+    if (commentStartsNext || atRootNoMoves) {
+      pendingStartingComment = join(pendingStartingComment, commentText)
     } else if (pendingMoveInfo) {
-      pendingMoveInfo.comment = commentText
+      pendingMoveInfo.comment = join(pendingMoveInfo.comment, commentText)
+    }
+  }
+
+  // A starting comment that no move followed: it closes the line instead.
+  const settleStartingComment = () => {
+    if (!pendingStartingComment) return
+    const text = pendingStartingComment
+    pendingStartingComment = undefined
+    if (pendingMoveInfo) {
+      pendingMoveInfo.comment = join(pendingMoveInfo.comment, text)
+    } else if (onComment) {
+      onComment(text)
     }
   }
 
@@ -349,25 +478,30 @@ export function walkPgn(pgn: string, options: WalkPgnOptions): HeaderMap {
       variationStack.push({
         restoreDepth: undoStack.length,
         replayUndo: lastUndo,
+        startingComment: pendingStartingComment,
       })
+      pendingStartingComment = undefined
       if (onStartVariation) onStartVariation()
-      inVariationStart = true
+      commentStartsNext = true
     } else if (ch === 41) {
       // )
       // End variation
+      settleStartingComment()
       if (!flushPending()) break
       if (!variationStack.length) throw new Error('Mismatched parentheses')
       pos++
 
       if (onEndVariation) onEndVariation()
-      const { restoreDepth, replayUndo } = variationStack.pop()!
+      const { restoreDepth, replayUndo, startingComment } =
+        variationStack.pop()!
       while (undoStack.length > restoreDepth) {
         unmakeMove(boardState, undoStack.pop()!)
       }
       const redo = makeMove(boardState, replayUndo.move)
       undoStack.push(redo)
-      inVariationStart = false
-      pendingStartingComment = undefined
+      // The move's own comment came before the `(`, so one here leads the next
+      commentStartsNext = true
+      pendingStartingComment = startingComment
     } else {
       // Scan a token: read until whitespace or structural char
       const start = pos
@@ -394,16 +528,13 @@ export function walkPgn(pgn: string, options: WalkPgnOptions): HeaderMap {
         }
       } else if (NULL_MOVES.includes(token)) {
         if (!flushPending()) break
+        // A null move holds no annotations, so a comment around it leads the next move
+        commentStartsNext = true
         const move = sanToMove(boardState, '--', { skipSan })
         if (!move) continue
         const undo = makeMove(boardState, move)
         undoStack.push(undo)
-        pendingMoveInfo = {
-          move,
-          startingComment: pendingStartingComment,
-        }
-        pendingStartingComment = undefined
-        inVariationStart = false
+        pendingMoveInfo = { move }
         atRootNoMoves = false
       } else if (REGEXP_MOVE_NUMBER.test(token)) {
         continue
@@ -428,13 +559,14 @@ export function walkPgn(pgn: string, options: WalkPgnOptions): HeaderMap {
           startingComment: pendingStartingComment,
         }
         pendingStartingComment = undefined
-        inVariationStart = false
+        commentStartsNext = false
         atRootNoMoves = false
       }
     }
   }
 
   // Flush final pending move
+  settleStartingComment()
   flushPending()
 
   return header
@@ -480,6 +612,10 @@ export function loadPgn(
     },
     onEndVariation: () => {
       currentNode = parentNodes.pop()!
+    },
+    onComment: (comment) => {
+      const own = currentNode.model.comment
+      currentNode.model.comment = own ? `${own} ${comment}` : comment
     },
   })
   return { tree, currentNode, header }

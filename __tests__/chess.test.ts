@@ -1594,9 +1594,9 @@ describe('.loadPgn', () => {
         output: '1. e4 {good!} 1...e5 {standard response} 2. Nf3 Nc6 {common}',
       },
       {
-        name: 'bracket comments with newlines',
+        name: 'bracket comments keep their newlines',
         input: '1. e4 {good\nmove} e5 {classical\nresponse}',
-        output: '1. e4 {good move} 1...e5 {classical response}',
+        output: '1. e4 {good\nmove} 1...e5 {classical\nresponse}',
       },
       {
         name: 'initial comment',
@@ -1626,7 +1626,7 @@ describe('.loadPgn', () => {
       {
         name: 'bracket in semicolon comment',
         input: '1. e4 e5 ; a classic {well-studied}',
-        output: '1. e4 e5 {a classic {well-studied}}',
+        output: '1. e4 e5 {a classic (well-studied)}',
       },
       {
         name: 'markers in bracket comment',

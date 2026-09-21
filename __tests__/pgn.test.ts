@@ -1063,13 +1063,13 @@ describe('tag value escaping', () => {
     expect(chess.pgn()).toContain('[White "a\\"b\\\\c"]')
   })
 
-  it('maps a control character to a space, matching the Rust writer', () => {
+  it('maps a control character to a space', () => {
     const chess = new Chess()
     chess.header.Event = 'TUR Cup\t\t\t'
     expect(chess.pgn()).toContain('[Event "TUR Cup   "]')
   })
 
-  it('leaves legal spaces alone, matching the Rust writer', () => {
+  it('leaves legal spaces alone', () => {
     const chess = new Chess()
     chess.header.Event = 'm 07th  12-18  '
     expect(chess.pgn()).toContain('[Event "m 07th  12-18  "]')
@@ -1101,5 +1101,189 @@ describe('tag value escaping', () => {
     const b = new Chess()
     b.loadPgn('[Site "C:\\games"]\n\n1. e4')
     expect(b.header.Site).toEqual('C:\\games')
+  })
+})
+
+describe('comment fidelity', () => {
+  const comments = (pgn: string) => {
+    const out: [string | undefined, string | undefined][] = []
+    walkPgn(pgn, {
+      onMove: (_move, _boardState, comment, startingComment) => {
+        out.push([startingComment, comment])
+      },
+    })
+    return out
+  }
+
+  it('keeps line breaks inside a comment', () => {
+    expect(comments('1. e4 {one\ntwo} e5')[0]).toEqual([undefined, 'one\ntwo'])
+    expect(comments('1. e4 {one\r\ntwo} e5')[0]).toEqual([
+      undefined,
+      'one\ntwo',
+    ])
+    expect(comments('1. e4 {  padded  } e5')[0]).toEqual([undefined, 'padded'])
+  })
+
+  it('joins consecutive comments rather than keeping the last', () => {
+    expect(comments('{a} {b} 1. e4 {c} {d} e5')[0]).toEqual(['a b', 'c d'])
+    expect(comments('1. e4 e5 2. Nf3 {x} ({y} {z} 2. Nc3) Nc6')[3]).toEqual([
+      'y z',
+      undefined,
+    ])
+  })
+
+  it('reads on past a blank line inside a comment', () => {
+    const chess = new Chess()
+    chess.loadPgn('[Event "A"]\n\n1. e4 {one\n\ntwo} e5 1-0')
+    expect(chess.history()).toEqual(['e4', 'e5'])
+  })
+
+  it('reads on past the blank line pgn-extract writes after a leading comment', () => {
+    const chess = new Chess()
+    chess.loadPgn('[Event "A"]\n\n{ before move one }\n\n1. e4 e5 1-0')
+    expect(chess.history()).toEqual(['e4', 'e5'])
+  })
+
+  it('reads on past a blank line before the result', () => {
+    const chess = new Chess()
+    chess.loadPgn('[Event "A"]\n\n1. e4 e5\n\n2. Nf3 1-0')
+    expect(chess.history()).toEqual(['e4', 'e5', 'Nf3'])
+  })
+
+  it('stops at the blank line after the result', () => {
+    const chess = new Chess()
+    chess.loadPgn('[Event "A"]\n\n1. e4 1-0\n\n[Event "B"]\n\n1. d4 0-1')
+    expect(chess.history()).toEqual(['e4'])
+  })
+
+  it('stops at the next tag roster when a game has no result', () => {
+    const chess = new Chess()
+    chess.loadPgn('[Event "A"]\n\n1. e4 e5\n\n[Event "B"]\n\n1. d4 d5')
+    expect(chess.history()).toEqual(['e4', 'e5'])
+  })
+
+  it('folds a blank line inside a comment on write', () => {
+    const chess = new Chess()
+    chess.move('e4')
+    chess.setComment('one\n\n\ntwo\r\n  \nthree')
+    expect(chess.pgn()).toContain('{one\ntwo\nthree}')
+  })
+
+  it('moves a bracket off column one on write', () => {
+    // A `[` in column one reads as the next game's tags to a line reader.
+    const chess = new Chess()
+    chess.move('e4')
+    chess.setStartingComment('before\n[%cal Ge2e4]')
+    chess.setComment('after\n[%csl Ge4]')
+    expect(chess.pgn()).toContain(
+      '{before\n [%cal Ge2e4]} 1. e4 {after\n [%csl Ge4]}',
+    )
+  })
+
+  it('reads back what it writes', () => {
+    const chess = new Chess()
+    chess.move('e4')
+    chess.setStartingComment('lead\nin')
+    chess.setComment('one\ntwo')
+    chess.move('e5')
+    const back = new Chess()
+    back.loadPgn(chess.pgn())
+    expect(back.pgn()).toEqual(chess.pgn())
+  })
+
+  it('repairs a brace on write to the bracket it stands for', () => {
+    // A `;` comment is the one way a brace reaches the writer.
+    const cases: [string, string][] = [
+      ['{35..Bg4}', '(35..Bg4)'],
+      ['die einzige{!} entwickelte', 'die einzige(!) entwickelte'],
+      ['p.166 [Chigorin}', 'p.166 [Chigorin]'],
+      ['Brussels 1987 (41}', 'Brussels 1987 (41)'],
+      ['CBM 65{Tsesarsky,I] (29)', 'CBM 65[Tsesarsky,I] (29)'],
+      ['{Avrukh,B]', '[Avrukh,B]'],
+      ['{=', '(='],
+      ['ending} 33.Be7', 'ending) 33.Be7'],
+      ["Reno{play-off(01) 10'}.The game", "Reno(play-off(01) 10').The game"],
+      ['La {£f4 contrôle', 'La (£f4 contrôle'],
+      ['¥(or ¤},§', '¥(or ¤),§'],
+    ]
+    for (const [raw, fixed] of cases) {
+      const chess = new Chess()
+      chess.loadPgn(`1. e4 ; ${raw}\n`)
+      expect(chess.pgn()).toEqual(`1. e4 {${fixed}}`)
+    }
+  })
+})
+
+describe('comment after a variation', () => {
+  it('reads it as the starting comment of the move that follows', () => {
+    // The move's own comment is written before the `(`, so text after the
+    // `)` introduces the next move.
+    const starting: (string | undefined)[] = []
+    walkPgn('1. e4 e5 2. Nf3 (2. Nc3) {Then after} 2... Nc6', {
+      onMove: (_move, _boardState, _comment, startingComment) => {
+        starting.push(startingComment)
+      },
+    })
+    expect(starting).toEqual([
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      'Then after',
+    ])
+  })
+})
+
+describe('comment with no move of its own', () => {
+  it("reads a comment after a null move as the next move's starting comment", () => {
+    const chess = new Chess()
+    chess.loadPgn(
+      '1. e4 e5 2. Bc4 {Necessary.} (2. -- {The threat is} 2... Qh4) 2... Nc6',
+    )
+    expect(chess.pgn()).toBe(
+      '1. e4 e5 2. Bc4 {Necessary.} (2. -- {The threat is} 2...Qh4) 2...Nc6',
+    )
+  })
+
+  it('keeps a comment that ends a line on the move before it', () => {
+    const chess = new Chess()
+    chess.loadPgn('1. e4 e5 2. Nf3 (2. Nc3) {closing words}')
+    expect(chess.pgn()).toBe('1. e4 e5 2. Nf3 {closing words} (2. Nc3)')
+  })
+
+  it('keeps a comment after a null move that ends its line', () => {
+    const chess = new Chess()
+    chess.loadPgn('1. e4 (1. -- {threat}) 1... e5')
+    expect(chess.pgn()).toBe('1. e4 (1. -- {threat}) 1...e5')
+  })
+})
+
+describe('a starting comment waits for the next real move on its line', () => {
+  const pgnOf = (text: string) => {
+    const chess = new Chess()
+    chess.loadPgn(text)
+    return chess.pgn()
+  }
+
+  it('across a variation that opens before that move', () => {
+    expect(pgnOf('1. e4 e5 2. Nf3 (2. Nc3) {between} (2. d4) 2... Nc6')).toBe(
+      '1. e4 e5 2. Nf3 (2. Nc3) (2. d4) {between} 2...Nc6',
+    )
+    expect(pgnOf('1. e4 e5 2. -- {threat} (2. d4) 2... Nc6')).toBe(
+      '1. e4 e5 2. -- (2. d4) {threat} 2...Nc6',
+    )
+  })
+
+  it('across a null move, which holds no annotations', () => {
+    expect(
+      pgnOf('1. e4 e5 2. Nf3 ({head} 2. -- {more} 2... Qh4) 2... Nc6'),
+    ).toBe('1. e4 e5 2. Nf3 (2. -- {head more} 2...Qh4) 2...Nc6')
+  })
+
+  it('after a null move that could not be played', () => {
+    // Black is in check, so the null move is skipped.
+    expect(pgnOf('1. e4 f5 2. Qh5+ -- {forced} g6')).toBe(
+      '1. e4 f5 2. Qh5+ {forced} 2...g6',
+    )
   })
 })
